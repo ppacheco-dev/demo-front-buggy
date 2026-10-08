@@ -31,10 +31,10 @@ export default function LiveRaceScreen({
   const race = selectedRace || getOrCreateRace(defaultNumber, todayStr, defaultHour);
   const tramos = race.tramos && race.tramos.length > 0 ? race.tramos : REFERENCE_RACE_TRAMOS;
 
-  // Estados de animación continua
+  // Estados de animación continua (por defecto: vista clásica 2D)
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
   const [isFinished, setIsFinished] = useState(false);
-  const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' | 'broadcast2d'
+  const [cameraMode, setCameraMode] = useState('broadcast2d'); // 'broadcast2d' (por defecto) | 'arcade25d'
   const animFrameRef = useRef(null);
   const startTimeRef = useRef(null);
 

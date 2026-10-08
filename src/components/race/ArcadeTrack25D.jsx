@@ -6,9 +6,10 @@ import styles from './ArcadeTrack25D.module.css';
 /**
  * ArcadeTrack25D: Pista de carreras en perspectiva 2.5D pseudo-3D
  * Optimizada para alto rendimiento (60+ FPS constante en GPU):
- * 1. Obstáculo transversal a lo ancho de la pista para todos los autos simultáneamente.
- * 2. Los buggies que quedan eliminados desaparecen inmediatamente de la pista.
- * 3. Posicionamiento con hardware acceleration (translate3d) y sin transitions CSS en RAF.
+ * 1. Obstáculo transversal del ancho completo de la pista que pasa por debajo de los buggies (z-index bajo).
+ * 2. Si un buggy esquiva o supera el obstáculo, realiza un salto aéreo o maniobra ágil de esquiva.
+ * 3. Los buggies que quedan eliminados desaparecen inmediatamente de la pista.
+ * 4. Posicionamiento con hardware acceleration (translate3d) y sin transitions CSS en RAF.
  */
 export default function ArcadeTrack25D({
   cars = [],
@@ -46,34 +47,35 @@ export default function ArcadeTrack25D({
   }, []);
 
   // Cálculo de la aproximación en perspectiva 3D del obstáculo transversal para TODOS los autos
-  const { isHazardVisible, hazardTop, hazardScale, hazardOpacity, hazardZIndex } = useMemo(() => {
+  const { isHazardVisible, hazardTop, hazardScale, hazardOpacity } = useMemo(() => {
     // Hay 7 transiciones entre tramos
     const sectorFraction = (progress * 7) % 1;
 
-    // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos (0.06 a 0.78)
-    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= 0.06 && sectorFraction <= 0.78;
+    // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos (0.06 a 0.82)
+    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= 0.06 && sectorFraction <= 0.82;
 
     if (!isVisible) {
-      return { isHazardVisible: false, hazardTop: 0, hazardScale: 1, hazardOpacity: 0, hazardZIndex: 1 };
+      return { isHazardVisible: false, hazardTop: 0, hazardScale: 1, hazardOpacity: 0 };
     }
 
     // Normalizado de 0 (horizonte lejano) a 1 (primer plano cruzado)
-    const norm = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.66));
+    const norm = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.70));
     const curve = norm * norm; // aceleración cuadrática en perspectiva 3D
 
-    const top = 30 + curve * 52; // de 30% (horizonte) a 82% (cerca de cámara)
-    const scale = 0.38 + curve * 0.82; // escala proporcional de 0.38 a 1.20
-    const opacity = norm < 0.12 ? norm / 0.12 : (norm > 0.88 ? (1 - norm) / 0.12 : 1);
-    const zIndex = Math.round((1 - curve) * 80) + 15;
+    const top = 30 + curve * 54; // de 30% (horizonte) a 84% (pasa por debajo)
+    const scale = 0.40 + curve * 0.85; // escala proporcional de 0.40 a 1.25
+    const opacity = norm < 0.1 ? norm / 0.1 : (norm > 0.86 ? (1 - norm) / 0.14 : 1);
 
     return {
       isHazardVisible: true,
       hazardTop: top,
       hazardScale: scale,
       hazardOpacity: opacity,
-      hazardZIndex: zIndex,
     };
   }, [progress, isFinished, currentSectorObstacle]);
+
+  // Fracción actual del sector para coordinar saltos y esquives de los buggies
+  const sectorFraction = (progress * 7) % 1;
 
   return (
     <div className={styles.arcadeContainer}>
@@ -142,7 +144,7 @@ export default function ArcadeTrack25D({
           )}
         </div>
 
-        {/* 4. OBSTÁCULO TRANSVERSAL A LO ANCHO DE TODA LA PISTA PARA TODOS LOS AUTOS */}
+        {/* 4. OBSTÁCULO TRANSVERSAL DEL ANCHO COMPLETO DE LA PISTA (PASA POR DEBAJO DE LOS BUGGIES) */}
         {isHazardVisible && (
           <div
             className={styles.arcadeFullTrackHazard}
@@ -150,7 +152,7 @@ export default function ArcadeTrack25D({
               top: `${hazardTop}%`,
               transform: `translate3d(-50%, -50%, 0) scale(${hazardScale})`,
               opacity: hazardOpacity,
-              zIndex: hazardZIndex,
+              zIndex: 6, // Estrictamente por debajo de los buggies (buggies tienen zIndex 15-120)
             }}
           >
             <ArcadeRoadHazardZone
@@ -161,7 +163,7 @@ export default function ArcadeTrack25D({
           </div>
         )}
 
-        {/* 5. Capa de los Buggies Activos en Perspectiva 2.5D (Los eliminados desaparecen) */}
+        {/* 5. Capa de los Buggies Activos en Perspectiva 2.5D (Saltan o esquivan al cruzar) */}
         <div className={styles.arcadeCarsLayer}>
           {activeCars.map((car, idx) => {
             const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
@@ -177,38 +179,81 @@ export default function ArcadeTrack25D({
             // Posición Z/Y: autos más adelantados están más cerca de la meta
             const distRatio = (car.x - minX) / (maxX - minX || 1); // 0 (atrás) a 1 (líder)
 
-            // Y position en el plano de asfalto (36% horizonte a 78% primer plano)
+            // Y position base en el plano de asfalto (36% horizonte a 78% primer plano)
             const topPct = 78 - distRatio * 38;
             const scale = 1.18 - distRatio * 0.38;
-            const zIndex = Math.round((1 - distRatio) * 100) + 10;
+            const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 
-            // Inclinación suave si adelanta
-            const steeringTilt = isLeader
-              ? Math.sin(progress * 28 + idx) * 0.35
-              : Math.sin(progress * 18 + idx) * 0.2;
+            // Ventana en la que este auto en particular esquiva o salta el obstáculo
+            const carReactionOffset = (1 - distRatio) * 0.08;
+            const encounterStart = 0.36 + carReactionOffset;
+            const encounterEnd = 0.64 + carReactionOffset;
+
+            let jumpY = 0;
+            let jumpScaleBonus = 0;
+            let evasionX = 0;
+            let dynamicTilt = 0;
+            let isEvasionActive = false;
+            let isJumping = false;
+
+            if (sectorFraction >= encounterStart && sectorFraction <= encounterEnd) {
+              isEvasionActive = true;
+              const t = (sectorFraction - encounterStart) / (encounterEnd - encounterStart);
+              const sinArc = Math.sin(t * Math.PI); // Parábola de salto 0 -> 1 -> 0
+
+              if (
+                currentSectorObstacle?.tipo === 'DUNAS' ||
+                currentSectorObstacle?.tipo === 'HOYOS' ||
+                currentSectorObstacle?.tipo === 'GRIETAS'
+              ) {
+                // SALTO EN EL AIRE: El buggy despega acrobáticamente sobre el obstáculo mientras este pasa por debajo
+                isJumping = true;
+                jumpY = -sinArc * 36; // Eleva el auto 36px en el aire
+                jumpScaleBonus = sinArc * 0.16; // Crece hacia la cámara
+                dynamicTilt = (t < 0.5 ? -0.15 : 0.22) * sinArc;
+              } else {
+                // ESQUIVA LATERAL / SLALOM ÁGIL: El buggy zigzaguea con inclinación de viraje cerrado
+                const swerveDir = idx % 2 === 0 ? 1 : -1;
+                evasionX = Math.sin(t * Math.PI * 2) * 18 * swerveDir; // Desplazamiento lateral ±18px
+                dynamicTilt = Math.cos(t * Math.PI * 2) * 0.75 * swerveDir; // Inclinación fuerte
+                jumpY = -sinArc * 8; // Bote de suspensión
+              }
+            } else {
+              // Inclinación normal de balanceo de motor y curva
+              dynamicTilt = isLeader
+                ? Math.sin(progress * 28 + idx) * 0.35
+                : Math.sin(progress * 18 + idx) * 0.2;
+            }
 
             return (
               <div
                 key={car.name}
                 className={styles.arcadeBuggySlot}
                 style={{
-                  left: `${lanePct}%`,
+                  left: `calc(${lanePct}% + ${evasionX}px)`,
                   top: `${topPct}%`,
-                  transform: `translate3d(-50%, -50%, 0) scale(${scale})`,
-                  zIndex: zIndex,
+                  transform: `translate3d(-50%, calc(-50% + ${jumpY}px), 0) scale(${scale + jumpScaleBonus})`,
+                  zIndex: Math.round(baseZIndex + (isJumping ? 30 : 0)),
                 }}
               >
-                {/* Sombra proyectada del vehículo sobre el asfalto */}
-                <div className={styles.arcadeCarShadow} />
+                {/* Sombra proyectada en el asfalto (permanece en el suelo mientras el auto salta en el aire) */}
+                <div
+                  className={styles.arcadeCarShadow}
+                  style={{
+                    transform: `translate3d(-50%, ${-jumpY}px, 0) scale(${Math.max(0.6, 1 - jumpScaleBonus * 1.2)})`,
+                    opacity: isJumping ? 0.35 : 0.75,
+                    filter: isJumping ? 'blur(6px)' : 'none',
+                  }}
+                />
 
                 {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (60 FPS NATIVO) */}
                 <ArcadeBuggyRearSprite
                   buggy={car.buggy}
                   isEliminated={false}
-                  isBoosting={car.isBoosting}
+                  isBoosting={car.isBoosting || isEvasionActive}
                   carNumber={car.buggy.number || (idx + 1)}
                   speedKmh={car.speedKmh}
-                  steering={steeringTilt}
+                  steering={dynamicTilt}
                 />
 
                 {/* Etiquetas superiores flotantes */}
