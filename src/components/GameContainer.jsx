@@ -251,8 +251,8 @@ export default function GameContainer() {
       {/* Contenedor del Canvas Phaser */}
       <div ref={containerRef} className={styles.canvas} id="phaser-game-container" />
 
-      {/* Barra de herramientas derecha (UI Buttons copiados de front-caja_fuerte) - Se oculta durante la carrera */}
-      {screen !== 'race' && (
+      {/* Barra de herramientas derecha: visible exclusivamente en el menú principal */}
+      {screen === 'menu' && (
         <nav
           ref={sideNavRef}
           className={`${styles.sideToolbar} ${isMobileMenuOpen ? styles.sideToolbarMenuOpen : ''}`}

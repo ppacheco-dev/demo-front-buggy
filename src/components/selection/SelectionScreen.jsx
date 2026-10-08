@@ -49,21 +49,29 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
 
   return (
     <div className={styles.container}>
-      {/* Botón Volver al Inicio (como estaba antes) */}
-      <button
-        type="button"
-        className={styles.backButton}
-        onClick={onBackToMenu}
-        title="Volver al menú principal"
-      >
-        <i className="ph ph-arrow-left" aria-hidden="true" />
-        <span>Inicio</span>
-      </button>
-
       {/* 1. TOP BAR */}
       <header className={styles.topBar}>
-        <div className={styles.brandLogoWrap} onClick={onBackToMenu} title="Volver al menú principal">
-          <img src="/assets/images/logo_clean.webp" alt="Buggy Logo" className={styles.brandLogoImg} />
+        <div className={styles.topBarMainRow}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={onBackToMenu}
+            title="Volver al menú principal"
+          >
+            <i className="ph ph-arrow-left" aria-hidden="true" />
+            <span>Inicio</span>
+          </button>
+
+          <div className={styles.brandLogoWrap} onClick={onBackToMenu} title="Volver al menú principal">
+            <img src="/assets/images/logo_clean.webp" alt="Buggy Logo" className={styles.brandLogoImg} />
+          </div>
+
+          <div className={styles.statsGroup}>
+            <div className={styles.pricePill} title="Precio por jugada">
+              <span className={styles.priceLabel}>PRECIO:</span>
+              <span className={styles.priceValue}>{TICKET_PRICE}</span>
+            </div>
+          </div>
         </div>
 
         <div className={styles.centerInfo}>
@@ -80,13 +88,6 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                 {formatSecondsToCountdown(schedule.remainingSeconds)}
               </span>
             </div>
-          </div>
-        </div>
-
-        <div className={styles.statsGroup}>
-          <div className={styles.pricePill} title="Precio por jugada">
-            <span className={styles.priceLabel}>PRECIO:</span>
-            <span className={styles.priceValue}>{TICKET_PRICE}</span>
           </div>
         </div>
       </header>

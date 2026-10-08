@@ -32,25 +32,29 @@
 /* ==========================================================================
    TOP BAR (Cabecera)
    ========================================================================== */
+/* ==========================================================================
+   TOP BAR (Cabecera)
+   ========================================================================== */
 .topBar {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1180px;
+  align-self: center;
+  gap: 10px;
+  padding: 0 0 6px;
+  box-sizing: border-box;
+}
+
+.topBarMainRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 1180px;
-  align-self: center;
-  min-height: 72px;
-  height: 72px;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 .backButton {
-  position: absolute;
-  top: 18px;
-  left: 28px;
-  z-index: 20;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -77,7 +81,8 @@
 .brandLogoWrap {
   display: flex;
   align-items: center;
-  height: 72px;
+  justify-content: center;
+  height: 60px;
   cursor: pointer;
   z-index: 10;
   margin: 0;
@@ -85,9 +90,9 @@
 }
 
 .brandLogoImg {
-  height: 66px;
+  height: 56px;
   width: auto;
-  max-width: 320px;
+  max-width: 280px;
   object-fit: contain;
   filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.9));
   transition: transform 140ms ease;
@@ -98,26 +103,23 @@
 }
 
 .centerInfo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 28px;
-  background: rgba(0, 0, 0, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px 20px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 24px;
   border-radius: 12px;
   backdrop-filter: blur(8px);
   z-index: 10;
-  pointer-events: auto;
+  width: 100%;
+  max-width: 580px;
 }
 
 .statsGroup {
   display: flex;
   align-items: center;
-  margin-left: auto;
   z-index: 10;
 }
 
@@ -687,188 +689,225 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 10px 10px 24px;
+    padding: 8px 10px 24px;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 6px;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
   }
-  .backButton {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    z-index: 50;
-  }
+
   .topBar {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     width: 100%;
-    min-height: unset;
-    height: auto;
     gap: 8px;
     padding: 0;
-    margin-top: 36px;
+    margin-top: 0;
   }
+
+  .topBarMainRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .backButton {
+    position: static;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
   .brandLogoWrap {
-    height: 42px;
+    height: 40px;
     margin: 0;
   }
+
   .brandLogoImg {
-    height: 38px;
-    max-width: 170px;
+    height: 36px;
+    max-width: 140px;
   }
+
+  .statsGroup {
+    margin: 0;
+  }
+
+  .pricePill {
+    height: 32px;
+    padding: 0 10px;
+    gap: 4px;
+  }
+
+  .priceLabel {
+    font-size: 0.6rem;
+  }
+
+  .priceValue {
+    font-size: 0.88rem;
+  }
+
   .centerInfo {
-    position: static;
-    transform: none;
-    order: unset;
     width: 100%;
     max-width: 100%;
     justify-content: space-around;
-    gap: 12px;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 6px 10px;
     border-radius: 10px;
   }
+
   .raceTimeBlock .infoLabel,
   .countdownBlock .infoLabel {
     font-size: 0.58rem;
   }
+
   .raceTimeValue,
   .countdownValue {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
   }
-  .statsGroup {
-    margin: 0 auto;
-  }
-  .pricePill {
-    height: 36px;
-    padding: 0 14px;
-    gap: 6px;
-  }
-  .priceLabel {
-    font-size: 0.66rem;
-  }
-  .priceValue {
-    font-size: 1rem;
-  }
+
   .sectionBanner {
-    margin: 6px 0 4px;
-    padding: 4px 22px;
+    margin: 4px 0 2px;
+    padding: 3px 20px;
   }
+
   .sectionTitle {
-    font-size: 0.82rem;
-    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
   }
+
   .marketsGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
     width: 100%;
   }
+
   .marketCard {
-    min-height: 128px;
-    padding: 10px 8px 8px;
+    min-height: 114px;
+    padding: 8px 6px 6px;
     border-radius: 10px;
   }
+
   .marketTitle {
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 1px;
   }
+
   .marketDesc {
-    font-size: 0.65rem;
-    line-height: 1.25;
+    font-size: 0.62rem;
+    line-height: 1.2;
     max-width: 100%;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
   .marketIconWrap {
-    height: 52px;
-    margin-top: 4px;
+    height: 46px;
+    margin-top: 2px;
   }
+
   .marketIconImg {
-    max-height: 52px;
-    max-width: 80px;
+    max-height: 46px;
+    max-width: 58px;
   }
+
   .buggiesSection {
     margin-top: 2px;
   }
+
   .buggiesGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 5px;
     width: 100%;
   }
+
   .buggyCard {
-    min-height: 114px;
-    padding: 6px 4px 8px;
+    min-height: 104px;
+    padding: 5px 3px 6px;
     border-radius: 10px;
   }
+
   .buggyImageWrap {
-    height: 60px;
+    height: 52px;
     margin-bottom: 2px;
   }
+
   .buggyImg {
-    max-height: 60px;
-    width: 112%;
+    max-height: 52px;
+    width: 110%;
   }
+
   .buggyPlatform {
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
+
   .buggyName {
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
+    font-size: 0.64rem;
+    letter-spacing: 0.03em;
   }
+
   .buggySymbol {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
   }
+
   .buggyZoomHint {
-    width: 20px;
-    height: 20px;
-    font-size: 0.65rem;
-    top: 4px;
-    right: 4px;
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+    top: 3px;
+    right: 3px;
   }
+
   .bottomBar {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 6px;
+    margin-top: 6px;
   }
+
   .infoBox {
     display: none;
   }
+
   .selectionBox {
     width: 100%;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 10px;
   }
+
   .selectionBoxTitle {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     margin-bottom: 2px;
   }
+
   .selectionRow {
-    gap: 8px;
-  }
-  .selectionItem {
     gap: 6px;
   }
+
+  .selectionItem {
+    gap: 5px;
+  }
+
   .selectionItemImg {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
+
   .selectionItemLabel {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
   }
+
   .selectionItemValue {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
   }
+
   .confirmButton {
     width: 100%;
-    height: 48px;
-    font-size: 0.9rem;
+    height: 46px;
+    font-size: 0.88rem;
     border-radius: 999px;
     clip-path: none;
   }
@@ -876,30 +915,34 @@
 
 @media (max-width: 480px) {
   .container {
-    padding: 8px 8px 20px;
+    padding: 6px 6px 18px;
   }
   .topBar {
-    margin-top: 34px;
+    margin-top: 0;
     gap: 6px;
   }
+  .backButton {
+    padding: 5px 8px;
+    font-size: 0.68rem;
+  }
   .brandLogoImg {
-    height: 34px;
-    max-width: 150px;
+    height: 30px;
+    max-width: 120px;
+  }
+  .pricePill {
+    height: 28px;
+    padding: 0 8px;
+  }
+  .priceValue {
+    font-size: 0.82rem;
   }
   .centerInfo {
-    padding: 5px 8px;
-    gap: 8px;
+    padding: 4px 6px;
+    gap: 6px;
   }
   .raceTimeValue,
   .countdownValue {
-    font-size: 0.95rem;
-  }
-  .pricePill {
-    height: 32px;
-    padding: 0 12px;
-  }
-  .priceValue {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
   .marketsGrid {
     gap: 6px;

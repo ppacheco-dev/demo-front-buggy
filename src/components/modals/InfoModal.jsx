@@ -71,28 +71,31 @@ export default function InfoModal({
           {tab === 'rules' ? (
             <>
               <div className={styles.infoModalHeader}>
-                <p className={styles.infoModalEyebrow}>Normas del Juego</p>
+                <p className={styles.infoModalEyebrow}>Reglas y Dinámica Oficial</p>
                 <h2 id="info-dialog-title" className={styles.infoModalTitle}>
-                  Buggy - Carrera Playera
+                  Buggy: Circuito Dunas del Pacífico
                 </h2>
                 <p className={styles.infoModalSubtitle}>
-                  Compite por la costa arenosa, esquiva obstáculos y recolecta monedas doradas.
+                  Carreras 4x4 en vivo cada 5 minutos, con obstáculos extremos en 8 tramos y múltiples opciones de pronóstico.
                 </p>
               </div>
 
               <div className={styles.infoModalBody}>
                 <div className={styles.infoRulesBlock}>
                   <p className={styles.infoRuleItem}>
-                    1. Presiona <strong>JUGAR</strong> para iniciar tu turno en la carrera.
+                    1. <strong>Carreras en Vivo cada 5 Minutos:</strong> Se transmite una carrera oficial en tiempo real con 6 buggies, telemetría, velocímetro y radar GPS de circuito.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    2. Los buggies compiten a gran velocidad a lo largo del circuito costero.
+                    2. <strong>Mercados de Selección:</strong> Pronostica cuál buggy obtendrá el <strong>1º Lugar</strong>, <strong>2º Lugar</strong>, <strong>3º Lugar (Podio)</strong>, o si <strong>Ningún Auto Llega a la Meta</strong>.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    3. Recolecta monedas de oro en la pista para multiplicar tu puntuación y tus recompensas.
+                    3. <strong>Obstáculos Letales en 8 Tramos:</strong> En cada tramo aparecen rocas gigantes, socavones, dunas cortantes y meteoritos. Los buggies intentan esquivarlos o saltarlos; si colisionan quedan destruidos y eliminados de la carrera.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    4. Mantén la concentración en las curvas de arena para evitar derrapes.
+                    4. <strong>Condición de Catástrofe:</strong> Si la pista destruye a todos los 6 buggies y ninguno cruza la meta final, el mercado <em>"Ningún auto llega a la meta"</em> es el ganador oficial.
+                  </p>
+                  <p className={styles.infoRuleItem}>
+                    5. <strong>Dos Cámaras de Transmisión:</strong> Durante la carrera en vivo puedes alternar libremente entre la vista <strong>Clásica 2D</strong> y la vista en perspectiva <strong>Arcade 2.5D</strong>.
                   </p>
                 </div>
                 <div
@@ -103,17 +106,17 @@ export default function InfoModal({
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '16px',
-                    borderRadius: '8px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    background: 'rgba(245, 158, 11, 0.08)',
+                    border: '1px solid rgba(245, 158, 11, 0.25)',
                   }}
                 >
-                  <i className="ph ph-trophy" style={{ fontSize: '48px', color: '#f59e0b', marginBottom: '8px' }} />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#f3f4f6', letterSpacing: '0.05em' }}>
-                    GRAN PREMIO BUGGY
+                  <i className="ph ph-flag-checkered" style={{ fontSize: '42px', color: '#f59e0b', marginBottom: '6px' }} />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#facc15', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    PRECIO POR JUGADA: $2.500
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '4px', textAlign: 'center' }}>
-                    Gana monedas y sube en la clasificación
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '4px', textAlign: 'center', lineHeight: 1.35 }}>
+                    Elige tu mercado, selecciona tu buggy y sigue la carrera en vivo con su voucher oficial numerado.
                   </span>
                 </div>
               </div>
