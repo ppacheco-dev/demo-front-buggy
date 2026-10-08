@@ -1,0 +1,158 @@
+.obstacleContainer {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.obstacleSvg {
+  width: 72px;
+  height: 52px;
+  overflow: visible;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.9));
+  transition: transform 120ms ease;
+}
+
+.rockGroup,
+.holeGroup,
+.duneGroup,
+.meteorGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Etiquetas de Advertencia Arcade de Alta Visibilidad */
+.hazardLabel,
+.hazardLabelMeteor,
+.hazardLabelDune {
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-top: -6px;
+  z-index: 5;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  white-space: nowrap;
+}
+
+.hazardLabel {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #000;
+}
+
+.hazardLabelMeteor {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+  border-color: #fca5a5;
+  animation: pulseMeteor 0.6s infinite alternate;
+}
+
+.hazardLabelDune {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #000;
+}
+
+@keyframes pulseMeteor {
+  from {
+    box-shadow: 0 0 8px #ef4444;
+    transform: scale(0.96);
+  }
+  to {
+    box-shadow: 0 0 18px #f97316;
+    transform: scale(1.04);
+  }
+}
+
+/* Efectos Realistas de Meteorito en Llamas */
+.meteorGroup {
+  animation: meteorTremble 0.15s infinite alternate;
+}
+
+@keyframes meteorTremble {
+  from { transform: translateY(0) rotate(-0.5deg); }
+  to { transform: translateY(-1.5px) rotate(0.5deg); }
+}
+
+/* Columnas de humo volcánico */
+.meteorSmokePlume,
+.meteorSmokePlume2 {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #27272a 0%, #09090b 80%, transparent 100%);
+  filter: blur(3.5px);
+  pointer-events: none;
+}
+
+.meteorSmokePlume {
+  top: -14px;
+  left: 28px;
+  width: 18px;
+  height: 18px;
+  animation: meteorSmokeRise 0.9s infinite ease-out;
+}
+
+.meteorSmokePlume2 {
+  top: -18px;
+  left: 42px;
+  width: 22px;
+  height: 22px;
+  animation: meteorSmokeRise 1.1s infinite 0.3s ease-out;
+}
+
+@keyframes meteorSmokeRise {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(4px, -24px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Llamaradas de gas sobre la superficie */
+.meteorFlames {
+  position: absolute;
+  top: 4px;
+  left: 36px;
+  width: 16px;
+  height: 20px;
+  background: radial-gradient(ellipse at bottom, #ffffff 0%, #fef08a 25%, #f97316 65%, #dc2626 90%, transparent 100%);
+  filter: blur(1.5px);
+  border-radius: 50% 50% 20% 20%;
+  animation: flameFlicker 0.12s infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes flameFlicker {
+  from { transform: scale(0.85) rotate(-3deg); opacity: 0.85; }
+  to { transform: scale(1.25) rotate(3deg); opacity: 1; }
+}
+
+/* Chispas incandescentes que se desprenden del impacto */
+.meteorSparks {
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  width: 4px;
+  height: 4px;
+  background: #fef08a;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #f97316;
+  animation: sparkFly 0.5s infinite linear;
+}
+
+@keyframes sparkFly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(12px, -18px) scale(0.2); opacity: 0; }
+}

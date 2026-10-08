@@ -1142,3 +1142,143 @@
     font-size: 1.55rem;
   }
 }
+
+/* ==========================================================================
+   HOME SCREEN LIVE RACE BUTTON & BANNER
+   ========================================================================== */
+.homeRaceBanner {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(10, 16, 30, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 6px 16px 6px 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.15);
+  animation: fadeInDown 300ms ease-out forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.homeRaceInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.homeRaceNextTime {
+  color: #facc15;
+  font-weight: 900;
+}
+
+.homeRaceCountdown {
+  color: #ef4444;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.homeWatchRaceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+  transition: all 140ms ease;
+  animation: pulseLiveBtn 1.5s infinite alternate;
+}
+
+@keyframes pulseLiveBtn {
+  from {
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+    transform: scale(1);
+  }
+  to {
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.8);
+    transform: scale(1.04);
+  }
+}
+
+.homeWatchRaceBtn:hover {
+  filter: brightness(1.15);
+  transform: scale(1.06);
+}
+
+.homeWatchRaceLiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+}
+
+.homeRaceActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.homeHistoryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.homeHistoryBtn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .homeRaceBanner {
+    top: 14px;
+    width: 90%;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 16px;
+  }
+  .homeWatchRaceBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -46,19 +46,17 @@ export default class BootScene extends Phaser.Scene {
     });
 
     // Load assets
-    // High-res beach buggy background
-    this.load.image('background', '/assets/images/background.jpg');
-    this.load.image('background_clean', '/assets/images/background_clean.jpg');
+    // Beach buggy background
+    this.load.image('background', '/assets/images/background.webp');
+    this.load.image('background_clean', '/assets/images/background.webp');
 
     // Title logo
-    this.load.image('logo', '/assets/images/logo.png');
+    this.load.image('logo', '/assets/images/logo.webp');
 
     // Play button
-    this.load.image('btn_jugar', '/assets/images/btn_jugar.png');
+    this.load.image('btn_jugar', '/assets/images/btn_jugar.webp');
 
-    // Sounds
-    this.load.audio('click', '/assets/sounds/click.mp3');
-    this.load.audio('win', '/assets/sounds/win.mp3');
+    // Sounds: actualmente removidos hasta incorporar los definitivos
   }
 
   create() {

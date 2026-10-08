@@ -1,0 +1,151 @@
+.rearBuggyContainer {
+  position: relative;
+  width: 96px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Vibración viva del motor a 60 FPS mediante transform 3D puro */
+.rearBuggySvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: engineShake 0.12s infinite alternate ease-in-out;
+  transform-origin: 50% 90%;
+  will-change: transform;
+}
+
+@keyframes engineShake {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, -1px, 0); }
+}
+
+/* Inclinación al acelerar / doblar */
+.buggySteeringLeft {
+  transform: rotate(-3deg) translateX(-2px);
+}
+
+.buggySteeringRight {
+  transform: rotate(3deg) translateX(2px);
+}
+
+/* Fuego de Nitro en el Escape */
+.nitroExhaust {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  width: 28px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nitroJetLeft,
+.nitroJetRight {
+  position: relative;
+  width: 8px;
+  height: 26px;
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, transparent 100%);
+  border-radius: 999px;
+  filter: blur(1px);
+  animation: nitroFlicker 0.08s infinite alternate ease-in-out;
+}
+
+.nitroJetLeft::after,
+.nitroJetRight::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px;
+  width: 4px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+@keyframes nitroFlicker {
+  0% {
+    transform: scaleY(0.8) scaleX(0.9);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scaleY(1.3) scaleX(1.15);
+    opacity: 1;
+  }
+}
+
+/* Humo y fuego si quedó destruido / chocado */
+.crashFx {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.smokeCloud1,
+.smokeCloud2 {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: radial-gradient(circle, #334155 0%, #0f172a 80%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+.smokeCloud1 {
+  animation: smokePuffLeft 0.7s infinite ease-out;
+}
+
+.smokeCloud2 {
+  animation: smokePuffRight 0.7s infinite 0.25s ease-out;
+}
+
+@keyframes smokePuffLeft {
+  0% {
+    transform: translate(-10px, 0) scale(0.5);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-22px, -35px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes smokePuffRight {
+  0% {
+    transform: translate(10px, 0) scale(0.5);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(22px, -35px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+.fireTongue {
+  position: absolute;
+  bottom: 0;
+  width: 14px;
+  height: 22px;
+  background: linear-gradient(0deg, #ef4444 0%, #f97316 60%, #fef08a 100%);
+  border-radius: 50% 50% 20% 20%;
+  filter: blur(1px);
+  animation: fireSpurt 0.12s infinite alternate;
+  box-shadow: 0 0 12px #f97316;
+}
+
+@keyframes fireSpurt {
+  from { transform: scale(0.9) rotate(-4deg); }
+  to { transform: scale(1.2) rotate(4deg); }
+}

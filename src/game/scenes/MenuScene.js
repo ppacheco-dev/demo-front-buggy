@@ -9,7 +9,7 @@ export default class MenuScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // 1. Fondo (Scene background)
-    this.bg = this.add.image(width / 2, height / 2, 'background_clean');
+    this.bg = this.add.image(width / 2, height / 2, 'background');
     this.bg.setOrigin(0.5, 0.5);
 
     // 2. Logo BUGGY
@@ -81,9 +81,6 @@ export default class MenuScene extends Phaser.Scene {
         ease: 'Back.easeOut',
       });
 
-      // Reproducir sonido de clic si el audio está activo
-      this.playClickSound();
-
       // Notificar a la app React que se presionó Jugar
       window.dispatchEvent(
         new CustomEvent('game:play-clicked', {
@@ -99,6 +96,9 @@ export default class MenuScene extends Phaser.Scene {
 
     // Sincronización de audio con la interfaz React
     this.setupAudioListeners();
+
+    // Sincronización de cambio de pantalla (menu vs selection)
+    this.setupScreenListeners();
 
     // Notificar a React que el juego visual está listo
     window.dispatchEvent(new CustomEvent('game:visual-ready'));
@@ -126,11 +126,14 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   playClickSound() {
+    // Sonido temporalmente desactivado a la espera de los audios definitivos
     try {
-      const isMuted = this.game.registry.get('soundMuted');
-      if (!isMuted) {
-        const sfxVolume = (this.game.registry.get('effectsVolume') ?? 100) / 100;
-        this.sound.play('click', { volume: sfxVolume * 0.8 });
+      if (this.sound && this.cache.audio.exists('click')) {
+        const isMuted = this.game.registry.get('soundMuted');
+        if (!isMuted) {
+          const sfxVolume = (this.game.registry.get('effectsVolume') ?? 100) / 100;
+          this.sound.play('click', { volume: sfxVolume * 0.8 });
+        }
       }
     } catch (e) {
       console.warn('[Phaser] Audio play warning:', e);
@@ -149,21 +152,22 @@ export default class MenuScene extends Phaser.Scene {
       this.bg.setScale(bgScale);
     }
 
-    // 2. Logo: centrado en la parte superior
+    // 2. Logo: centrado en la parte superior (protagonismo ampliado)
     if (this.logo && this.logo.width) {
-      const maxLogoW = isPortrait ? width * 0.88 : Math.min(width * 0.72, 700);
-      const logoScale = Math.min(1.0, maxLogoW / this.logo.width);
-      const logoY = isPortrait ? height * 0.22 : height * 0.25;
+      const maxLogoW = isPortrait ? width * 1.05 : Math.min(width * 0.90, 1080);
+      const baseLogoScale = maxLogoW / this.logo.width;
+      const logoScale = isPortrait ? baseLogoScale * 1.35 : baseLogoScale * 1.42;
+      const logoY = isPortrait ? height * 0.23 : height * 0.26;
 
       this.logo.setPosition(width / 2, logoY);
       this.logo.setScale(logoScale);
     }
 
-    // 3. Botón JUGAR: centrado en la parte inferior
+    // 3. Botón JUGAR: centrado en la parte inferior (escala media óptima ~430px)
     if (this.btnPlay && this.btnPlay.width) {
-      const maxBtnW = isPortrait ? Math.min(width * 0.75, 340) : Math.min(width * 0.38, 380);
-      this.btnBaseScale = Math.min(1.0, maxBtnW / this.btnPlay.width);
-      const btnY = isPortrait ? height * 0.85 : height * 0.87;
+      const maxBtnW = isPortrait ? Math.min(width * 0.76, 360) : Math.min(width * 0.38, 430);
+      this.btnBaseScale = maxBtnW / this.btnPlay.width;
+      const btnY = isPortrait ? height * 0.85 : height * 0.86;
 
       this.btnPlay.setPosition(width / 2, btnY);
       this.btnPlay.setScale(this.btnBaseScale);
@@ -173,6 +177,7 @@ export default class MenuScene extends Phaser.Scene {
   handleResize(gameSize) {
     const { width, height } = gameSize;
     this.applyResponsiveLayout(width, height);
+    this.startBtnPulse();
   }
 
   setupAudioListeners() {
@@ -196,6 +201,49 @@ export default class MenuScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       window.removeEventListener('game:audio-toggle', this.audioToggleHandler);
       window.removeEventListener('game:audio-volume', this.audioVolumeHandler);
+    });
+  }
+
+  setupScreenListeners() {
+    this.screenChangeHandler = (event) => {
+      const screen = event.detail?.screen || 'menu';
+      const isMenu = screen === 'menu';
+
+      if (this.logo) {
+        this.tweens.add({
+          targets: this.logo,
+          alpha: isMenu ? 1 : 0,
+          duration: 200,
+          onComplete: () => {
+            if (this.logo) this.logo.setVisible(isMenu);
+          },
+        });
+      }
+
+      if (this.btnPlay) {
+        this.tweens.add({
+          targets: this.btnPlay,
+          alpha: isMenu ? 1 : 0,
+          duration: 200,
+          onComplete: () => {
+            if (this.btnPlay) {
+              this.btnPlay.setVisible(isMenu);
+              if (isMenu) {
+                this.btnPlay.setScale(this.btnBaseScale);
+                this.startBtnPulse();
+              } else {
+                this.stopBtnPulse();
+              }
+            }
+          },
+        });
+      }
+    };
+
+    window.addEventListener('game:screen-change', this.screenChangeHandler);
+
+    this.events.once('shutdown', () => {
+      window.removeEventListener('game:screen-change', this.screenChangeHandler);
     });
   }
 }

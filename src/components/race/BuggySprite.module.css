@@ -1,0 +1,194 @@
+.buggyContainer {
+  position: relative;
+  width: 125px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.85));
+  transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+}
+
+.buggySvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 1. ANIMACIÓN DE GIRO DE RUEDAS */
+.wheelSpinning {
+  animation: wheelSpin 0.12s linear infinite;
+}
+
+@keyframes wheelSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 2. SUSPENSIÓN Y REBOTE AL CORRER */
+.buggyRacing {
+  animation: buggySuspension 0.18s infinite alternate ease-in-out;
+}
+
+@keyframes buggySuspension {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2.5px) rotate(0.8deg);
+  }
+  100% {
+    transform: translateY(1px) rotate(-0.6deg);
+  }
+}
+
+/* 3. MODO BOOST / NITRO ACELERACIÓN */
+.buggyBoosting {
+  animation: buggyNitroSquat 0.12s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 16px var(--glow-color, #facc15)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.9));
+}
+
+@keyframes buggyNitroSquat {
+  from {
+    transform: translateY(-1px) rotate(-1.5deg) scaleX(1.04);
+  }
+  to {
+    transform: translateY(-3px) rotate(-2.5deg) scaleX(1.08);
+  }
+}
+
+.nitroExhaust {
+  position: absolute;
+  left: -26px;
+  top: 36px;
+  width: 32px;
+  height: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nitroFlameMain {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 28px;
+  height: 14px;
+  background: linear-gradient(270deg, #38bdf8 0%, #0284c7 60%, transparent 100%);
+  filter: blur(2px);
+  border-radius: 999px;
+  animation: nitroPulse 0.08s infinite alternate;
+}
+
+.nitroFlameCore {
+  position: absolute;
+  right: 2px;
+  top: 3px;
+  width: 18px;
+  height: 8px;
+  background: linear-gradient(270deg, #ffffff 0%, #7dd3fc 70%, transparent 100%);
+  border-radius: 999px;
+  animation: nitroCorePulse 0.06s infinite alternate;
+}
+
+@keyframes nitroPulse {
+  from { transform: scaleX(0.9) scaleY(0.8); opacity: 0.75; }
+  to { transform: scaleX(1.35) scaleY(1.15); opacity: 1; }
+}
+
+@keyframes nitroCorePulse {
+  from { transform: scaleX(0.8); opacity: 0.9; }
+  to { transform: scaleX(1.4); opacity: 1; }
+}
+
+/* 4. MODO SALTO (JUMPING OBSTACLES) */
+.buggyJumping {
+  transform: translateY(-12px) rotate(-8deg) scale(1.05);
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.9));
+}
+
+/* 5. MODO DESTRUIDO / ELIMINADO POR OBSTÁCULO */
+.buggyEliminated {
+  transform: translateY(4px) rotate(-14deg) scale(0.95);
+  filter: grayscale(0.5) drop-shadow(0 2px 8px rgba(239, 68, 68, 0.8));
+  opacity: 0.88;
+}
+
+.crashFx {
+  position: absolute;
+  left: 20px;
+  top: -18px;
+  width: 50px;
+  height: 50px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.blackSmoke1,
+.blackSmoke2 {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30, 30, 30, 0.9) 0%, rgba(10, 10, 10, 0) 75%);
+  filter: blur(4px);
+}
+
+.blackSmoke1 {
+  width: 26px;
+  height: 26px;
+  animation: smokePuff1 0.7s infinite ease-out;
+}
+
+.blackSmoke2 {
+  width: 32px;
+  height: 32px;
+  animation: smokePuff2 0.8s 0.25s infinite ease-out;
+}
+
+@keyframes smokePuff1 {
+  0% { transform: translate(0, 10px) scale(0.5); opacity: 0.9; }
+  100% { transform: translate(-18px, -24px) scale(1.6); opacity: 0; }
+}
+
+@keyframes smokePuff2 {
+  0% { transform: translate(6px, 12px) scale(0.6); opacity: 0.85; }
+  100% { transform: translate(-24px, -30px) scale(1.9); opacity: 0; }
+}
+
+.fireTongue {
+  position: absolute;
+  left: 10px;
+  top: 14px;
+  width: 14px;
+  height: 20px;
+  background: radial-gradient(ellipse at bottom, #f59e0b 0%, #ef4444 60%, transparent 100%);
+  border-radius: 50% 50% 20% 20%;
+  filter: blur(1px);
+  animation: fireFlicker 0.12s infinite alternate;
+}
+
+@keyframes fireFlicker {
+  0% { transform: scale(0.8) rotate(-4deg); opacity: 0.8; }
+  100% { transform: scale(1.25) rotate(4deg); opacity: 1; }
+}
+
+.sparkSpit {
+  position: absolute;
+  left: 12px;
+  top: 18px;
+  width: 4px;
+  height: 4px;
+  background: #fef08a;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #f59e0b, 0 0 12px #ef4444;
+  animation: sparkBurst 0.18s infinite;
+}
+
+@keyframes sparkBurst {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(-14px, -18px); opacity: 0; }
+}

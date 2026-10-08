@@ -7,9 +7,9 @@ Demo interactivo del juego **Buggy** desarrollado con **Phaser 3**, **React 18**
 ## 🌟 Características
 
 1. **Pantalla Principal (Landing / Menú de Inicio)**:
-   - **Fondo**: Escena de carrera playera de buggies en alta resolución (`/public/assets/images/background_clean.jpg`).
-   - **Logo**: Título "BUGGY" con bandera a cuadros y monedas doradas flotando con animación de levitación suave (`/public/assets/images/logo.png`).
-   - **Botón JUGAR**: Botón estilizado con pulso continuo, efecto hover interactivo, respuesta táctil y sonido de clic (`/public/assets/images/btn_jugar.png`).
+   - **Fondo**: Escena de carrera playera de buggies en alta resolución (`/public/assets/images/background.webp`).
+   - **Logo**: Título "BUGGY" con bandera a cuadros y monedas doradas flotando con animación de levitación suave (`/public/assets/images/logo.webp`).
+   - **Botón JUGAR**: Botón estilizado con pulso continuo, efecto hover interactivo y respuesta táctil (`/public/assets/images/btn_jugar.webp`).
    - **Diseño Adaptativo (Responsive)**: Escala automáticamente en pantallas de escritorio, tablets y móviles (tanto en orientación vertical como horizontal).
 
 2. **Botones Laterales de Interfaz (Copiados de `front-caja_fuerte`)**:
@@ -83,27 +83,30 @@ C:\Demo-Front-Buggy\
 │   ├── vendor/phosphor/regular/         # Fuentes y estilos de Phosphor Icons (de front-caja_fuerte)
 │   └── assets/
 │       ├── images/
-│       │   ├── background.jpg           # Arte de fondo original
-│       │   ├── background_clean.jpg     # Fondo optimizado para animación de botón
-│       │   ├── logo.png                 # Logo BUGGY recortado
-│       │   └── btn_jugar.png            # Botón JUGAR recortado
-│       └── sounds/
-│           ├── click.mp3                # Efecto de clic
-│           └── win.mp3                  # Efecto de victoria
+│       │   ├── background.webp          # Fondo de carrera playera
+│       │   ├── logo.webp                # Logo BUGGY
+│       │   ├── btn_jugar.webp           # Botón JUGAR
+│       │   ├── buggies/                 # Imágenes de los 6 buggies (amarillo, rojo, azul, etc.)
+│       │   └── markets/                 # Iconos de copas y bandera de los 4 mercados
+│       └── sounds/                      # Carpeta reservada para efectos de audio (.mp3, .ogg, etc.)
 └── src/
     ├── main.jsx                         # Entrada de React
     ├── App.jsx                          # Componente raíz
     ├── components/
     │   ├── GameContainer.jsx            # Contenedor de Phaser + Toolbar de botones lateral
     │   ├── GameContainer.module.css     # Estilos glassmorphism de botones y modales
+    │   ├── selection/
+    │   │   ├── SelectionScreen.jsx      # Pantalla interactiva de Mercados y Buggies
+    │   │   └── SelectionScreen.module.css # Estilos con efecto neon, banners y selector
     │   └── modals/
     │       ├── InfoModal.jsx            # Modal de Reglas y Ajustes de Audio
-    │       └── PlayModal.jsx            # Modal de demostración al pulsar JUGAR
+    │       └── PlayModal.jsx            # Modal de confirmación al presionar CONFIRMAR SELECCION Y JUGAR
     ├── hooks/
     │   └── useGame.js                   # Hook de ciclo de vida de Phaser y resize
     └── game/
         ├── config/
-        │   └── phaserConfig.js          # Configuración del motor Phaser 3
+        │   ├── phaserConfig.js          # Configuración del motor Phaser 3
+        │   └── selectionData.js         # Objetos configurables con imágenes, cuotas y nombres
         └── scenes/
             ├── BootScene.js             # Precarga de assets con barra de progreso
             └── MenuScene.js             # Escena con fondo, logo animado y botón interactivo
@@ -114,7 +117,10 @@ C:\Demo-Front-Buggy\
 ## 🎨 Cómo Reemplazar Elementos Futuros
 
 Para reemplazar los elementos con nuevas imágenes o animaciones:
-- **Fondo**: Reemplaza `public/assets/images/background_clean.jpg`.
-- **Logo**: Reemplaza `public/assets/images/logo.png`.
-- **Botón JUGAR**: Reemplaza `public/assets/images/btn_jugar.png`.
+- **Fondo**: Reemplaza `public/assets/images/background.webp`.
+- **Logo**: Reemplaza `public/assets/images/logo.webp`.
+- **Botón JUGAR**: Reemplaza `public/assets/images/btn_jugar.webp`.
+- **Buggies (6 vehículos)**: Reemplaza las imágenes en `public/assets/images/buggies/` (`amarillo.webp`, `rojo.webp`, `azul.webp`, `verde.webp`, `naranjo.webp`, `morado.webp`) o actualiza sus rutas en `src/game/config/selectionData.js`.
+- **Mercados y Trofeos (4 opciones)**: Reemplaza los iconos en `public/assets/images/markets/` (`trophy_1.webp`, `trophy_2.webp`, `trophy_3.webp`, `flag_crash.webp`) o configúralos en `src/game/config/selectionData.js`.
+- **Efectos de Sonido / Audio**: Agrega tus archivos `.mp3` en `public/assets/sounds/` y vincúlalos en `src/game/scenes/BootScene.js` (`this.load.audio(...)`).
 - **Animaciones Spine / Spritesheets**: Añade los archivos `.json` y `.png` en `public/assets/` y cárgalos en `src/game/scenes/BootScene.js`.

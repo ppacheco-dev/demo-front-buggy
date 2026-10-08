@@ -1,0 +1,1054 @@
+/* Pantalla de Selección de Mercados y Buggies */
+.container {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: radial-gradient(circle at 50% 20%, rgba(10, 20, 38, 0.45) 0%, rgba(5, 10, 20, 0.78) 100%);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: fadeIn 220ms ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   TOP BAR (Cabecera)
+   ========================================================================== */
+.topBar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1180px;
+  align-self: center;
+  min-height: 72px;
+  height: 72px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.backButton {
+  position: absolute;
+  top: 18px;
+  left: 28px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 140ms ease;
+  backdrop-filter: blur(8px);
+}
+
+.backButton:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
+  color: #fff;
+  transform: translateX(-2px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.brandLogoWrap {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  cursor: pointer;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+}
+
+.brandLogoImg {
+  height: 66px;
+  width: auto;
+  max-width: 320px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.9));
+  transition: transform 140ms ease;
+}
+
+.brandLogoImg:hover {
+  transform: scale(1.03);
+}
+
+.centerInfo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.statsGroup {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  z-index: 10;
+}
+
+.raceTimeBlock,
+.countdownBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.infoLabel {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.raceTimeValue {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.countdownRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countdownIcon {
+  font-size: 1.2rem;
+  color: #ef4444;
+  animation: pulseIcon 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulseIcon {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+
+.countdownValue {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ef4444;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.pricePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  background: rgba(13, 20, 36, 0.88);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  border-radius: 999px;
+  padding: 0 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 16px rgba(245, 158, 11, 0.2);
+}
+
+.priceLabel {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.priceValue {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #facc15;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+}
+
+.settingsButton {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(13, 20, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.settingsButton:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: rotate(25deg);
+}
+
+/* ==========================================================================
+   SECTION BANNERS
+   ========================================================================== */
+.sectionBanner {
+  position: relative;
+  display: inline-block;
+  align-self: center;
+  margin: 10px 0 10px;
+  padding: 6px 36px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.88) 15%, rgba(0, 0, 0, 0.92) 85%, transparent 100%);
+  clip-path: polygon(4% 0%, 96% 0%, 100% 100%, 0% 100%);
+  border-bottom: 2px solid rgba(245, 158, 11, 0.6);
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 0.15em;
+  color: #f1f5f9;
+  text-transform: uppercase;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+/* ==========================================================================
+   SECTION 1: MERCADOS (4 Cards)
+   ========================================================================== */
+.marketsSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.marketsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1180px;
+}
+
+.marketCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  min-height: 225px;
+  padding: 18px 16px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(16, 26, 48, 0.78) 0%, rgba(8, 14, 26, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), box-shadow 160ms ease, border-color 160ms ease;
+  overflow: hidden;
+}
+
+.marketCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+}
+
+.marketCardSelected {
+  transform: translateY(-4px);
+  border-width: 2px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.7), 0 0 24px var(--accent-glow);
+  border-color: var(--accent-color);
+  background: linear-gradient(180deg, rgba(24, 38, 68, 0.88) 0%, rgba(10, 18, 34, 0.94) 100%);
+}
+
+.marketCardSelected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-color);
+  box-shadow: 0 0 12px var(--accent-color);
+}
+
+.marketHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.marketTitle {
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-color, #fff);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.marketDesc {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.35;
+  font-weight: 500;
+  margin: 0 auto;
+  max-width: 210px;
+}
+
+.marketIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  height: 112px;
+  width: 100%;
+}
+
+.marketIconImg {
+  max-height: 112px;
+  max-width: 140px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.75));
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.marketCard:hover .marketIconImg {
+  transform: scale(1.12);
+}
+
+.marketCardSelected .marketIconImg {
+  transform: scale(1.18);
+  filter: drop-shadow(0 8px 22px var(--accent-glow));
+}
+
+/* ==========================================================================
+   SECTION 2: BUGGIES (6 Cards)
+   ========================================================================== */
+.buggiesSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.buggiesGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 1180px;
+}
+
+.buggyCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 8px 14px;
+  border-radius: 14px;
+  background: rgba(10, 16, 28, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 160ms ease;
+  overflow: hidden;
+  min-height: 175px;
+}
+
+.buggyCard:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: rgba(18, 28, 48, 0.65);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
+.buggyCard:active {
+  transform: scale(0.96) translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.buggyCardSelected {
+  transform: translateY(-6px) scale(1.04);
+  background: linear-gradient(180deg, rgba(20, 32, 56, 0.75) 0%, rgba(8, 14, 26, 0.9) 100%);
+  border: 1.5px solid var(--buggy-color);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), 0 0 20px var(--buggy-glow);
+}
+
+.buggyZoomHint {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 0.75rem;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 140ms ease;
+  pointer-events: none;
+}
+
+.buggyCard:hover .buggyZoomHint,
+.buggyCardSelected .buggyZoomHint {
+  opacity: 1;
+  transform: scale(1);
+  color: var(--buggy-color, #f59e0b);
+  border-color: var(--buggy-color, rgba(255, 255, 255, 0.4));
+  box-shadow: 0 0 8px var(--buggy-glow);
+}
+
+.buggyImageWrap {
+  width: 100%;
+  height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.buggyImg {
+  max-width: 118%;
+  width: 118%;
+  max-height: 118px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), filter 180ms ease;
+}
+
+.buggyCard:hover .buggyImg {
+  transform: scale(1.1) translateY(-2px);
+}
+
+.buggyCardSelected .buggyImg {
+  transform: scale(1.15) translateY(-4px);
+  filter: drop-shadow(0 8px 20px var(--buggy-glow));
+}
+
+.buggyPlatform {
+  width: 90%;
+  height: 2px;
+  background: var(--buggy-color);
+  box-shadow: 0 0 10px var(--buggy-color);
+  margin-bottom: 6px;
+  border-radius: 999px;
+  opacity: 0.6;
+}
+
+.buggyCardSelected .buggyPlatform {
+  opacity: 1;
+  height: 3px;
+  box-shadow: 0 0 14px var(--buggy-color);
+}
+
+.buggyFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.buggySymbol {
+  font-size: 0.85rem;
+}
+
+.buggyName {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--buggy-color, #fff);
+  text-transform: uppercase;
+}
+
+.buggyDisabled {
+  opacity: 0.35;
+  filter: grayscale(0.85);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   BOTTOM BAR (Resumen y Confirmar)
+   ========================================================================== */
+.bottomBar {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr 1.2fr;
+  align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+  width: 100%;
+  max-width: 1180px;
+  align-self: center;
+}
+
+/* Info Pill Left */
+.infoBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 14, 26, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 10px 16px;
+  backdrop-filter: blur(8px);
+}
+
+.infoIcon {
+  font-size: 1.7rem;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.infoTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoTitle {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.infoSubtitle {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* Center Selection Display */
+.selectionBox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(8, 14, 26, 0.88);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 12px;
+  padding: 6px 16px 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(245, 158, 11, 0.06);
+}
+
+.selectionBoxTitle {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: #f1f5f9;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.selectionRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.selectionItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selectionItemImg {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+}
+
+.selectionItemText {
+  display: flex;
+  flex-direction: column;
+}
+
+.selectionItemLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.selectionItemValue {
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Right Confirm Button */
+.confirmButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 54px;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 45%, #d97706 100%);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-weight: 900;
+  font-size: 0.98rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45);
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0% 100%);
+}
+
+.confirmButton:hover {
+  filter: brightness(1.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.65);
+}
+
+.confirmButton:active {
+  transform: translateY(1px);
+  filter: brightness(0.95);
+}
+
+.confirmButtonIcon {
+  font-size: 1.25rem;
+  font-weight: 900;
+  transition: transform 140ms ease;
+}
+
+.confirmButton:hover .confirmButtonIcon {
+  transform: translateX(4px);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (Tablets y Pantallas Angostas)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .container {
+    padding: 12px 16px;
+  }
+  .marketsGrid {
+    gap: 10px;
+  }
+  .buggiesGrid {
+    gap: 8px;
+  }
+  .bottomBar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topBar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .centerInfo {
+    position: static;
+    transform: none;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+  .marketsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .buggiesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .sectionBanner {
+    margin: 6px 0;
+  }
+  .confirmButton {
+    clip-path: none;
+    border-radius: 999px;
+  }
+}
+
+/* ==========================================================================
+   CAR PREVIEW MODAL (Muestra más grande del auto - 2 Columnas)
+   ========================================================================== */
+.previewBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 8, 18, 0.82);
+  backdrop-filter: blur(10px);
+  animation: previewFadeIn 180ms ease-out forwards;
+}
+
+@keyframes previewFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.previewCard {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  min-height: 440px;
+  background: linear-gradient(145deg, rgba(16, 26, 48, 0.96) 0%, rgba(8, 14, 26, 0.98) 100%);
+  border: 1.5px solid var(--preview-color, #f59e0b);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px var(--preview-glow, rgba(245, 158, 11, 0.35));
+  border-radius: 22px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  overflow: hidden;
+  animation: cardSlideUp 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.previewCloseBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.previewCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* --------------------------------------------------------------------------
+   COLUMNA IZQUIERDA: Escenario & Animación del Buggy
+   -------------------------------------------------------------------------- */
+.previewLeftStage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: radial-gradient(circle at 50% 55%, rgba(25, 40, 75, 0.5) 0%, rgba(6, 11, 22, 0.85) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.previewTagBadge {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--preview-color, #f59e0b);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--preview-color, #f59e0b);
+  text-transform: uppercase;
+  box-shadow: 0 0 12px var(--preview-glow);
+}
+
+.previewGlowCircle {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--preview-glow, rgba(245, 158, 11, 0.35)) 0%, transparent 70%);
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.previewCarContainer {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewCarImg {
+  max-width: 98%;
+  max-height: 270px;
+  object-fit: contain;
+  /* Aceleración por hardware para 60-120 FPS sin caídas de frames */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.9));
+  animation: engineIdle60fps 0.75s ease-in-out infinite alternate;
+}
+
+/* Micro-animación de suspensión y motor encendido a 60 FPS */
+@keyframes engineIdle60fps {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+  50% {
+    transform: translate3d(0, -2px, 0) scale(1.045);
+  }
+  100% {
+    transform: translate3d(0, -4px, 0) scale(1.05);
+  }
+}
+
+.previewPlatformBase {
+  position: relative;
+  z-index: 2;
+  width: 86%;
+  height: 10px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--preview-color, #f59e0b);
+  box-shadow: 0 0 24px var(--preview-color, #f59e0b), 0 0 46px var(--preview-glow);
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   COLUMNA DERECHA: Ficha Técnica & Detalles del Buggy
+   -------------------------------------------------------------------------- */
+.previewRightDetails {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px 28px 24px;
+  gap: 16px;
+}
+
+.previewDetailsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.previewEyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.previewTitle {
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 18px var(--preview-glow);
+  line-height: 1.15;
+}
+
+.previewDesc {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+/* Barras de Rendimiento */
+.previewStatsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.previewStatItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.previewStatHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.previewStatNum {
+  font-weight: 900;
+  color: var(--preview-color, #f59e0b);
+}
+
+.previewProgressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.previewProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, var(--preview-color, #f59e0b) 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 10px var(--preview-glow);
+  transition: width 400ms ease-out;
+}
+
+/* Cuadrícula de Especificaciones */
+.previewSpecsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.previewSpecBadge {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.previewSpecLabel {
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.previewSpecValue {
+  font-size: 0.88rem;
+  color: #f1f5f9;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+/* Botón de Confirmación */
+.previewActions {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.previewSelectBtn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--preview-color, #f59e0b) 0%, #d97706 100%);
+  color: #050a14;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px var(--preview-glow);
+  transition: all 140ms ease;
+}
+
+.previewSelectBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px var(--preview-glow);
+}
+
+.previewSelectBtn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive para pantallas compactas */
+@media (max-width: 768px) {
+  .previewCard {
+    grid-template-columns: 1fr;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .previewLeftStage {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px 16px;
+  }
+  .previewCarContainer {
+    height: 180px;
+  }
+  .previewRightDetails {
+    padding: 20px 16px;
+  }
+}

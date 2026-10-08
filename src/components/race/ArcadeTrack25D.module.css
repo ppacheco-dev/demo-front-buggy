@@ -1,0 +1,398 @@
+.arcadeContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #050813;
+  border-radius: 12px;
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.95);
+  user-select: none;
+  contain: strict;
+}
+
+/* =========================================================================
+   1. CIELO Y HORIZONTE RETRO DESERT (HORIZON CHASE VIBE)
+   ========================================================================= */
+.arcadeSky {
+  position: relative;
+  width: 100%;
+  height: 38%;
+  background: linear-gradient(180deg, #091024 0%, #1e1b4b 32%, #831843 62%, #f59e0b 90%, #fef08a 100%);
+  overflow: hidden;
+}
+
+.retroSun {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fef08a 0%, #f59e0b 45%, #ef4444 80%, transparent 100%);
+  box-shadow: 0 0 60px rgba(245, 158, 11, 0.7);
+  pointer-events: none;
+}
+
+.mountainSilhouettes {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: repeating-linear-gradient(
+    90deg,
+    #0a0f1d 0px,
+    #172554 50px,
+    #060911 100px
+  );
+  clip-path: polygon(
+    0% 100%, 4% 50%, 10% 80%, 20% 35%, 28% 88%, 38% 42%, 48% 70%, 
+    60% 30%, 70% 78%, 80% 45%, 90% 68%, 100% 40%, 100% 100%
+  );
+  opacity: 0.9;
+}
+
+.rollingDunes {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 34px;
+  background: linear-gradient(90deg, #9a3412 0%, #c2410c 50%, #7c2d12 100%);
+  clip-path: ellipse(65% 100% at 50% 100%);
+  opacity: 0.95;
+}
+
+.heatShimmer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(180deg, transparent 0%, rgba(254, 240, 138, 0.25) 100%);
+  pointer-events: none;
+}
+
+/* =========================================================================
+   2. PISTA EN PERSPECTIVA 2.5D (HARDWARE ACCELERATED GROUND PLANE)
+   ========================================================================= */
+.arcadeGround {
+  position: relative;
+  width: 100%;
+  height: 62%;
+  background: linear-gradient(180deg, #78350f 0%, #451a03 30%, #1e0902 100%);
+  perspective: 500px;
+  perspective-origin: 50% 8%;
+  overflow: hidden;
+}
+
+/* Terreno del desierto a los costados exteriores */
+.desertSandLeft,
+.desertSandRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 26%;
+  pointer-events: none;
+  background: repeating-radial-gradient(
+    circle at 50% 100%,
+    rgba(217, 119, 6, 0.2) 0,
+    rgba(180, 83, 9, 0.3) 22px,
+    rgba(120, 53, 15, 0.4) 44px
+  );
+}
+
+.desertSandLeft { left: 0; }
+.desertSandRight { right: 0; }
+
+/* La carretera en perspectiva 3D */
+.roadSurface {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0) rotateX(46deg);
+  transform-origin: 50% 0%;
+  width: 78%;
+  height: 165%;
+  background: #111827;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Bordillos vibratorios rayados laterales directos (Cero máscaras, 60 FPS directo) */
+.roadCurbLeft,
+.roadCurbRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background: repeating-linear-gradient(
+    180deg,
+    #ffffff 0px,
+    #ffffff 26px,
+    #dc2626 26px,
+    #dc2626 52px
+  );
+  animation: moveCurbs 0.3s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.roadCurbLeft { left: 0; }
+.roadCurbRight { right: 0; }
+
+@keyframes moveCurbs {
+  from { background-position: 0 0; }
+  to { background-position: 0 52px; }
+}
+
+/* Postes reflectores de borde de pista */
+.roadsideMarkersLeft,
+.roadsideMarkersRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    #facc15 0px,
+    #facc15 14px,
+    transparent 14px,
+    transparent 110px
+  );
+  animation: moveMarkers 0.3s linear infinite;
+  z-index: 3;
+}
+
+.roadsideMarkersLeft { left: 26px; }
+.roadsideMarkersRight { right: 26px; }
+
+@keyframes moveMarkers {
+  from { background-position: 0 0; }
+  to { background-position: 0 110px; }
+}
+
+/* Contenedor de líneas divisorias de carril (5 divisores limpios) */
+.roadLanesContainer {
+  position: absolute;
+  inset: 0;
+  left: 15%;
+  right: 15%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.roadLaneMarker {
+  width: 4px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0px,
+    rgba(255, 255, 255, 0.85) 32px,
+    transparent 32px,
+    transparent 74px
+  );
+  animation: moveLanes 0.3s linear infinite;
+}
+
+@keyframes moveLanes {
+  from { background-position: 0 0; }
+  to { background-position: 0 74px; }
+}
+
+/* Arco de meta en perspectiva cuando nos acercamos al 100% */
+.finishArch25D {
+  position: absolute;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 92%;
+  height: 52px;
+  z-index: 25;
+  pointer-events: none;
+  will-change: transform, top, opacity;
+}
+
+.finishArchTruss {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #ffffff 0px,
+    #ffffff 18px,
+    #090d16 18px,
+    #090d16 36px
+  );
+  border: 4px solid #facc15;
+  box-shadow: 0 0 35px #facc15;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finishArchBanner {
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: 0.15em;
+  color: #000000;
+  background: #facc15;
+  padding: 4px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   3. CAPA DE VEHÍCULOS ACTIVOS EN PERSPECTIVA (60 FPS NATIVO)
+   ========================================================================= */
+.arcadeCarsLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+/* Contenedor individual de cada Buggy en perspectiva (Sin transitions que provoquen jitter con RAF) */
+.arcadeBuggySlot {
+  position: absolute;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  pointer-events: none;
+  contain: layout style;
+}
+
+/* Sombra proyectada del buggy en el asfalto (Acelerada por GPU) */
+.arcadeCarShadow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 82%;
+  height: 14px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Etiquetas flotantes sobre el auto */
+.arcadeCarBadgeGroup {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.arcadeRankPill {
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.arcadeUserChoiceTag {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.54rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px #38bdf8;
+  letter-spacing: 0.06em;
+}
+
+/* Zona de Obstáculo Transversal a lo ancho de la Pista (Cubre todos los carriles para todos los autos) */
+.arcadeFullTrackHazard {
+  position: absolute;
+  left: 50%;
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform, top, opacity;
+}
+
+/* =========================================================================
+   4. HUD SUPERIOR ARCADE (HORIZON CHASE STYLE)
+   ========================================================================= */
+.arcadeHudTop {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.arcadeSpeedometer {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  background: rgba(10, 18, 36, 0.9);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: 5px 14px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.speedDigit {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.7);
+}
+
+.speedUnit {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.arcadeSectorBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 6px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+.sectorLabel {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectorIcon {
+  font-size: 1.15rem;
+}
