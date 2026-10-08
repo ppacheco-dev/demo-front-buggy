@@ -46,9 +46,10 @@ export default class BootScene extends Phaser.Scene {
     });
 
     // Load assets
-    // Beach buggy background
+    // Beach buggy background (desktop y móvil)
     this.load.image('background', '/assets/images/background.webp');
     this.load.image('background_clean', '/assets/images/background.webp');
+    this.load.image('fondomovil', '/assets/images/fondomovil.webp');
 
     // Title logo
     this.load.image('logo', '/assets/images/logo.webp');

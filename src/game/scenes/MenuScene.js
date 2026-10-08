@@ -8,8 +8,10 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // 1. Fondo (Scene background)
-    this.bg = this.add.image(width / 2, height / 2, 'background');
+    // 1. Fondo (Scene background): fondomovil en móvil / portrait, background en desktop
+    const isMobile = height > width || width <= 768;
+    const bgKey = isMobile && this.textures.exists('fondomovil') ? 'fondomovil' : 'background';
+    this.bg = this.add.image(width / 2, height / 2, bgKey);
     this.bg.setOrigin(0.5, 0.5);
 
     // 2. Logo BUGGY
@@ -141,15 +143,22 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   applyResponsiveLayout(width, height) {
+    const isMobile = height > width || width <= 768;
     const isPortrait = height > width;
 
-    // 1. Fondo: cubre toda la ventana sin deformarse
-    if (this.bg && this.bg.width && this.bg.height) {
-      const scaleX = width / this.bg.width;
-      const scaleY = height / this.bg.height;
-      const bgScale = Math.max(scaleX, scaleY);
-      this.bg.setPosition(width / 2, height / 2);
-      this.bg.setScale(bgScale);
+    // 1. Fondo: en móvil usamos 'fondomovil', en escritorio 'background'
+    const targetBgKey = isMobile && this.textures.exists('fondomovil') ? 'fondomovil' : 'background';
+    if (this.bg) {
+      if (this.bg.texture.key !== targetBgKey && this.textures.exists(targetBgKey)) {
+        this.bg.setTexture(targetBgKey);
+      }
+      if (this.bg.width && this.bg.height) {
+        const scaleX = width / this.bg.width;
+        const scaleY = height / this.bg.height;
+        const bgScale = Math.max(scaleX, scaleY);
+        this.bg.setPosition(width / 2, height / 2);
+        this.bg.setScale(bgScale);
+      }
     }
 
     // 2. Logo: centrado en la parte superior con tamaño amplio y protagónico
