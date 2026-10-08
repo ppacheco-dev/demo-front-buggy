@@ -1438,15 +1438,338 @@
   color: #fff;
 }
 
-/* Responsive */
+/* ==========================================================================
+   RESPONSIVE DESIGN (Móvil y Pantallas Angostas)
+   ========================================================================== */
 @media (max-width: 900px) {
-  .mainStage {
-    grid-template-columns: 1fr;
+  .topBar {
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    gap: 6px;
+    min-height: unset;
   }
-  .leaderboardSide {
+
+  .liveBadgeGroup {
+    padding: 4px 10px;
+    gap: 6px;
+  }
+
+  .liveBadgeText {
+    font-size: 0.65rem;
+  }
+
+  .raceTitleGroup {
+    order: 2;
+    width: 100%;
+    margin: 2px 0;
+  }
+
+  .raceTitle {
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+  }
+
+  .raceNumberBadge {
+    font-size: 0.7rem;
+    padding: 1px 7px;
+  }
+
+  .raceMetaRow {
+    font-size: 0.64rem;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .topBarActions {
+    order: 1;
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .cameraSelectorLabel {
     display: none;
   }
+
+  .cameraSegmentBtn {
+    padding: 4px 10px;
+    font-size: 0.68rem;
+    gap: 4px;
+  }
+
+  .cameraSegmentBtn i {
+    font-size: 0.85rem;
+  }
+
+  .closeBtn {
+    padding: 5px 12px;
+    font-size: 0.72rem;
+  }
+
+  /* 2. PROGRESS BAR */
+  .raceProgressBarContainer {
+    height: 16px;
+  }
+
+  .progressBarInfo {
+    padding: 0 10px;
+    font-size: 0.58rem;
+  }
+
+  /* 3. ESCENARIO PRINCIPAL VERTICAL INTEGRADO */
+  .mainStage {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 96px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Pista en la parte superior */
+  .trackContainer {
+    width: 100%;
+    height: clamp(230px, 40vh, 320px);
+    min-height: clamp(230px, 40vh, 320px);
+    flex-shrink: 0;
+    padding: 4px 8px 6px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.75);
+  }
+
+  .speedwayBillboard {
+    padding: 2px 8px;
+    margin-bottom: 2px;
+  }
+
+  .billboardLeft {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 52%;
+  }
+
+  .billboardText {
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .billboardHazardTag {
+    font-size: 0.56rem;
+    padding: 1px 6px;
+    gap: 3px;
+  }
+
+  .stadiumLights {
+    display: none;
+  }
+
+  /* Carriles 2D más compactos para ajustarse fluidamente */
+  .lanesWrapper {
+    gap: 2px;
+  }
+
+  .lane {
+    min-height: 28px;
+    height: clamp(28px, 4.8vh, 38px);
+    border-radius: 6px;
+  }
+
+  .laneTrack {
+    height: clamp(22px, 3.2vh, 28px);
+    border-radius: 4px;
+  }
+
+  .laneHeader {
+    padding: 0 6px;
+    gap: 4px;
+  }
+
+  .laneRankBadge {
+    width: 22px;
+    height: 16px;
+    font-size: 0.56rem;
+  }
+
+  .laneSymbol {
+    font-size: 0.72rem;
+  }
+
+  .laneName {
+    font-size: 0.65rem;
+  }
+
+  .leaderBadge,
+  .userChoiceBadge {
+    font-size: 0.52rem;
+    padding: 1px 4px;
+  }
+
+  .eliminatedBadge {
+    font-size: 0.52rem;
+    padding: 1px 4px;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .telemetryGroup {
+    font-size: 0.6rem;
+    gap: 4px;
+  }
+
+  .telemetrySpeed {
+    font-size: 0.64rem;
+  }
+
+  .telemetryX {
+    font-size: 0.58rem;
+  }
+
+  /* Panel lateral que ahora se despliega abajo con scroll fluido */
+  .leaderboardSide {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: 10px 10px 24px;
+    background: #060b18;
+    box-sizing: border-box;
+    gap: 10px;
+  }
+
+  .leaderboardHeader {
+    font-size: 0.72rem;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+
+  .leaderboardList {
+    gap: 4px;
+  }
+
+  .leaderboardItem {
+    padding: 6px 10px;
+    gap: 8px;
+    border-radius: 8px;
+  }
+
+  .leaderRankBadge {
+    width: 24px;
+    height: 24px;
+    font-size: 0.68rem;
+  }
+
+  .leaderCarThumb {
+    height: 24px;
+  }
+
+  .leaderName {
+    font-size: 0.72rem;
+  }
+
+  .leaderStatsRow {
+    font-size: 0.62rem;
+  }
+
+  .leaderCrashedLabel {
+    font-size: 0.6rem;
+  }
+
+  .userSelectionCard {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .userSelectionHeader {
+    font-size: 0.68rem;
+    margin-bottom: 6px;
+  }
+
+  .userSelectionDetails {
+    font-size: 0.7rem;
+    gap: 4px;
+  }
+
+  .spectatorCard {
+    padding: 8px 12px;
+    font-size: 0.7rem;
+  }
+
+  /* Resultados / Podio modal */
+  .resultsOverlay {
+    padding: 12px;
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .resultsCard {
+    margin: auto 0;
+    padding: 18px 14px;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    gap: 12px;
+  }
+
+  .resultsTitle {
+    font-size: 1.25rem;
+  }
+
+  .podiumCard {
+    padding: 8px 12px;
+  }
+
+  .podiumBuggyImg {
+    height: 38px;
+  }
+
   .casualtyGrid {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
+
+@media (max-width: 480px) {
+  .topBar {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .trackContainer {
+    height: clamp(210px, 36vh, 260px);
+    min-height: clamp(210px, 36vh, 260px);
+    padding: 3px 6px;
+  }
+
+  .lane {
+    min-height: 26px;
+    height: clamp(26px, 4.5vh, 32px);
+  }
+
+  .laneHeader {
+    padding: 0 4px;
+  }
+
+  .laneName {
+    font-size: 0.6rem;
+  }
+
+  .telemetryGroup {
+    font-size: 0.55rem;
+  }
+
+  .leaderboardSide {
+    padding: 8px 8px 20px;
+  }
+}
+

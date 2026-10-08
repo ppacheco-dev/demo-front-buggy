@@ -156,3 +156,25 @@
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(12px, -18px) scale(0.2); opacity: 0; }
 }
+
+@media (max-width: 900px) {
+  .obstacleSvg {
+    width: 44px;
+    height: 32px;
+  }
+  .hazardLabel,
+  .hazardLabelMeteor,
+  .hazardLabelDune {
+    font-size: 0.45rem;
+    padding: 1px 5px;
+    margin-top: -3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .obstacleSvg {
+    width: 36px;
+    height: 26px;
+  }
+}
+

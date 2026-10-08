@@ -1270,15 +1270,30 @@
 
 @media (max-width: 640px) {
   .homeRaceBanner {
-    top: 14px;
-    width: 90%;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(90%, 350px);
     flex-direction: column;
     gap: 8px;
     padding: 10px 14px;
     border-radius: 16px;
   }
-  .homeWatchRaceBtn {
+  .homeRaceActions {
     width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .homeHistoryBtn,
+  .homeWatchRaceBtn {
+    flex: 1;
     justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+  .sideToolbar {
+    --side-toolbar-button-size: 38px;
+    --side-toolbar-inline-padding: 6px;
   }
 }
+

@@ -192,3 +192,18 @@
   0% { transform: translate(0, 0); opacity: 1; }
   100% { transform: translate(-14px, -18px); opacity: 0; }
 }
+
+@media (max-width: 900px) {
+  .buggyContainer {
+    width: 66px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .buggyContainer {
+    width: 52px;
+    height: 28px;
+  }
+}
+

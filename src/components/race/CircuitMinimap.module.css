@@ -278,3 +278,20 @@
   color: #38bdf8;
   font-weight: 800;
 }
+
+@media (max-width: 900px) {
+  .minimapCard {
+    padding: 8px 10px 6px;
+    border-radius: 10px;
+  }
+  .mapSvgWrapper {
+    height: 110px;
+  }
+  .radarTitle {
+    font-size: 0.62rem;
+  }
+  .minimapFooter {
+    font-size: 0.58rem;
+  }
+}
+

@@ -152,22 +152,22 @@ export default class MenuScene extends Phaser.Scene {
       this.bg.setScale(bgScale);
     }
 
-    // 2. Logo: centrado en la parte superior (protagonismo ampliado)
+    // 2. Logo: centrado en la parte superior (adaptado a móvil y desktop sin desbordar)
     if (this.logo && this.logo.width) {
-      const maxLogoW = isPortrait ? width * 1.05 : Math.min(width * 0.90, 1080);
+      const maxLogoW = isPortrait ? Math.min(width * 0.82, 330) : Math.min(width * 0.72, 780);
       const baseLogoScale = maxLogoW / this.logo.width;
-      const logoScale = isPortrait ? baseLogoScale * 1.35 : baseLogoScale * 1.42;
-      const logoY = isPortrait ? height * 0.23 : height * 0.26;
+      const logoScale = isPortrait ? baseLogoScale : baseLogoScale * 1.15;
+      const logoY = isPortrait ? Math.max(90, height * 0.26) : height * 0.27;
 
       this.logo.setPosition(width / 2, logoY);
       this.logo.setScale(logoScale);
     }
 
-    // 3. Botón JUGAR: centrado en la parte inferior (escala media óptima ~430px)
+    // 3. Botón JUGAR: centrado en la parte inferior con tamaño táctil óptimo
     if (this.btnPlay && this.btnPlay.width) {
-      const maxBtnW = isPortrait ? Math.min(width * 0.76, 360) : Math.min(width * 0.38, 430);
+      const maxBtnW = isPortrait ? Math.min(width * 0.68, 250) : Math.min(width * 0.32, 360);
       this.btnBaseScale = maxBtnW / this.btnPlay.width;
-      const btnY = isPortrait ? height * 0.85 : height * 0.86;
+      const btnY = isPortrait ? Math.min(height - 110, height * 0.81) : height * 0.84;
 
       this.btnPlay.setPosition(width / 2, btnY);
       this.btnPlay.setScale(this.btnBaseScale);

@@ -328,9 +328,53 @@
 }
 
 @media (max-width: 680px) {
+  .backdrop {
+    padding: 10px;
+  }
+  .modalCard {
+    padding: 16px 12px;
+    border-radius: 14px;
+    max-height: 92vh;
+  }
+  .headerLeft {
+    gap: 10px;
+  }
+  .iconCircle {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+  .title {
+    font-size: 1.1rem;
+  }
+  .statsBar {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+    margin: 10px 0;
+  }
+  .statDivider {
+    display: none;
+  }
+  .statItem {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .statLabel {
+    font-size: 0.65rem;
+  }
+  .statValue {
+    font-size: 0.75rem;
+  }
+  .racesList {
+    max-height: 54vh;
+    gap: 8px;
+    padding-right: 2px;
+  }
   .raceRowCard {
     grid-template-columns: 1fr;
     gap: 10px;
+    padding: 12px;
   }
   .actionCol {
     justify-content: stretch;
@@ -338,5 +382,6 @@
   .watchRaceBtn {
     width: 100%;
     justify-content: center;
+    padding: 10px;
   }
 }
