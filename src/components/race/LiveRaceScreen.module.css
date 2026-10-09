@@ -17,38 +17,59 @@
 }
 
 /* ==========================================================================
-   1. TOP BAR (OFICIAL)
+   1. TOP BAR (OFICIAL - 3 COLUMNAS LIMPIO Y EQUILIBRADO)
    ========================================================================== */
 .topBar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 24px;
-  background: rgba(8, 14, 28, 0.95);
+  padding: 0 20px;
+  background: rgba(8, 14, 28, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
   z-index: 20;
-  min-height: 62px;
+  height: 52px;
   box-sizing: border-box;
 }
 
-.liveBadgeGroup {
+.topBarLeft {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+}
+
+.topBarCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: end;
+}
+
+.liveBadgeGroup {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   background: rgba(239, 68, 68, 0.16);
   border: 1px solid #ef4444;
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 999px;
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
 }
 
 .liveDot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #ef4444;
-  box-shadow: 0 0 10px #ef4444;
+  box-shadow: 0 0 8px #ef4444;
   animation: liveBlink 1s infinite alternate;
 }
 
@@ -60,43 +81,27 @@
 .liveBadgeText {
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #ef4444;
   text-transform: uppercase;
 }
 
-.liveEqualizer {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 12px;
-}
-
-.liveEqualizer span {
-  width: 2px;
-  background: #ef4444;
-  border-radius: 1px;
-  animation: eqWave 0.8s ease-in-out infinite alternate;
-}
-
-.liveEqualizer span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
-.liveEqualizer span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
-.liveEqualizer span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
-
-@keyframes eqWave {
-  0% { height: 20%; }
-  100% { height: 100%; }
+.raceNumberText {
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.04em;
 }
 
 .replayBadgeGroup {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: rgba(56, 189, 248, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.4);
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 999px;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
 }
 
 .replayBadgeGroup i {
@@ -107,67 +112,49 @@
 .replayBadgeText {
   font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: #38bdf8;
   text-transform: uppercase;
 }
 
-/* Píldora no intrusiva de aviso de Carrera en Vivo Disponible */
-.liveAvailablePill {
+.raceTimeText {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.liveNoticeBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(239, 68, 68, 0.14);
-  border: 1.5px solid rgba(239, 68, 68, 0.6);
-  padding: 4px 10px 4px 12px;
+  gap: 6px;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: 1px solid rgba(254, 202, 202, 0.35);
   border-radius: 999px;
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
-  animation: fadeInDownNotice 0.3s ease-out;
-}
-
-@keyframes fadeInDownNotice {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.liveAvailableDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ef4444;
-  box-shadow: 0 0 8px #ef4444;
-  animation: liveBlink 0.8s infinite alternate;
-}
-
-.liveAvailableText {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 900;
-  color: #fca5a5;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.liveAvailableBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.45);
   transition: transform 120ms ease, filter 120ms ease;
+  animation: liveBtnPulse 1.2s infinite alternate;
 }
 
-.liveAvailableBtn:hover {
-  filter: brightness(1.18);
-  transform: scale(1.05);
+.liveNoticeBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.liveNoticeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+  animation: liveBlink 0.8s infinite alternate;
 }
 
 .watchCurrentLiveBtn {
@@ -201,60 +188,15 @@
   transform: translateY(-1px) scale(1.01);
 }
 
-.raceTitleGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 2px;
-}
-
-.raceTitleRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.raceNumberBadge {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #000;
-  font-size: 0.78rem;
-  font-weight: 900;
-  padding: 2px 10px;
-  border-radius: 6px;
-  letter-spacing: 0.06em;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-}
-
 .raceTitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  color: #f1f5f9;
+  letter-spacing: 0.12em;
+  color: #f8fafc;
   margin: 0;
   text-transform: uppercase;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-}
-
-.raceMetaRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.72rem;
-  color: #94a3b8;
-}
-
-.raceDateMeta strong,
-.raceTimeMeta strong {
-  color: #facc15;
-}
-
-.raceSpeedMeta strong {
-  color: #38bdf8;
-}
-
-.metaSeparator {
-  opacity: 0.4;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
 }
 
 .topBarActions {
@@ -355,9 +297,9 @@
 .raceProgressBarContainer {
   position: relative;
   width: 100%;
-  height: 20px;
-  background: rgba(5, 10, 20, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 16px;
+  background: rgba(10, 16, 28, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   z-index: 15;
 }
@@ -367,8 +309,8 @@
   top: 0;
   bottom: 0;
   left: 0;
-  background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 50%, #f59e0b 100%);
-  box-shadow: 0 0 16px rgba(6, 182, 212, 0.6);
+  background: linear-gradient(90deg, #0284c7 0%, #06b6d4 60%, #f59e0b 100%);
+  opacity: 0.85;
   transition: width 80ms linear;
 }
 
@@ -377,9 +319,9 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 12px;
+  width: 10px;
   background: #ffffff;
-  filter: blur(4px);
+  filter: blur(3px);
 }
 
 .progressBarInfo {
@@ -387,17 +329,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 20px;
   height: 100%;
-  font-size: 0.66rem;
+  font-size: 0.60rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  color: #e2e8f0;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .progressPercent {
   color: #facc15;
+  font-weight: 900;
 }
 
 /* ==========================================================================
@@ -408,7 +351,7 @@
   display: grid;
   grid-template-columns: 1fr 330px;
   overflow: hidden;
-  height: calc(100vh - 82px);
+  height: calc(100vh - 68px);
 }
 
 /* Pista de Carreras de Videojuego */
@@ -417,7 +360,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px 18px 10px;
+  padding: 10px 18px 10px;
   overflow: hidden;
   background:
     radial-gradient(circle at 75% 25%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
@@ -1557,37 +1500,34 @@
     font-size: 0.65rem;
   }
 
-  .raceTitleGroup {
+  .topBar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    height: auto;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .topBarLeft {
+    order: 1;
+    gap: 6px;
+  }
+
+  .topBarRight {
     order: 2;
+    gap: 6px;
+  }
+
+  .topBarCenter {
+    order: 3;
     width: 100%;
-    margin: 2px 0;
+    margin: 2px 0 0;
   }
 
   .raceTitle {
-    font-size: 0.88rem;
-    letter-spacing: 0.04em;
-  }
-
-  .raceNumberBadge {
-    font-size: 0.7rem;
-    padding: 1px 7px;
-  }
-
-  .raceMetaRow {
-    font-size: 0.64rem;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .topBarActions {
-    order: 1;
-    margin-left: auto;
-    gap: 6px;
-  }
-
-  .cameraSelectorLabel {
-    display: none;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
   }
 
   .cameraSegmentBtn {

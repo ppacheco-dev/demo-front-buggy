@@ -341,89 +341,64 @@ export default function LiveRaceScreen({
 
   return (
     <div className={styles.container}>
-      {/* 1. Barra Superior Oficial: Identificación Exacta de la Carrera */}
+      {/* 1. Barra Superior Oficial: Limpia, Equilibrada y Sin Ruido Visual */}
       <header className={styles.topBar}>
-        {isLive ? (
-          <div className={styles.liveBadgeGroup}>
-            <span className={styles.liveDot} />
-            <span className={styles.liveBadgeText}>EN VIVO</span>
-            <div className={styles.liveEqualizer}>
-              <span />
-              <span />
-              <span />
+        {/* Columna Izquierda: Identificación única de la carrera */}
+        <div className={styles.topBarLeft}>
+          {isLive ? (
+            <div className={styles.liveBadgeGroup}>
+              <span className={styles.liveDot} />
+              <span className={styles.liveBadgeText}>EN VIVO</span>
+              <span className={styles.raceNumberText}>#{race.numero}</span>
             </div>
-          </div>
-        ) : (
-          <div className={styles.replayBadgeGroup}>
-            <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
-            <span className={styles.replayBadgeText}>CARRERA ANTERIOR</span>
-          </div>
-        )}
+          ) : (
+            <div className={styles.replayBadgeGroup}>
+              <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
+              <span className={styles.replayBadgeText}>CARRERA #{race.numero}</span>
+              <span className={styles.raceTimeText}>{race.hora} hrs</span>
+            </div>
+          )}
 
-        {/* Notificación no intrusiva: Carrera en vivo disponible sin interrumpir la actual */}
-        {isNewLiveRaceAvailable && (
-          <div className={styles.liveAvailablePill}>
-            <span className={styles.liveAvailableDot} />
-            <span className={styles.liveAvailableText}>
-              Carrera #{liveRaceNumber} en vivo ({liveRaceTime} hrs)
-            </span>
+          {/* Botón compacto si hay una carrera en vivo disponible mientras se ve una anterior */}
+          {isNewLiveRaceAvailable && (
             <button
               type="button"
-              className={styles.liveAvailableBtn}
+              className={styles.liveNoticeBtn}
               onClick={handleSwitchToLiveRace}
               title="Sintonizar la carrera en vivo actual"
             >
-              <i className="ph ph-broadcast" aria-hidden="true" />
-              <span>Ver en Vivo</span>
+              <span className={styles.liveNoticeDot} />
+              <span>Ver en Vivo #{liveRaceNumber}</span>
             </button>
-          </div>
-        )}
-
-        {/* Identificador Oficial: Carrera #X, Fecha y Hora */}
-        <div className={styles.raceTitleGroup}>
-          <div className={styles.raceTitleRow}>
-            <span className={styles.raceNumberBadge}>Carrera #{race.numero}</span>
-            <h2 className={styles.raceTitle}>CIRCUITO DUNAS DEL PACÍFICO</h2>
-          </div>
-          <div className={styles.raceMetaRow}>
-            <span className={styles.raceDateMeta}>📅 Fecha: <strong>{race.fecha}</strong></span>
-            <span className={styles.metaSeparator}>•</span>
-            <span className={styles.raceTimeMeta}>⏰ Hora: <strong>{race.hora} hrs</strong></span>
-            <span className={styles.metaSeparator}>•</span>
-            <span className={styles.raceSpeedMeta}>
-              {allCarsEliminated ? (
-                <strong style={{ color: '#ef4444' }}>⚠️ TODOS ELIMINADOS</strong>
-              ) : (
-                <>Líder: <strong>{currentLeader?.buggy?.name} ({currentLeader?.speedKmh} km/h)</strong></>
-              )}
-            </span>
-          </div>
+          )}
         </div>
 
-        {/* Acciones de Barra Superior: Selector de Cámara y Volver al Inicio */}
-        <div className={styles.topBarActions}>
-          <div className={styles.cameraSelector}>
-            <span className={styles.cameraSelectorLabel}>VISTA:</span>
-            <div className={styles.cameraSegmentedGroup}>
-              <button
-                type="button"
-                className={`${styles.cameraSegmentBtn} ${cameraMode === 'arcade25d' ? styles.activeCameraSegment : ''}`}
-                onClick={() => setCameraMode('arcade25d')}
-                title="Cámara 3D en Perspectiva Arcade (Horizon Chase)"
-              >
-                <i className="ph ph-game-controller" aria-hidden="true" />
-                <span>ARCADE 2.5D</span>
-              </button>
-              <button
-                type="button"
-                className={`${styles.cameraSegmentBtn} ${cameraMode === 'broadcast2d' ? styles.activeCameraSegment : ''}`}
-                onClick={() => setCameraMode('broadcast2d')}
-                title="Vista Clásica Lateral de Transmisión"
-              >
-                <i className="ph ph-broadcast" aria-hidden="true" />
-                <span>CLÁSICA 2D</span>
-              </button>
-            </div>
+        {/* Columna Central: Nombre del Circuito (Limpio y Centrado) */}
+        <div className={styles.topBarCenter}>
+          <h2 className={styles.raceTitle}>CIRCUITO DUNAS DEL PACÍFICO</h2>
+        </div>
+
+        {/* Columna Derecha: Selector de Cámara y Volver al Inicio */}
+        <div className={styles.topBarRight}>
+          <div className={styles.cameraSegmentedGroup}>
+            <button
+              type="button"
+              className={`${styles.cameraSegmentBtn} ${cameraMode === 'arcade25d' ? styles.activeCameraSegment : ''}`}
+              onClick={() => setCameraMode('arcade25d')}
+              title="Cámara 3D en Perspectiva Arcade"
+            >
+              <i className="ph ph-game-controller" aria-hidden="true" />
+              <span>ARCADE 2.5D</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.cameraSegmentBtn} ${cameraMode === 'broadcast2d' ? styles.activeCameraSegment : ''}`}
+              onClick={() => setCameraMode('broadcast2d')}
+              title="Vista Clásica Lateral"
+            >
+              <i className="ph ph-broadcast" aria-hidden="true" />
+              <span>CLÁSICA 2D</span>
+            </button>
           </div>
 
           <button
@@ -438,17 +413,15 @@ export default function LiveRaceScreen({
         </div>
       </header>
 
-      {/* 2. Barra de Progreso Superior con Radar del Circuito */}
+      {/* 2. Barra de Progreso Superior: Discreta y Minimalista */}
       <div className={styles.raceProgressBarContainer}>
         <div className={styles.raceProgressBarFill} style={{ width: `${Math.round(progress * 100)}%` }}>
           <div className={styles.progressBarGlow} />
         </div>
         <div className={styles.progressBarInfo}>
           <span>LARGADA</span>
-          <span className={styles.progressPercent}>
-            {Math.round(progress * 100)}% RECORRIDO • {activeCars.length} / {carNames.length} BUGGIES EN CARRERA
-          </span>
-          <span>🏁 META (1.140 m)</span>
+          <span className={styles.progressPercent}>{Math.round(progress * 100)}%</span>
+          <span>🏁 META</span>
         </div>
       </div>
 
@@ -468,26 +441,9 @@ export default function LiveRaceScreen({
         ) : (
           /* Pista de Carreras Tipo Videojuego Arcade (Lateral) */
           <div className={styles.trackContainer}>
-          {/* Cartel / Escenografía superior de la pista con Obstáculo del Momento */}
-          <div className={styles.speedwayBillboard}>
-            <div className={styles.billboardLeft}>
-              <span className={styles.billboardText}>🏁 PACIFIC DUNES SPEEDWAY • 4x4 BUGGY CHAMPIONSHIP</span>
-            </div>
+            <div className={styles.curbTop} />
 
-            {/* Aviso del obstáculo activo en este momento */}
-            {!isFinished && (
-              <div className={styles.billboardHazardTag}>
-                <span className={styles.hazardBlinkIcon}>⚠️</span>
-                <span className={styles.hazardLabelText}>
-                  OBSTÁCULO EN PISTA: <strong>{currentSectorObstacle.icono} {currentSectorObstacle.nombre}</strong>
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className={styles.curbTop} />
-
-          <div className={styles.lanesWrapper}>
+            <div className={styles.lanesWrapper}>
             {liveCars.map((car, idx) => {
               const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
               const isUserChoice = isUserParticipatingInThisRace && userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase());
