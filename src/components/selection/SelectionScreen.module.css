@@ -48,13 +48,14 @@
 }
 
 .topBarMainRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   width: 100%;
 }
 
 .backButton {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -79,14 +80,16 @@
 }
 
 .brandLogoWrap {
+  justify-self: center;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 60px;
   cursor: pointer;
   z-index: 10;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
+  text-align: center;
 }
 
 .brandLogoImg {
@@ -118,8 +121,10 @@
 }
 
 .statsGroup {
+  justify-self: end;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   z-index: 10;
 }
 
@@ -252,6 +257,9 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  max-width: 1180px;
+  align-self: center;
+  margin: 0 auto;
 }
 
 .marketsGrid {
@@ -260,6 +268,7 @@
   gap: 16px;
   width: 100%;
   max-width: 1180px;
+  margin: 0 auto;
 }
 
 .marketCard {
