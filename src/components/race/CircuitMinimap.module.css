@@ -61,6 +61,21 @@
   border-radius: 999px;
 }
 
+.replayTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
 .liveDot {
   width: 5px;
   height: 5px;

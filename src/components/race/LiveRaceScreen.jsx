@@ -313,19 +313,28 @@ export default function LiveRaceScreen({
     }
   }
 
+  const isLive = !selectedRace;
+
   return (
     <div className={styles.container}>
       {/* 1. Barra Superior Oficial: Identificación Exacta de la Carrera */}
       <header className={styles.topBar}>
-        <div className={styles.liveBadgeGroup}>
-          <span className={styles.liveDot} />
-          <span className={styles.liveBadgeText}>EN VIVO</span>
-          <div className={styles.liveEqualizer}>
-            <span />
-            <span />
-            <span />
+        {isLive ? (
+          <div className={styles.liveBadgeGroup}>
+            <span className={styles.liveDot} />
+            <span className={styles.liveBadgeText}>EN VIVO</span>
+            <div className={styles.liveEqualizer}>
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className={styles.replayBadgeGroup}>
+            <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
+            <span className={styles.replayBadgeText}>CARRERA ANTERIOR</span>
+          </div>
+        )}
 
         {/* Identificador Oficial: Carrera #X, Fecha y Hora */}
         <div className={styles.raceTitleGroup}>
@@ -431,13 +440,6 @@ export default function LiveRaceScreen({
                 </span>
               </div>
             )}
-
-            <div className={styles.stadiumLights}>
-              <span className={styles.stadiumLightDot} />
-              <span className={styles.stadiumLightDot} />
-              <span className={styles.stadiumLightDot} />
-              <span className={styles.stadiumLightDot} />
-            </div>
           </div>
 
           <div className={styles.curbTop} />
@@ -580,19 +582,16 @@ export default function LiveRaceScreen({
                         />
                       </div>
 
-                      {/* Etiqueta flotante estilo videojuego sobre el buggy */}
-                      <div className={styles.buggyOverheadTag}>
-                        <span className={styles.overheadRankBadge} style={{ background: car.buggy.color }}>
-                          {car.isEliminated ? '✕' : `P${rank}`}
-                        </span>
-                        {isUserChoice && <span className={styles.overheadUserArrow}>▼ TU AUTO</span>}
-                      </div>
+                      {/* Etiqueta flotante exclusiva para la elección del usuario */}
+                      {isUserChoice && (
+                        <div className={styles.buggyOverheadTag}>
+                          <span className={styles.overheadUserArrow}>▼ TU AUTO</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Bandera / Arco de Meta Cuadriculado */}
-                    <div className={styles.finishLine}>
-                      <div className={styles.finishLineCheckers} />
-                    </div>
+                    {/* Línea de Meta */}
+                    <div className={styles.finishLine} />
                   </div>
                 </div>
               );
@@ -613,6 +612,7 @@ export default function LiveRaceScreen({
             userBuggyName={userBuggyName}
             isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
+            isLive={isLive}
           />
 
           <div className={styles.leaderboardHeader}>

@@ -6,6 +6,7 @@ import RaceHistoryModal from './modals/RaceHistoryModal';
 import SelectionScreen from './selection/SelectionScreen';
 import LiveRaceScreen from './race/LiveRaceScreen';
 import { getRaceSchedule, formatSecondsToCountdown } from '../game/config/raceTimeService';
+import { recordUserBet } from '../game/config/userBetsService';
 import styles from './GameContainer.module.css';
 
 function getFullscreenElement() {
@@ -146,6 +147,7 @@ export default function GameContainer() {
       ticketId: selection?.ticketId || uniqueTicketId,
       confirmedAt: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
     };
+    recordUserBet(fullSelection);
     setCurrentSelection(fullSelection);
     setPlayModalOpen(true);
   }, [schedule]);
@@ -323,10 +325,10 @@ export default function GameContainer() {
               type="button"
               className={styles.homeHistoryBtn}
               onClick={() => setHistoryModalOpen(true)}
-              title="Ver historial de carreras anteriores"
+              title="Ver resultados de carreras anteriores"
             >
               <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
-              <span>HISTORIAL</span>
+              <span>CARRERAS ANTERIORES</span>
             </button>
 
             <button
@@ -372,6 +374,23 @@ export default function GameContainer() {
         onToggleAudio={toggleAudio}
         onUpdateMusic={updateMusicVolume}
         onUpdateEffects={updateEffectsVolume}
+        onViewBet={(bet) => {
+          setInfoModal((prev) => ({ ...prev, open: false }));
+          setCurrentSelection(bet);
+          setPlayModalOpen(true);
+        }}
+        onWatchRace={(raceOrNumber) => {
+          setInfoModal((prev) => ({ ...prev, open: false }));
+          if (typeof raceOrNumber === 'object' && raceOrNumber !== null) {
+            handleOpenLiveRace(raceOrNumber);
+          } else {
+            handleOpenLiveRace(null);
+          }
+        }}
+        onGoToBet={() => {
+          setInfoModal((prev) => ({ ...prev, open: false }));
+          handleGoToBet();
+        }}
       />
 
       {/* Modal que confirma la selección elegida y prepara el inicio (Voucher) */}

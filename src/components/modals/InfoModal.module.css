@@ -1,0 +1,355 @@
+/* Estilos para la pestaña Mis Apuestas en InfoModal */
+.betsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 52vh;
+  padding-right: 4px;
+}
+
+.betsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.betsList::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.4);
+  border-radius: 999px;
+}
+
+.betsSummaryBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.summaryLabel {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.summaryValue {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #f1f5f9;
+}
+
+.summaryWon {
+  color: #22c55e;
+}
+
+.summaryPending {
+  color: #38bdf8;
+}
+
+.betCard {
+  background: linear-gradient(145deg, rgba(20, 30, 52, 0.85) 0%, rgba(10, 16, 30, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.betCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6);
+}
+
+.betCardWon {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: linear-gradient(145deg, rgba(16, 44, 30, 0.85) 0%, rgba(8, 24, 18, 0.92) 100%);
+}
+
+.betCardLost {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.betHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 8px;
+}
+
+.betMetaLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.betTicketBadge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.betDateTime {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.betMonto {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.04em;
+}
+
+.betBody {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.betChoiceGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.betMarketName {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.betBuggyTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.betRaceTag {
+  font-size: 0.74rem;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.betRaceTag strong {
+  color: #f59e0b;
+}
+
+.betFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.betStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statusWon {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1.5px solid #22c55e;
+  color: #4ade80;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+}
+
+.statusLost {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1.5px solid #ef4444;
+  color: #f87171;
+}
+
+.statusRunning {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1.5px solid #f59e0b;
+  color: #fde047;
+  animation: pulseRunning 1.2s infinite alternate;
+}
+
+@keyframes pulseRunning {
+  from { opacity: 0.75; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.02); }
+}
+
+.statusPending {
+  background: rgba(14, 165, 233, 0.18);
+  border: 1.5px solid #0ea5e9;
+  color: #38bdf8;
+}
+
+.betActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.verJugadaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+  transition: all 120ms ease;
+}
+
+.verJugadaBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.verCarreraActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.verCarreraActionBtn:hover {
+  background: rgba(239, 68, 68, 0.35);
+  color: #fff;
+}
+
+.emptyBetsState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  gap: 10px;
+}
+
+.emptyBetsIcon {
+  font-size: 3rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.emptyBetsTitle {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #f1f5f9;
+}
+
+.emptyBetsDesc {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.irAJugarBtn {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  transition: all 140ms ease;
+}
+
+.irAJugarBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .betBody {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .betRaceTag {
+    align-items: flex-start;
+    width: 100%;
+  }
+  .betFooter {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .betActionsGroup {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .verJugadaBtn,
+  .verCarreraActionBtn {
+    flex: 1;
+    justify-content: center;
+  }
+}

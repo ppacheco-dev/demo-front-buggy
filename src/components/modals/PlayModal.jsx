@@ -12,11 +12,11 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
   const buggyColor = selection?.buggy?.color || '#facc15';
   const buggySymbol = selection?.buggy?.symbol || '⚡';
 
-  const nextRaceNumber = selection?.raceInfo?.nextRaceNumber || ((selection?.raceInfo?.currentRaceNumber || 184) + 1);
-  const nextRaceTime = selection?.raceInfo?.nextRaceTime || '15:15';
-  const ticketPrice = '$2.500';
+  const nextRaceNumber = selection?.targetRaceNumber || selection?.raceInfo?.nextRaceNumber || ((selection?.raceInfo?.currentRaceNumber || 184) + 1);
+  const nextRaceTime = selection?.targetRaceTime || selection?.raceInfo?.nextRaceTime || '15:15';
+  const ticketPrice = selection?.monto || '$2.500';
   // Ticket ID único y permanente para esta jugada
-  const ticketId = selection?.ticketId || 'BG-583921';
+  const ticketId = selection?.ticketId || selection?.id || 'BG-583921';
 
   const handleWatchRace = () => {
     onClose?.();

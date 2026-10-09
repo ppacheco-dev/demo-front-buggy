@@ -13,6 +13,7 @@ export default function CircuitMinimap({
   userBuggyName = null,
   isUserRace = false,
   isFinished = false,
+  isLive = true,
 }) {
   const pathRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
@@ -61,9 +62,9 @@ export default function CircuitMinimap({
           <span className={styles.radarTitle}>GPS RADAR • DUNAS</span>
         </div>
 
-        <div className={styles.liveTag}>
-          <span className={styles.liveDot} />
-          <span>{isFinished ? 'FINAL' : 'EN VIVO'}</span>
+        <div className={isLive ? styles.liveTag : styles.replayTag}>
+          {isLive && <span className={styles.liveDot} />}
+          <span>{isLive ? (isFinished ? 'FINAL' : 'EN VIVO') : 'REPETICIÓN'}</span>
         </div>
       </div>
 

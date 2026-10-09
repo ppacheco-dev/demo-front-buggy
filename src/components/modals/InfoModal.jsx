@@ -1,5 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { getUserBets, getBetStatus } from '../../game/config/userBetsService';
 import styles from '../GameContainer.module.css';
+import betStyles from './InfoModal.module.css';
 
 export default function InfoModal({
   isOpen,
@@ -10,8 +12,12 @@ export default function InfoModal({
   onToggleAudio,
   onUpdateMusic,
   onUpdateEffects,
+  onViewBet,
+  onWatchRace,
+  onGoToBet,
 }) {
   const dialogRef = useRef(null);
+  const [bets, setBets] = useState([]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -27,6 +33,12 @@ export default function InfoModal({
       dialog.close();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setBets(getUserBets());
+    }
+  }, [isOpen, tab]);
 
   if (!isOpen) return null;
 
@@ -47,8 +59,16 @@ export default function InfoModal({
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        {/* Pestañas: Reglas y Ajustes */}
+        {/* Pestañas: Mis Apuestas, Reglas y Ajustes */}
         <div className={styles.modalTabBar}>
+          <button
+            type="button"
+            className={`${styles.modalTabButton} ${tab === 'bets' ? styles.modalTabButtonActive : ''}`}
+            onClick={() => onTabChange('bets')}
+          >
+            <i className="ph ph-receipt" aria-hidden="true" />
+            <span>Mis Apuestas</span>
+          </button>
           <button
             type="button"
             className={`${styles.modalTabButton} ${tab === 'rules' ? styles.modalTabButtonActive : ''}`}
@@ -68,7 +88,158 @@ export default function InfoModal({
         </div>
 
         <div className={styles.modalTabPanel}>
-          {tab === 'rules' ? (
+          {tab === 'bets' ? (
+            <>
+              <div className={styles.infoModalHeader}>
+                <p className={styles.infoModalEyebrow}>Historial del Jugador</p>
+                <h2 id="info-dialog-title" className={styles.infoModalTitle}>
+                  Mis Apuestas Jugadas
+                </h2>
+                <p className={styles.infoModalSubtitle}>
+                  Historial de tus apuestas realizadas, con fechahora, monto, resultado oficial y comprobante.
+                </p>
+              </div>
+
+              {bets.length > 0 && (
+                <div className={betStyles.betsSummaryBar}>
+                  <div className={betStyles.summaryItem}>
+                    <span className={betStyles.summaryLabel}>Total Jugadas</span>
+                    <span className={betStyles.summaryValue}>{bets.length}</span>
+                  </div>
+                  <div className={betStyles.summaryItem}>
+                    <span className={betStyles.summaryLabel}>Invertido</span>
+                    <span className={betStyles.summaryValue}>${(bets.length * 2500).toLocaleString('es-CL')}</span>
+                  </div>
+                  <div className={betStyles.summaryItem}>
+                    <span className={betStyles.summaryLabel}>Ganadas</span>
+                    <span className={`${betStyles.summaryValue} ${betStyles.summaryWon}`}>
+                      {bets.filter((b) => getBetStatus(b).estado === 'GANADA').length}
+                    </span>
+                  </div>
+                  <div className={betStyles.summaryItem}>
+                    <span className={betStyles.summaryLabel}>Pendientes</span>
+                    <span className={`${betStyles.summaryValue} ${betStyles.summaryPending}`}>
+                      {bets.filter((b) => ['PENDIENTE', 'EN_CURSO'].includes(getBetStatus(b).estado)).length}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {bets.length === 0 ? (
+                <div className={betStyles.emptyBetsState}>
+                  <i className={`ph ph-receipt-x ${betStyles.emptyBetsIcon}`} aria-hidden="true" />
+                  <h3 className={betStyles.emptyBetsTitle}>No tienes apuestas registradas</h3>
+                  <p className={betStyles.emptyBetsDesc}>
+                    Realiza tu primera jugada seleccionando tu buggy favorito o el mercado especial en el circuito.
+                  </p>
+                  {onGoToBet && (
+                    <button
+                      type="button"
+                      className={betStyles.irAJugarBtn}
+                      onClick={onGoToBet}
+                    >
+                      <i className="ph ph-flag-checkered" aria-hidden="true" />
+                      <span>Ir a Jugar</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className={betStyles.betsList}>
+                  {bets.map((bet) => {
+                    const status = getBetStatus(bet);
+                    const cardClass = `${betStyles.betCard} ${
+                      status.estado === 'GANADA'
+                        ? betStyles.betCardWon
+                        : status.estado === 'PERDIDA'
+                        ? betStyles.betCardLost
+                        : ''
+                    }`;
+
+                    return (
+                      <div key={bet.id || bet.ticketId} className={cardClass}>
+                        {/* Header: Ticket ID, FechaHora y Monto */}
+                        <div className={betStyles.betHeader}>
+                          <div className={betStyles.betMetaLeft}>
+                            <span className={betStyles.betTicketBadge}>#{bet.ticketId || bet.id}</span>
+                            <span className={betStyles.betDateTime}>
+                              <i className="ph ph-calendar-blank" aria-hidden="true" />
+                              {bet.fechahora || `${bet.fecha || ''} ${bet.hora || ''}`}
+                            </span>
+                          </div>
+                          <span className={betStyles.betMonto}>{bet.monto || '$2.500'}</span>
+                        </div>
+
+                        {/* Body: Mercado, Buggy y Carrera */}
+                        <div className={betStyles.betBody}>
+                          <div className={betStyles.betChoiceGroup}>
+                            <span className={betStyles.betMarketName}>
+                              {bet.market?.name || 'Primer Lugar'}
+                            </span>
+                            <div
+                              className={betStyles.betBuggyTag}
+                              style={{ color: bet.buggy?.color || '#facc15' }}
+                            >
+                              <span>{bet.buggy?.symbol || '⚡'}</span>
+                              <span>
+                                {bet.buggy?.name
+                                  ? `Buggy ${bet.buggy.name}`
+                                  : (bet.market?.id === 'ningun_auto' ? 'Catástrofe (Ningún auto)' : 'Buggy')}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className={betStyles.betRaceTag}>
+                            <span>Carrera <strong>#{bet.targetRaceNumber}</strong></span>
+                            <span>Hora: {bet.targetRaceTime} hrs</span>
+                          </div>
+                        </div>
+
+                        {/* Footer: Resultado Oficial y Botón Ver Jugada */}
+                        <div className={betStyles.betFooter}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                            <span className={`${betStyles.betStatusBadge} ${betStyles[status.badgeClass] || ''}`}>
+                              {status.estado === 'GANADA' && <i className="ph ph-trophy" aria-hidden="true" />}
+                              {status.estado === 'PERDIDA' && <i className="ph ph-x-circle" aria-hidden="true" />}
+                              {status.estado === 'EN_CURSO' && <i className="ph ph-broadcast" aria-hidden="true" />}
+                              {status.estado === 'PENDIENTE' && <i className="ph ph-clock" aria-hidden="true" />}
+                              <span>{status.label}</span>
+                            </span>
+                            <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                              {status.detalle}
+                            </span>
+                          </div>
+
+                          <div className={betStyles.betActionsGroup}>
+                            <button
+                              type="button"
+                              className={betStyles.verJugadaBtn}
+                              onClick={() => onViewBet?.(bet)}
+                              title="Ver comprobante y detalle de jugada"
+                            >
+                              <i className="ph ph-ticket" aria-hidden="true" />
+                              <span>Ver Jugada</span>
+                            </button>
+
+                            {onWatchRace && status.race && (
+                              <button
+                                type="button"
+                                className={betStyles.verCarreraActionBtn}
+                                onClick={() => onWatchRace?.(status.race)}
+                                title="Ver carrera correspondiente"
+                              >
+                                <i className="ph ph-video" aria-hidden="true" />
+                                <span>Ver Carrera</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : tab === 'rules' ? (
             <>
               <div className={styles.infoModalHeader}>
                 <p className={styles.infoModalEyebrow}>Reglas y Dinámica Oficial</p>
