@@ -21,7 +21,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
 
   const handleWatchRace = () => {
     onClose?.();
-    onViewLiveRace?.();
+    onViewLiveRace?.(selection);
   };
 
   const handleGoHome = () => {

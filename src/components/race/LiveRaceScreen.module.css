@@ -112,6 +112,95 @@
   text-transform: uppercase;
 }
 
+/* Píldora no intrusiva de aviso de Carrera en Vivo Disponible */
+.liveAvailablePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1.5px solid rgba(239, 68, 68, 0.6);
+  padding: 4px 10px 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+  animation: fadeInDownNotice 0.3s ease-out;
+}
+
+@keyframes fadeInDownNotice {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.liveAvailableDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: liveBlink 0.8s infinite alternate;
+}
+
+.liveAvailableText {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #fca5a5;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.liveAvailableBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.liveAvailableBtn:hover {
+  filter: brightness(1.18);
+  transform: scale(1.05);
+}
+
+.watchCurrentLiveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: 1px solid rgba(254, 202, 202, 0.4);
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(239, 68, 68, 0.5);
+  animation: liveBtnPulse 1.2s infinite alternate;
+  transition: all 140ms ease;
+}
+
+@keyframes liveBtnPulse {
+  from { box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); transform: scale(0.99); }
+  to { box-shadow: 0 8px 26px rgba(239, 68, 68, 0.8); transform: scale(1.01); }
+}
+
+.watchCurrentLiveBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px) scale(1.01);
+}
+
 .raceTitleGroup {
   display: flex;
   flex-direction: column;

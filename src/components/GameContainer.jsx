@@ -7,6 +7,7 @@ import SelectionScreen from './selection/SelectionScreen';
 import LiveRaceScreen from './race/LiveRaceScreen';
 import { getRaceSchedule, formatSecondsToCountdown } from '../game/config/raceTimeService';
 import { recordUserBet } from '../game/config/userBetsService';
+import { getOrCreateRace } from '../game/config/raceStorageService';
 import styles from './GameContainer.module.css';
 
 function getFullscreenElement() {
@@ -407,6 +408,9 @@ export default function GameContainer() {
           setInfoModal((prev) => ({ ...prev, open: false }));
           if (typeof raceOrNumber === 'object' && raceOrNumber !== null) {
             handleOpenLiveRace(raceOrNumber);
+          } else if (typeof raceOrNumber === 'number') {
+            const target = getOrCreateRace(raceOrNumber, schedule.todayStr, schedule.currentRaceTime);
+            handleOpenLiveRace(target);
           } else {
             handleOpenLiveRace(null);
           }
@@ -422,7 +426,18 @@ export default function GameContainer() {
         isOpen={playModalOpen}
         onClose={() => setPlayModalOpen(false)}
         selection={currentSelection}
-        onViewLiveRace={() => handleOpenLiveRace()}
+        onViewLiveRace={(ticketSelection) => {
+          if (ticketSelection?.targetRaceNumber) {
+            const target = getOrCreateRace(
+              ticketSelection.targetRaceNumber,
+              ticketSelection.targetRaceDate || schedule.todayStr,
+              ticketSelection.targetRaceTime || schedule.currentRaceTime
+            );
+            handleOpenLiveRace(target);
+          } else {
+            handleOpenLiveRace(null);
+          }
+        }}
         onGoToHome={handleBackToMenu}
       />
 

@@ -26,11 +26,36 @@ export default function LiveRaceScreen({
   const currentSlotHourStr = `${String(currentSlotHours).padStart(2, '0')}:${String(currentSlotMins).padStart(2, '0')}`;
   const currentSlotNum = Math.floor((currentSlotHours * 60 + currentSlotMins) / 5) + 1;
 
-  const defaultNumber = raceInfo?.currentRaceNumber || currentSlotNum;
-  const defaultHour = raceInfo?.currentRaceTime || currentSlotHourStr;
+  const initialNumber = selectedRace?.numero || raceInfo?.currentRaceNumber || currentSlotNum;
+  const initialHour = selectedRace?.hora || raceInfo?.currentRaceTime || currentSlotHourStr;
 
-  const race = selectedRace || getOrCreateRace(defaultNumber, todayStr, defaultHour);
+  // Estado que fija y bloquea la carrera que el usuario está viendo actualmente.
+  // CRÍTICO: Si el usuario está viendo una carrera anterior o la de un ticket/slot previo,
+  // NUNCA se sobreescribe ni se reemplaza automáticamente al iniciar una nueva carrera en vivo.
+  const [viewedRace, setViewedRace] = useState(() => {
+    return selectedRace || getOrCreateRace(initialNumber, todayStr, initialHour);
+  });
+
+  // Si el prop selectedRace cambia explícitamente a otra carrera seleccionada
+  useEffect(() => {
+    if (selectedRace && selectedRace.numero !== viewedRace.numero) {
+      setViewedRace(selectedRace);
+    }
+  }, [selectedRace]);
+
+  const race = viewedRace;
   const tramos = race.tramos && race.tramos.length > 0 ? race.tramos : REFERENCE_RACE_TRAMOS;
+
+  const liveRaceNumber = raceInfo?.currentRaceNumber || currentSlotNum;
+  const liveRaceTime = raceInfo?.currentRaceTime || currentSlotHourStr;
+  const isViewingPastRace = Boolean(selectedRace || (race.numero < liveRaceNumber));
+  const isNewLiveRaceAvailable = liveRaceNumber > race.numero;
+  const isLive = !isViewingPastRace;
+
+  const handleSwitchToLiveRace = () => {
+    const liveRace = getOrCreateRace(liveRaceNumber, todayStr, liveRaceTime);
+    setViewedRace(liveRace);
+  };
 
   // Estados de animación continua (por defecto: vista clásica 2D)
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
@@ -314,8 +339,6 @@ export default function LiveRaceScreen({
     }
   }
 
-  const isLive = !selectedRace;
-
   return (
     <div className={styles.container}>
       {/* 1. Barra Superior Oficial: Identificación Exacta de la Carrera */}
@@ -334,6 +357,25 @@ export default function LiveRaceScreen({
           <div className={styles.replayBadgeGroup}>
             <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
             <span className={styles.replayBadgeText}>CARRERA ANTERIOR</span>
+          </div>
+        )}
+
+        {/* Notificación no intrusiva: Carrera en vivo disponible sin interrumpir la actual */}
+        {isNewLiveRaceAvailable && (
+          <div className={styles.liveAvailablePill}>
+            <span className={styles.liveAvailableDot} />
+            <span className={styles.liveAvailableText}>
+              Carrera #{liveRaceNumber} en vivo ({liveRaceTime} hrs)
+            </span>
+            <button
+              type="button"
+              className={styles.liveAvailableBtn}
+              onClick={handleSwitchToLiveRace}
+              title="Sintonizar la carrera en vivo actual"
+            >
+              <i className="ph ph-broadcast" aria-hidden="true" />
+              <span>Ver en Vivo</span>
+            </button>
           </div>
         )}
 
@@ -845,6 +887,17 @@ export default function LiveRaceScreen({
 
             {/* Botones de Acción */}
             <div className={styles.resultsActions}>
+              {isNewLiveRaceAvailable && (
+                <button
+                  type="button"
+                  className={styles.watchCurrentLiveBtn}
+                  onClick={handleSwitchToLiveRace}
+                >
+                  <i className="ph ph-broadcast" aria-hidden="true" />
+                  <span>VER CARRERA EN VIVO #{liveRaceNumber} ({liveRaceTime} HRS)</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 className={styles.nextRaceBtn}

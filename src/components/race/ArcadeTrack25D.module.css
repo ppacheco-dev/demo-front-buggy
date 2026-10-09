@@ -124,6 +124,16 @@
   will-change: transform;
 }
 
+.roadSurfaceImpactShake {
+  animation: roadImpactTremor 0.08s ease-in-out infinite alternate !important;
+}
+
+@keyframes roadImpactTremor {
+  0% { transform: translate3d(calc(-50% - 2px), 2px, 0) rotateX(46deg); filter: brightness(1.25); }
+  50% { transform: translate3d(calc(-50% + 2px), -2px, 0) rotateX(46deg); filter: brightness(1.4); }
+  100% { transform: translate3d(calc(-50% - 1px), 1px, 0) rotateX(46deg); filter: brightness(1.1); }
+}
+
 /* Bordillos vibratorios rayados laterales directos (Cero máscaras, 60 FPS directo) */
 .roadCurbLeft,
 .roadCurbRight {

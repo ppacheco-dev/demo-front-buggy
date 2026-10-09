@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
+import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
 import styles from './ArcadeTrack25D.module.css';
 
 /**
@@ -50,21 +51,26 @@ export default function ArcadeTrack25D({
   const { isHazardVisible, hazardTop, hazardScale, hazardOpacity } = useMemo(() => {
     // Hay 7 transiciones entre tramos
     const sectorFraction = (progress * 7) % 1;
+    const isMeteor = currentSectorObstacle?.tipo === 'METEORITOS';
+    // Para meteoritos, el cráter en el suelo se manifiesta en el momento del impacto (a partir de 0.32)
+    const minFraction = isMeteor ? 0.32 : 0.06;
 
-    // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos (0.06 a 0.82)
-    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= 0.06 && sectorFraction <= 0.82;
+    // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos
+    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= minFraction && sectorFraction <= 0.82;
 
     if (!isVisible) {
       return { isHazardVisible: false, hazardTop: 0, hazardScale: 1, hazardOpacity: 0 };
     }
 
-    // Normalizado de 0 (horizonte lejano) a 1 (primer plano cruzado)
-    const norm = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.70));
+    // Normalizado de 0 (horizonte lejano / impacto) a 1 (primer plano cruzado)
+    const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (0.82 - minFraction)));
     const curve = norm * norm; // aceleración cuadrática en perspectiva 3D
 
-    const top = 30 + curve * 54; // de 30% (horizonte) a 84% (pasa por debajo)
-    const scale = 0.40 + curve * 0.85; // escala proporcional de 0.40 a 1.25
-    const opacity = norm < 0.1 ? norm / 0.1 : (norm > 0.86 ? (1 - norm) / 0.14 : 1);
+    const startTop = isMeteor ? 38 : 30; // Los meteoritos impactan en la carretera (38%)
+    const top = startTop + curve * (84 - startTop);
+    const startScale = isMeteor ? 0.55 : 0.40;
+    const scale = startScale + curve * (1.25 - startScale);
+    const opacity = norm < 0.08 ? norm / 0.08 : (norm > 0.88 ? (1 - norm) / 0.12 : 1);
 
     return {
       isHazardVisible: true,
@@ -79,7 +85,9 @@ export default function ArcadeTrack25D({
   const lastAlertedTramoRef = useRef(null);
 
   useEffect(() => {
-    if (isHazardVisible && currentSectorObstacle?.nombre && !isFinished) {
+    const sectorFraction = (progress * 7) % 1;
+    // Mostrar la alerta gigante al inicio del sector (cuando entran los meteoritos o se aproxima el obstáculo)
+    if (sectorFraction >= 0.04 && currentSectorObstacle?.nombre && !isFinished) {
       const tramoKey = `${currentSectorObstacle.tramo}-${currentSectorObstacle.tipo}`;
       if (lastAlertedTramoRef.current !== tramoKey) {
         lastAlertedTramoRef.current = tramoKey;
@@ -92,10 +100,14 @@ export default function ArcadeTrack25D({
         });
       }
     }
-  }, [isHazardVisible, currentSectorObstacle, isFinished]);
+  }, [progress, currentSectorObstacle, isFinished]);
 
   // Fracción actual del sector para coordinar saltos y esquives de los buggies
   const sectorFraction = (progress * 7) % 1;
+  const isMeteorImpactShake =
+    currentSectorObstacle?.tipo === 'METEORITOS' &&
+    sectorFraction >= 0.32 &&
+    sectorFraction <= 0.44;
 
   return (
     <div className={styles.arcadeContainer}>
@@ -131,6 +143,14 @@ export default function ArcadeTrack25D({
         </div>
       )}
 
+      {/* OBJETOS QUE CAEN DESDE EL CIELO (METEORITOS Y AVALANCHAS) */}
+      <ArcadeSkyFallingHazards
+        tipo={currentSectorObstacle?.tipo}
+        nombre={currentSectorObstacle?.nombre}
+        sectorFraction={sectorFraction}
+        isFinished={isFinished}
+      />
+
       {/* 2. CIELO Y HORIZONTE DEL DESIERTO (PARALLAX RETRO) */}
       <div className={styles.arcadeSky}>
         <div className={styles.retroSun} />
@@ -146,7 +166,7 @@ export default function ArcadeTrack25D({
         <div className={styles.desertSandRight} />
 
         {/* Carretera con bordillos y líneas de velocidad optimizadas a 60 FPS */}
-        <div className={styles.roadSurface}>
+        <div className={`${styles.roadSurface} ${isMeteorImpactShake ? styles.roadSurfaceImpactShake : ''}`}>
           {/* Bordillos vibratorios rayados laterales directos */}
           <div className={styles.roadCurbLeft} />
           <div className={styles.roadCurbRight} />
