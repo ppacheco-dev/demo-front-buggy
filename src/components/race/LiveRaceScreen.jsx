@@ -5,6 +5,7 @@ import BuggySprite from './BuggySprite';
 import ObstacleSprite from './ObstacleSprite';
 import CircuitMinimap from './CircuitMinimap';
 import ArcadeTrack25D from './ArcadeTrack25D';
+import { TICKET_PRICE } from '../../game/config/raceTimeService';
 import styles from './LiveRaceScreen.module.css';
 
 // Duración total de la carrera en milisegundos (22s de acción pura estilo videojuego)
@@ -690,7 +691,7 @@ export default function LiveRaceScreen({
                 {userSelection.buggy && (
                   <span>Auto: <strong style={{ color: userSelection.buggy.color }}>{userSelection.buggy.name}</strong></span>
                 )}
-                <span>Precio: <strong>$2.500</strong></span>
+                <span>Precio: <strong>{userSelection.monto || userSelection.precio || TICKET_PRICE}</strong></span>
               </div>
             </div>
           ) : (
@@ -850,7 +851,7 @@ export default function LiveRaceScreen({
                 onClick={onGoToBet}
               >
                 <i className="ph ph-ticket" aria-hidden="true" />
-                <span>PARTICIPAR EN PRÓXIMA CARRERA ($2.500)</span>
+                <span>PARTICIPAR EN PRÓXIMA CARRERA ({TICKET_PRICE})</span>
               </button>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%' }}>

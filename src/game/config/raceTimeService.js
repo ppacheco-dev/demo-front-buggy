@@ -3,7 +3,7 @@
  * Calcula en tiempo real la carrera en curso (actual) y la próxima carrera programada.
  */
 
-export const TICKET_PRICE = '$2.500';
+export const TICKET_PRICE = '$2.000';
 
 export function getRaceSchedule(now = new Date()) {
   const currentHours = now.getHours();

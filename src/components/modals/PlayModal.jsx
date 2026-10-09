@@ -1,4 +1,5 @@
 import React from 'react';
+import { TICKET_PRICE } from '../../game/config/raceTimeService';
 import styles from '../GameContainer.module.css';
 
 export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, onGoToHome }) {
@@ -14,7 +15,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
 
   const nextRaceNumber = selection?.targetRaceNumber || selection?.raceInfo?.nextRaceNumber || ((selection?.raceInfo?.currentRaceNumber || 184) + 1);
   const nextRaceTime = selection?.targetRaceTime || selection?.raceInfo?.nextRaceTime || '15:15';
-  const ticketPrice = selection?.monto || '$2.500';
+  const ticketPrice = selection?.monto || selection?.precio || TICKET_PRICE;
   // Ticket ID único y permanente para esta jugada
   const ticketId = selection?.ticketId || selection?.id || 'BG-583921';
 
