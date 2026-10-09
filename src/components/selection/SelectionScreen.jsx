@@ -5,19 +5,22 @@ import styles from './SelectionScreen.module.css';
 
 const Buggy3DViewer = React.lazy(() => import('./Buggy3DViewer'));
 
-export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSettings }) {
+export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSettings, schedule: propSchedule }) {
   const [selectedMarketId, setSelectedMarketId] = useState('primer_lugar');
   const [selectedBuggyId, setSelectedBuggyId] = useState('amarillo');
   const [previewBuggy, setPreviewBuggy] = useState(null);
-  const [schedule, setSchedule] = useState(() => getRaceSchedule());
+  const [localSchedule, setLocalSchedule] = useState(() => getRaceSchedule());
 
-  // Temporizador sincronizado con carreras cada 5 minutos
+  const schedule = propSchedule || localSchedule;
+
+  // Temporizador sincronizado con carreras sólo si no viene del padre
   useEffect(() => {
+    if (propSchedule) return;
     const timer = setInterval(() => {
-      setSchedule(getRaceSchedule());
+      setLocalSchedule(getRaceSchedule());
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [propSchedule]);
 
   // Cerrar preview con tecla Escape
   useEffect(() => {
@@ -34,10 +37,10 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
   const selectedBuggy = BUGGIES.find((b) => b.id === selectedBuggyId) || BUGGIES[0];
   const requiresBuggy = selectedMarket.requiresBuggy !== false;
 
+  // Selección directa e instantánea sin abrir popup modal invasivo
   const handleSelectBuggy = (buggy) => {
     if (!requiresBuggy) return;
     setSelectedBuggyId(buggy.id);
-    setPreviewBuggy(buggy);
   };
 
   const handleConfirm = () => {
@@ -159,7 +162,14 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                   <span className={styles.buggyName}>{buggy.name}</span>
                 </div>
 
-                <span className={styles.buggyZoomHint} title="Presionar para ver muestra ampliada">
+                <span
+                  className={styles.buggyZoomHint}
+                  title={`Ver ficha técnica 3D de Buggy ${buggy.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewBuggy(buggy);
+                  }}
+                >
                   <i className="ph ph-magnifying-glass-plus" aria-hidden="true" />
                 </span>
               </div>

@@ -359,14 +359,23 @@ export default function GameContainer() {
         </div>
       )}
 
-      {/* Pantalla de Selección de Mercados y Buggies */}
-      {screen === 'selection' && (
+      {/* Pantalla de Selección de Mercados y Buggies pre-montada para aparición instantánea sin lag */}
+      <div
+        style={{
+          display: screen === 'selection' ? 'block' : 'none',
+          position: 'absolute',
+          inset: 0,
+          zIndex: 100,
+        }}
+        aria-hidden={screen !== 'selection'}
+      >
         <SelectionScreen
           onConfirm={handleConfirmSelection}
           onBackToMenu={handleBackToMenu}
           onOpenSettings={() => openInfoModal('settings')}
+          schedule={schedule}
         />
-      )}
+      </div>
 
       {/* Pantalla de Transmisión de Carrera en Vivo */}
       {screen === 'race' && (

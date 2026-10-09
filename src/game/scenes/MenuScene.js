@@ -268,34 +268,29 @@ export default class MenuScene extends Phaser.Scene {
       this.currentScreen = screen;
       const isMenu = screen === 'menu';
 
-      if (this.logo) {
-        this.tweens.add({
-          targets: this.logo,
-          alpha: isMenu ? 1 : 0,
-          duration: 200,
-          onComplete: () => {
-            if (this.logo) this.logo.setVisible(isMenu);
-          },
-        });
-      }
-
-      if (this.btnPlay) {
-        this.tweens.add({
-          targets: this.btnPlay,
-          alpha: isMenu ? 1 : 0,
-          duration: 200,
-          onComplete: () => {
-            if (this.btnPlay) {
-              this.btnPlay.setVisible(isMenu);
-              if (isMenu) {
-                this.btnPlay.setScale(this.btnBaseScale);
-                this.startBtnPulse();
-              } else {
-                this.stopBtnPulse();
-              }
-            }
-          },
-        });
+      if (!isMenu) {
+        this.stopBtnPulse();
+        if (this.logoTween) this.logoTween.pause();
+        if (this.logo) {
+          this.logo.setVisible(false);
+          this.logo.setAlpha(0);
+        }
+        if (this.btnPlay) {
+          this.btnPlay.setVisible(false);
+          this.btnPlay.setAlpha(0);
+        }
+      } else {
+        if (this.logoTween) this.logoTween.resume();
+        if (this.logo) {
+          this.logo.setVisible(true);
+          this.logo.setAlpha(1);
+        }
+        if (this.btnPlay) {
+          this.btnPlay.setVisible(true);
+          this.btnPlay.setAlpha(1);
+          this.btnPlay.setScale(this.btnBaseScale);
+          this.startBtnPulse();
+        }
       }
     };
 
