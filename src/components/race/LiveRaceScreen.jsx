@@ -5,6 +5,7 @@ import BuggySprite from './BuggySprite';
 import ObstacleSprite from './ObstacleSprite';
 import CircuitMinimap from './CircuitMinimap';
 import ArcadeTrack25D from './ArcadeTrack25D';
+import ArcadeFirstPersonCockpit from './ArcadeFirstPersonCockpit';
 import { TICKET_PRICE } from '../../game/config/raceTimeService';
 import styles from './LiveRaceScreen.module.css';
 
@@ -57,10 +58,10 @@ export default function LiveRaceScreen({
     setViewedRace(liveRace);
   };
 
-  // Estados de animación continua (por defecto: vista clásica 2D)
+  // Estados de animación continua (por defecto: vista ARCADE 2.5D)
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
   const [isFinished, setIsFinished] = useState(false);
-  const [cameraMode, setCameraMode] = useState('broadcast2d'); // 'broadcast2d' (por defecto) | 'arcade25d'
+  const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' (por defecto) | 'broadcast2d' | 'cockpitFpv'
   const animFrameRef = useRef(null);
   const startTimeRef = useRef(null);
 
@@ -328,6 +329,12 @@ export default function LiveRaceScreen({
 
   const userMarketId = isUserParticipatingInThisRace ? userSelection?.market?.id : null;
   const userBuggyName = isUserParticipatingInThisRace ? userSelection?.buggy?.name?.toUpperCase() : null;
+  const activeUserBuggyName = userBuggyName || userSelection?.buggy?.name?.toUpperCase() || null;
+
+  const canUseFpv = Boolean(
+    (isUserParticipatingInThisRace && userSelection?.buggy) ||
+    userSelection?.buggy
+  );
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
   let userWon = false;
@@ -385,7 +392,7 @@ export default function LiveRaceScreen({
               type="button"
               className={`${styles.cameraSegmentBtn} ${cameraMode === 'arcade25d' ? styles.activeCameraSegment : ''}`}
               onClick={() => setCameraMode('arcade25d')}
-              title="Cámara 3D en Perspectiva Arcade"
+              title="Cámara 3D en Perspectiva Arcade (Por defecto)"
             >
               <i className="ph ph-game-controller" aria-hidden="true" />
               <span>ARCADE 2.5D</span>
@@ -399,6 +406,18 @@ export default function LiveRaceScreen({
               <i className="ph ph-broadcast" aria-hidden="true" />
               <span>CLÁSICA 2D</span>
             </button>
+            {canUseFpv && (
+              <button
+                type="button"
+                className={`${styles.cameraSegmentBtn} ${cameraMode === 'cockpitFpv' ? styles.activeCameraSegment : ''}`}
+                onClick={() => setCameraMode('cockpitFpv')}
+                title="Cámara en Primera Persona desde tu Buggy con espejo retrovisor y cabina"
+              >
+                <i className="ph ph-steering-wheel" aria-hidden="true" />
+                <span>1ª PERSONA (FPV)</span>
+                <span className={styles.fpvHighlightBadge}>TU AUTO</span>
+              </button>
+            )}
           </div>
 
           <button
@@ -427,7 +446,18 @@ export default function LiveRaceScreen({
 
       {/* 3. Escenario Principal: Pista de Carreras de Videojuego */}
       <div className={styles.mainStage}>
-        {cameraMode === 'arcade25d' ? (
+        {cameraMode === 'cockpitFpv' ? (
+          <ArcadeFirstPersonCockpit
+            cars={liveCars}
+            rankedCars={rankedCars}
+            progress={progress}
+            currentSectorObstacle={currentSectorObstacle}
+            userBuggyName={activeUserBuggyName}
+            isUserRace={true}
+            isFinished={isFinished}
+            fatalEliminationByCar={fatalEliminationByCar}
+          />
+        ) : cameraMode === 'arcade25d' ? (
           <ArcadeTrack25D
             cars={liveCars}
             rankedCars={rankedCars}

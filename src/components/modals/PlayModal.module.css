@@ -1,0 +1,473 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 7500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(4, 8, 18, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow-y: auto;
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 960px;
+  max-height: 92vh;
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(160deg, #131e36 0%, #0a1120 100%);
+  border: 2px solid rgba(245, 158, 11, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 36px rgba(245, 158, 11, 0.22);
+  position: relative;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: inherit;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #94a3b8;
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 140ms ease;
+}
+
+.closeBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ff8888;
+  transform: rotate(90deg);
+}
+
+.voucherGrid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .voucherGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .modalCard {
+    padding: 20px 16px;
+    max-height: 94vh;
+  }
+}
+
+/* Columna Izquierda: Voucher */
+.voucherLeftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.voucherHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 5px;
+}
+
+.ticketIconCircle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
+  color: #000;
+  font-size: 26px;
+  margin-bottom: 2px;
+}
+
+.subTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  color: #f59e0b;
+  text-transform: uppercase;
+}
+
+.mainTitle {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.ticketIdText {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.voucherDetailsCard {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rowGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 10px;
+}
+
+.detailBox {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detailBoxHighlight {
+  background: rgba(245, 158, 11, 0.08);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.detailLabel {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.detailValueRace {
+  font-size: 1.05rem;
+  color: #facc15;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.detailSub {
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.detailValuePrice {
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.detailSubConfirmed {
+  font-size: 0.7rem;
+  color: #10b981;
+  font-weight: 700;
+}
+
+.infoBanner {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1.5px solid rgba(14, 165, 233, 0.4);
+  border-radius: 12px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+}
+
+.infoBannerIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #0ea5e9;
+  display: grid;
+  place-items: center;
+  color: #000;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.actionBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.watchRaceBtn {
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.88rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.watchRaceBtn:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.goHomeBtn {
+  width: 100%;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.goHomeBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Columna Derecha: Mapa de la Carrera */
+.voucherRightCol {
+  background: rgba(8, 14, 28, 0.7);
+  border: 1.5px solid rgba(59, 130, 246, 0.35);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.05);
+}
+
+.mapTitleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.mapTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mapRadarIcon {
+  color: #38bdf8;
+  font-size: 1.25rem;
+  animation: radarSpin 4s linear infinite;
+}
+
+@keyframes radarSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mapTitleText {
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+
+.circuitTag {
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  color: #38bdf8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* SVG Container del Mapa */
+.mapSvgWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 310 / 170;
+  background: radial-gradient(circle at center, #0f1c36 0%, #070c18 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.7);
+}
+
+.svgCircuit {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Estilos de trazado de la pista en el SVG */
+.trackGlow {
+  fill: none;
+  stroke: rgba(14, 165, 233, 0.45);
+  stroke-width: 14;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px #0284c7);
+}
+
+.trackBase {
+  fill: none;
+  stroke: #1e293b;
+  stroke-width: 11;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.trackMain {
+  fill: none;
+  stroke: #0f172a;
+  stroke-width: 7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.trackCenterLine {
+  fill: none;
+  stroke: rgba(250, 204, 21, 0.65);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 6;
+  stroke-linejoin: round;
+}
+
+.markerCircle {
+  fill: #1e293b;
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1;
+}
+
+.markerIcon {
+  font-size: 7.5px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.gridRing {
+  fill: none;
+  stroke: rgba(56, 189, 248, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* Tu auto en la grilla de salida */
+.userGridBadge {
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.userGridLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userGridSymbol {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 900;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.userGridText {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.userGridTag {
+  background: #facc15;
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Ficha Técnica */
+.circuitStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.statPill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.statPillLabel {
+  font-size: 0.62rem;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statPillValue {
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  font-weight: 900;
+  margin-top: 1px;
+}

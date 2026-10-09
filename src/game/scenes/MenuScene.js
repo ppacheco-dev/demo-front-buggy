@@ -66,12 +66,16 @@ export default class MenuScene extends Phaser.Scene {
 
     this.isModalOpen = false;
     this.currentScreen = 'menu';
+    this.isBtnPressed = false;
 
     this.btnPlay.on('pointerdown', (pointer, localX, localY, event) => {
       if (this.isModalOpen || this.currentScreen !== 'menu') {
         if (event?.stopPropagation) event.stopPropagation();
         return;
       }
+      this.isBtnPressed = true;
+      this.stopBtnPulse();
+      this.tweens.killTweensOf(this.btnPlay);
       this.tweens.add({
         targets: this.btnPlay,
         scaleX: this.btnBaseScale * 0.94,
@@ -81,11 +85,17 @@ export default class MenuScene extends Phaser.Scene {
       });
     });
 
-    this.btnPlay.on('pointerup', (pointer, localX, localY, event) => {
+    const triggerPlayAction = (event) => {
+      if (!this.isBtnPressed) return;
+      this.isBtnPressed = false;
+
       if (this.isModalOpen || this.currentScreen !== 'menu') {
         if (event?.stopPropagation) event.stopPropagation();
+        this.btnPlay.setScale(this.btnBaseScale);
         return;
       }
+
+      this.tweens.killTweensOf(this.btnPlay);
       this.tweens.add({
         targets: this.btnPlay,
         scaleX: this.btnBaseScale * 1.08,
@@ -102,6 +112,16 @@ export default class MenuScene extends Phaser.Scene {
           },
         })
       );
+    };
+
+    this.btnPlay.on('pointerup', triggerPlayAction);
+    this.btnPlay.on('pointerupoutside', () => {
+      if (this.isBtnPressed) {
+        this.isBtnPressed = false;
+        this.tweens.killTweensOf(this.btnPlay);
+        this.btnPlay.setScale(this.btnBaseScale);
+        this.startBtnPulse();
+      }
     });
 
     // Escuchar redimensionamiento de pantalla
@@ -269,6 +289,9 @@ export default class MenuScene extends Phaser.Scene {
       const isMenu = screen === 'menu';
 
       if (!isMenu) {
+        if (this.input) {
+          this.input.enabled = false;
+        }
         this.stopBtnPulse();
         if (this.logoTween) this.logoTween.pause();
         if (this.logo) {
@@ -276,10 +299,15 @@ export default class MenuScene extends Phaser.Scene {
           this.logo.setAlpha(0);
         }
         if (this.btnPlay) {
+          this.btnPlay.disableInteractive();
           this.btnPlay.setVisible(false);
           this.btnPlay.setAlpha(0);
         }
       } else {
+        this.isModalOpen = false;
+        if (this.input) {
+          this.input.enabled = true;
+        }
         if (this.logoTween) this.logoTween.resume();
         if (this.logo) {
           this.logo.setVisible(true);
@@ -289,6 +317,7 @@ export default class MenuScene extends Phaser.Scene {
           this.btnPlay.setVisible(true);
           this.btnPlay.setAlpha(1);
           this.btnPlay.setScale(this.btnBaseScale);
+          this.btnPlay.setInteractive({ useHandCursor: true });
           this.startBtnPulse();
         }
       }

@@ -100,24 +100,33 @@ export default function GameContainer() {
     );
   }, [isAnyModalOpen]);
 
+  const isAnyModalOpenRef = useRef(isAnyModalOpen);
+  isAnyModalOpenRef.current = isAnyModalOpen;
+  const screenRef = useRef(screen);
+  screenRef.current = screen;
+
+  const navigateToSelection = useCallback(() => {
+    setScreen('selection');
+    window.dispatchEvent(
+      new CustomEvent('game:screen-change', {
+        detail: { screen: 'selection' },
+      })
+    );
+  }, []);
+
   // Escuchar evento de clic en JUGAR desde Phaser -> Navegar a pantalla de selección
   useEffect(() => {
     const handlePlayClicked = () => {
       // Si hay un modal abierto o la pantalla no es menú, ignorar completamente
-      if (isAnyModalOpen || screen !== 'menu') {
+      if (isAnyModalOpenRef.current || screenRef.current !== 'menu') {
         return;
       }
-      setScreen('selection');
-      window.dispatchEvent(
-        new CustomEvent('game:screen-change', {
-          detail: { screen: 'selection' },
-        })
-      );
+      navigateToSelection();
     };
 
     window.addEventListener('game:play-clicked', handlePlayClicked);
     return () => window.removeEventListener('game:play-clicked', handlePlayClicked);
-  }, [isAnyModalOpen, screen]);
+  }, [navigateToSelection]);
 
   const handleBackToMenu = useCallback(() => {
     setSelectedRace(null);
@@ -358,6 +367,17 @@ export default function GameContainer() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Botón accesible directo para garantizar 100% de clics en JUGAR */}
+      {screen === 'menu' && !isAnyModalOpen && (
+        <button
+          type="button"
+          className={styles.homePlayHitbox}
+          onClick={navigateToSelection}
+          aria-label="Jugar y Seleccionar Buggy"
+          title="Jugar"
+        />
       )}
 
       {/* Pantalla de Selección de Mercados y Buggies pre-montada para aparición instantánea sin lag */}

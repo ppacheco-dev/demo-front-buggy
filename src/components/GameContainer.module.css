@@ -1304,3 +1304,27 @@
   }
 }
 
+/* Área interactiva overlay para asegurar respuesta instantánea del botón JUGAR */
+.homePlayHitbox {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(84vw, 380px);
+  height: 95px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 40;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .homePlayHitbox {
+    bottom: 9.5%;
+    height: 85px;
+    width: min(86vw, 340px);
+  }
+}
