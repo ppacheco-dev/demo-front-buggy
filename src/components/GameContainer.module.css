@@ -421,8 +421,8 @@
 }
 
 .infoModalCard {
-  width: min(94vw, 760px);
-  height: min(88vh, 590px);
+  width: min(95vw, 960px);
+  height: min(90vh, 720px);
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 14px;
@@ -776,8 +776,8 @@
   }
 
   .infoModalCard {
-    width: min(95vw, 540px);
-    height: min(88vh, 590px);
+    width: min(96vw, 780px);
+    height: min(92vh, 680px);
     padding: 16px;
     gap: 12px;
   }

@@ -16,12 +16,12 @@
 }
 
 .historyTopIcon {
-  font-size: 1.55rem;
+  font-size: 1.25rem;
   color: #f1f5f9;
 }
 
 .historyTopTitle {
-  font-size: 1.55rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #f1f5f9;
   letter-spacing: 0.01em;
@@ -42,8 +42,8 @@
 }
 
 .historyTable th {
-  padding: 12px 14px;
-  font-size: 0.84rem;
+  padding: 10px 14px;
+  font-size: 0.74rem;
   font-weight: 600;
   color: #94a3b8;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -57,8 +57,8 @@
 }
 
 .historyTable td {
-  padding: 14px 14px;
-  font-size: 0.9rem;
+  padding: 11px 14px;
+  font-size: 0.78rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   color: #e2e8f0;
   white-space: nowrap;
@@ -66,30 +66,34 @@
 
 .dateCol {
   color: #cbd5e1;
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 500;
 }
 
 .ticketCol {
   color: #f8fafc;
   font-weight: 700;
+  font-size: 0.78rem;
   letter-spacing: 0.02em;
 }
 
 .priceCol {
   color: #f1f5f9;
   font-weight: 700;
+  font-size: 0.78rem;
 }
 
 .prizeWonCol {
   color: #4ade80;
   font-weight: 900;
+  font-size: 0.80rem;
   text-shadow: 0 0 10px rgba(74, 222, 128, 0.35);
 }
 
 .prizeZeroCol {
   color: #94a3b8;
   font-weight: 600;
+  font-size: 0.78rem;
 }
 
 .actionCol {
@@ -100,14 +104,14 @@
 .viewBetBtn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   background: transparent;
   border: none;
   color: #f1f5f9;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 6px;
   transition: color 140ms ease, transform 140ms ease;
 }
@@ -118,7 +122,7 @@
 }
 
 .viewBetBtn i {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
 }
 
 /* Paginación idéntica a la referencia (< Pág 1 de 1 >) */
@@ -182,11 +186,11 @@
 @media (max-width: 640px) {
   .historyTable th,
   .historyTable td {
-    padding: 10px 8px;
-    font-size: 0.78rem;
+    padding: 8px 6px;
+    font-size: 0.72rem;
   }
   .viewBetBtn {
-    font-size: 0.76rem;
-    gap: 4px;
+    font-size: 0.72rem;
+    gap: 3px;
   }
 }
