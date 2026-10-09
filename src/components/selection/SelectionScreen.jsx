@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MARKETS, BUGGIES } from '../../game/config/selectionData';
 import { getRaceSchedule, formatSecondsToCountdown, TICKET_PRICE } from '../../game/config/raceTimeService';
-import Buggy3DViewer from './Buggy3DViewer';
 import styles from './SelectionScreen.module.css';
+
+const Buggy3DViewer = React.lazy(() => import('./Buggy3DViewer'));
 
 export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSettings }) {
   const [selectedMarketId, setSelectedMarketId] = useState('primer_lugar');
@@ -261,13 +262,23 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
 
               <div className={styles.previewCarContainer}>
                 {previewBuggy.model ? (
-                  <Buggy3DViewer
-                    modelUrl={previewBuggy.model}
-                    fallbackImage={previewBuggy.image}
-                    buggyColor={previewBuggy.color}
-                    glowColor={previewBuggy.glowColor}
-                    buggyName={previewBuggy.name}
-                  />
+                  <React.Suspense
+                    fallback={
+                      <img
+                        src={previewBuggy.image}
+                        alt={previewBuggy.name}
+                        className={styles.previewCarImg}
+                      />
+                    }
+                  >
+                    <Buggy3DViewer
+                      modelUrl={previewBuggy.model}
+                      fallbackImage={previewBuggy.image}
+                      buggyColor={previewBuggy.color}
+                      glowColor={previewBuggy.glowColor}
+                      buggyName={previewBuggy.name}
+                    />
+                  </React.Suspense>
                 ) : (
                   <img
                     src={previewBuggy.image}

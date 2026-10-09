@@ -20,5 +20,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor_phaser: ['phaser'],
+          vendor_three: ['three'],
+        },
+      },
+    },
   },
 });

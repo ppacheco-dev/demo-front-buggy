@@ -13,9 +13,31 @@ export default function RaceHistoryModal({ isOpen, onClose, onSelectRaceToWatch 
     onSelectRaceToWatch?.(race);
   };
 
+  const stopModalEvents = (e) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.backdrop}
+      onClick={onClose}
+      onPointerDown={stopModalEvents}
+      onPointerUp={stopModalEvents}
+      onMouseDown={stopModalEvents}
+      onMouseUp={stopModalEvents}
+      onTouchStart={stopModalEvents}
+      onTouchEnd={stopModalEvents}
+    >
+      <div
+        className={styles.modalCard}
+        onClick={stopModalEvents}
+        onPointerDown={stopModalEvents}
+        onPointerUp={stopModalEvents}
+        onMouseDown={stopModalEvents}
+        onMouseUp={stopModalEvents}
+        onTouchStart={stopModalEvents}
+        onTouchEnd={stopModalEvents}
+      >
         {/* Header */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>

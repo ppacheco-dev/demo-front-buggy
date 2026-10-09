@@ -88,9 +88,24 @@ export default function GameContainer() {
     };
   }, []);
 
+  const isAnyModalOpen = Boolean(infoModal.open || playModalOpen || historyModalOpen);
+
+  // Sincronizar estado de modales abiertos con Phaser para deshabilitar su input
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('game:modal-toggle', {
+        detail: { open: isAnyModalOpen },
+      })
+    );
+  }, [isAnyModalOpen]);
+
   // Escuchar evento de clic en JUGAR desde Phaser -> Navegar a pantalla de selección
   useEffect(() => {
     const handlePlayClicked = () => {
+      // Si hay un modal abierto o la pantalla no es menú, ignorar completamente
+      if (isAnyModalOpen || screen !== 'menu') {
+        return;
+      }
       setScreen('selection');
       window.dispatchEvent(
         new CustomEvent('game:screen-change', {
@@ -101,7 +116,7 @@ export default function GameContainer() {
 
     window.addEventListener('game:play-clicked', handlePlayClicked);
     return () => window.removeEventListener('game:play-clicked', handlePlayClicked);
-  }, []);
+  }, [isAnyModalOpen, screen]);
 
   const handleBackToMenu = useCallback(() => {
     setSelectedRace(null);

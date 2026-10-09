@@ -64,7 +64,14 @@ export default class MenuScene extends Phaser.Scene {
       });
     });
 
-    this.btnPlay.on('pointerdown', () => {
+    this.isModalOpen = false;
+    this.currentScreen = 'menu';
+
+    this.btnPlay.on('pointerdown', (pointer, localX, localY, event) => {
+      if (this.isModalOpen || this.currentScreen !== 'menu') {
+        if (event?.stopPropagation) event.stopPropagation();
+        return;
+      }
       this.tweens.add({
         targets: this.btnPlay,
         scaleX: this.btnBaseScale * 0.94,
@@ -74,7 +81,11 @@ export default class MenuScene extends Phaser.Scene {
       });
     });
 
-    this.btnPlay.on('pointerup', () => {
+    this.btnPlay.on('pointerup', (pointer, localX, localY, event) => {
+      if (this.isModalOpen || this.currentScreen !== 'menu') {
+        if (event?.stopPropagation) event.stopPropagation();
+        return;
+      }
       this.tweens.add({
         targets: this.btnPlay,
         scaleX: this.btnBaseScale * 1.08,
@@ -104,6 +115,34 @@ export default class MenuScene extends Phaser.Scene {
 
     // Notificar a React que el juego visual está listo
     window.dispatchEvent(new CustomEvent('game:visual-ready'));
+
+    // Precalentar imágenes secundarias (buggies y mercados) en tiempo ocioso para máxima fluidez
+    const prewarmAssets = () => {
+      const urls = [
+        '/assets/images/buggies/amarillo.webp',
+        '/assets/images/buggies/rojo.webp',
+        '/assets/images/buggies/azul.webp',
+        '/assets/images/buggies/verde.webp',
+        '/assets/images/buggies/naranjo.webp',
+        '/assets/images/buggies/morado.webp',
+        '/assets/images/markets/trophy_1.webp',
+        '/assets/images/markets/trophy_2.webp',
+        '/assets/images/markets/trophy_3.webp',
+        '/assets/images/markets/flag_crash.webp',
+      ];
+      urls.forEach((url) => {
+        const img = new Image();
+        img.src = url;
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(prewarmAssets, { timeout: 3000 });
+      } else {
+        setTimeout(prewarmAssets, 1200);
+      }
+    }
   }
 
   startBtnPulse() {
@@ -216,6 +255,7 @@ export default class MenuScene extends Phaser.Scene {
   setupScreenListeners() {
     this.screenChangeHandler = (event) => {
       const screen = event.detail?.screen || 'menu';
+      this.currentScreen = screen;
       const isMenu = screen === 'menu';
 
       if (this.logo) {
@@ -249,10 +289,19 @@ export default class MenuScene extends Phaser.Scene {
       }
     };
 
+    this.modalToggleHandler = (event) => {
+      this.isModalOpen = Boolean(event.detail?.open);
+      if (this.input) {
+        this.input.enabled = !this.isModalOpen && this.currentScreen === 'menu';
+      }
+    };
+
     window.addEventListener('game:screen-change', this.screenChangeHandler);
+    window.addEventListener('game:modal-toggle', this.modalToggleHandler);
 
     this.events.once('shutdown', () => {
       window.removeEventListener('game:screen-change', this.screenChangeHandler);
+      window.removeEventListener('game:modal-toggle', this.modalToggleHandler);
     });
   }
 }

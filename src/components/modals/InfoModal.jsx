@@ -50,22 +50,37 @@ export default function InfoModal({
 
   const isHistoryActive = tab === 'history' || tab === 'bets';
 
+  const stopModalEvents = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <dialog
       ref={dialogRef}
       className={styles.infoModalDialog}
       aria-labelledby="info-dialog-title"
       onClick={(e) => {
+        e.stopPropagation();
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
-      onPointerDown={(e) => e.stopPropagation()}
+      onPointerDown={stopModalEvents}
+      onPointerUp={stopModalEvents}
+      onMouseDown={stopModalEvents}
+      onMouseUp={stopModalEvents}
+      onTouchStart={stopModalEvents}
+      onTouchEnd={stopModalEvents}
     >
       <div
         className={styles.infoModalCard}
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
+        onClick={stopModalEvents}
+        onPointerDown={stopModalEvents}
+        onPointerUp={stopModalEvents}
+        onMouseDown={stopModalEvents}
+        onMouseUp={stopModalEvents}
+        onTouchStart={stopModalEvents}
+        onTouchEnd={stopModalEvents}
       >
         {/* Pestañas: 1. Reglas, 2. Historial (al medio), 3. Ajustes */}
         <div className={styles.modalTabBar}>

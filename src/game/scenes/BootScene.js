@@ -45,17 +45,23 @@ export default class BootScene extends Phaser.Scene {
       loadingText.destroy();
     });
 
-    // Load assets
-    // Beach buggy background (desktop y móvil)
-    this.load.image('background', '/assets/images/background.webp');
-    this.load.image('background_clean', '/assets/images/background.webp');
-    this.load.image('fondomovil', '/assets/images/fondomovil.webp');
+    // Load assets (única carga sin duplicados y verificando caché)
+    if (!this.textures.exists('background')) {
+      this.load.image('background', '/assets/images/background.webp');
+    }
+    if (!this.textures.exists('fondomovil')) {
+      this.load.image('fondomovil', '/assets/images/fondomovil.webp');
+    }
 
-    // Title logo
-    this.load.image('logo', '/assets/images/logo.webp');
+    // Title logo (unificado con el logo optimizado de Selección)
+    if (!this.textures.exists('logo')) {
+      this.load.image('logo', '/assets/images/logo_clean.webp');
+    }
 
     // Play button
-    this.load.image('btn_jugar', '/assets/images/btn_jugar.webp');
+    if (!this.textures.exists('btn_jugar')) {
+      this.load.image('btn_jugar', '/assets/images/btn_jugar.webp');
+    }
 
     // Sounds: actualmente removidos hasta incorporar los definitivos
   }

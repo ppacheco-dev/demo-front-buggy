@@ -8,6 +8,8 @@ import styles from './Buggy3DViewer.module.css';
  * Buggy3DViewer: Visor interactivo 3D para modelos .glb de Buggies.
  * Si el archivo .glb aún no existe en el proyecto, muestra elegantemente la imagen .webp de fallback.
  */
+const modelCheckCache = new Map();
+
 export default function Buggy3DViewer({
   modelUrl = '/assets/models/amarillo.glb',
   fallbackImage = '/assets/images/buggies/amarillo.webp',
@@ -16,8 +18,12 @@ export default function Buggy3DViewer({
   buggyName = 'AMARILLO',
 }) {
   const mountRef = useRef(null);
-  const [hasModel, setHasModel] = useState(null); // null = comprobando, true = cargado, false = fallback
-  const [loading, setLoading] = useState(true);
+  const [hasModel, setHasModel] = useState(() => (
+    modelCheckCache.has(modelUrl) ? modelCheckCache.get(modelUrl) : null
+  ));
+  const [loading, setLoading] = useState(() => (
+    modelCheckCache.has(modelUrl) ? Boolean(modelCheckCache.get(modelUrl)) : true
+  ));
   const [autoRotate, setAutoRotate] = useState(true);
   const [force2D, setForce2D] = useState(false);
 
@@ -26,22 +32,28 @@ export default function Buggy3DViewer({
   const defaultCamPos = useRef(new THREE.Vector3(2.8, 1.6, 3.4));
 
   useEffect(() => {
-    // 1. Verificar primero si el archivo .glb existe
     let isMounted = true;
+
+    if (modelCheckCache.has(modelUrl)) {
+      const exists = modelCheckCache.get(modelUrl);
+      setHasModel(exists);
+      if (!exists) setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     fetch(modelUrl, { method: 'HEAD' })
       .then((res) => {
         if (!isMounted) return;
-        if (res.ok) {
-          setHasModel(true);
-        } else {
-          setHasModel(false);
-          setLoading(false);
-        }
+        const exists = res.ok;
+        modelCheckCache.set(modelUrl, exists);
+        setHasModel(exists);
+        if (!exists) setLoading(false);
       })
       .catch(() => {
         if (isMounted) {
+          modelCheckCache.set(modelUrl, false);
           setHasModel(false);
           setLoading(false);
         }

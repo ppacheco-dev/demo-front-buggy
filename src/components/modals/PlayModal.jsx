@@ -28,10 +28,20 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
     onGoToHome?.();
   };
 
+  const stopModalEvents = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       className={styles.infoModalBackdrop || styles.soundConsentBackdrop}
       onClick={onClose}
+      onPointerDown={stopModalEvents}
+      onPointerUp={stopModalEvents}
+      onMouseDown={stopModalEvents}
+      onMouseUp={stopModalEvents}
+      onTouchStart={stopModalEvents}
+      onTouchEnd={stopModalEvents}
       style={{
         position: 'fixed',
         inset: 0,
@@ -46,7 +56,13 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
     >
       <div
         className={styles.infoModalCard}
-        onClick={(e) => e.stopPropagation()}
+        onClick={stopModalEvents}
+        onPointerDown={stopModalEvents}
+        onPointerUp={stopModalEvents}
+        onMouseDown={stopModalEvents}
+        onMouseUp={stopModalEvents}
+        onTouchStart={stopModalEvents}
+        onTouchEnd={stopModalEvents}
         style={{
           width: '100%',
           maxWidth: '500px',
