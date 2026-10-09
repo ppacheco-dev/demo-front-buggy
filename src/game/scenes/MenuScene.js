@@ -200,21 +200,21 @@ export default class MenuScene extends Phaser.Scene {
       }
     }
 
-    // 2. Logo: centrado en la parte superior con tamaño equilibrado y elegante
+    // 2. Logo: centrado en la parte superior con presencia amplia y destacada
     if (this.logo && this.logo.width) {
       let logoScale;
       let logoY;
 
       if (isPortrait) {
-        // En móvil/vertical: destacado pero sin desbordar la pantalla
-        const maxLogoW = Math.min(width * 0.88, 380);
-        logoScale = (maxLogoW / this.logo.width) * 1.1;
-        logoY = height * 0.24;
-      } else {
-        // En escritorio/apaisado: tamaño armónico, estético y no gigante (máximo 480px de ancho)
-        const maxLogoW = Math.min(width * 0.34, 480);
-        logoScale = maxLogoW / this.logo.width;
+        // En móvil/vertical: destacado y protagónico
+        const maxLogoW = Math.min(width * 0.94, 460);
+        logoScale = (maxLogoW / this.logo.width) * 1.25;
         logoY = height * 0.25;
+      } else {
+        // En escritorio/apaisado: aumentado al doble (hasta 1000px de ancho)
+        const maxLogoW = Math.min(width * 0.65, 1000);
+        logoScale = maxLogoW / this.logo.width;
+        logoY = height * 0.26;
       }
 
       this.logo.setPosition(width / 2, logoY);
