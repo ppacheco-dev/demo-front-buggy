@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import styles from './ArcadeTrack25D.module.css';
@@ -74,6 +74,26 @@ export default function ArcadeTrack25D({
     };
   }, [progress, isFinished, currentSectorObstacle]);
 
+  // Estado para el aviso gigante arriba de la pista que luego desaparece
+  const [bigAlert, setBigAlert] = useState(null);
+  const lastAlertedTramoRef = useRef(null);
+
+  useEffect(() => {
+    if (isHazardVisible && currentSectorObstacle?.nombre && !isFinished) {
+      const tramoKey = `${currentSectorObstacle.tramo}-${currentSectorObstacle.tipo}`;
+      if (lastAlertedTramoRef.current !== tramoKey) {
+        lastAlertedTramoRef.current = tramoKey;
+        setBigAlert({
+          nombre: currentSectorObstacle.nombre,
+          icono: currentSectorObstacle.icono || '⚠️',
+          tipo: currentSectorObstacle.tipo,
+          tramo: currentSectorObstacle.tramo,
+          key: Date.now(),
+        });
+      }
+    }
+  }, [isHazardVisible, currentSectorObstacle, isFinished]);
+
   // Fracción actual del sector para coordinar saltos y esquives de los buggies
   const sectorFraction = (progress * 7) % 1;
 
@@ -93,6 +113,23 @@ export default function ArcadeTrack25D({
           </span>
         </div>
       </div>
+
+      {/* AVISO GIGANTE EN GRANDE ARRIBA DE LA PISTA QUE LUEGO DESAPARECE */}
+      {bigAlert && (
+        <div key={bigAlert.key} className={styles.bigHazardOverlay}>
+          <div className={styles.bigHazardBox}>
+            <div className={styles.bigHazardHeaderLine}>
+              <span className={styles.flashingWarningIcon}>⚠️</span>
+              <span className={styles.bigHazardHeaderText}>¡OBSTÁCULO EN PISTA!</span>
+              <span className={styles.flashingWarningIcon}>⚠️</span>
+            </div>
+            <div className={styles.bigHazardTitleRow}>
+              <span className={styles.bigHazardIcon}>{bigAlert.icono}</span>
+              <span className={styles.bigHazardTitle}>{bigAlert.nombre.toUpperCase()}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. CIELO Y HORIZONTE DEL DESIERTO (PARALLAX RETRO) */}
       <div className={styles.arcadeSky}>

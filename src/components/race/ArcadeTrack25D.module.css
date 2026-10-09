@@ -484,3 +484,129 @@
   }
 }
 
+/* =========================================================================
+   AVISO GIGANTE DE OBSTÁCULO ARRIBA DE LA PISTA (Desaparece tras 2.8s)
+   ========================================================================= */
+.bigHazardOverlay {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  animation: hazardPopAndFade 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes hazardPopAndFade {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, -40px, 0) scale(0.6);
+    filter: blur(8px);
+  }
+  12% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1.1);
+    filter: blur(0px);
+  }
+  20% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+    filter: drop-shadow(0 0 28px rgba(245, 158, 11, 0.85));
+  }
+  92% {
+    opacity: 0;
+    transform: translate3d(-50%, -24px, 0) scale(0.88);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, -35px, 0) scale(0.75);
+    pointer-events: none;
+  }
+}
+
+.bigHazardBox {
+  background: linear-gradient(180deg, rgba(24, 12, 4, 0.96) 0%, rgba(12, 6, 2, 0.98) 100%);
+  border: 2.5px solid #f59e0b;
+  border-radius: 16px;
+  padding: 10px 24px;
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(245, 158, 11, 0.55),
+    inset 0 0 20px rgba(245, 158, 11, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bigHazardHeaderLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flashingWarningIcon {
+  font-size: 1.15rem;
+  animation: warningBlink 0.35s infinite alternate;
+}
+
+@keyframes warningBlink {
+  from { opacity: 0.6; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.bigHazardHeaderText {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #ef4444;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.85);
+}
+
+.bigHazardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bigHazardIcon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.8));
+}
+
+.bigHazardTitle {
+  font-size: 1.7rem;
+  font-weight: 950;
+  color: #facc15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 3px 0 #78350f,
+    0 0 22px rgba(250, 204, 21, 0.85);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .bigHazardBox {
+    padding: 6px 14px;
+  }
+  .bigHazardTitle {
+    font-size: 1.15rem;
+  }
+  .bigHazardIcon {
+    font-size: 1.4rem;
+  }
+  .bigHazardHeaderText {
+    font-size: 0.68rem;
+  }
+}
+
