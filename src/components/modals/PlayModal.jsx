@@ -5,8 +5,8 @@ import styles from './PlayModal.module.css';
 
 /**
  * PlayModal: Voucher oficial de participación.
- * Muestra a un lado el recibo oficial de compra y al otro lado el mapa detallado
- * del Circuito Dunas del Pacífico donde se correrá la carrera elegida.
+ * Diseño compacto: el número de carrera es el dato principal, seguido de los datos
+ * de la apuesta (mercado, vehículo, precio y premio) y un mini mapa del circuito.
  */
 export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, onGoToHome }) {
   const pathRef = useRef(null);
@@ -34,8 +34,8 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
 
   const marketName = selection?.market?.name || 'PRIMER LUGAR';
   const buggyName = selection?.buggy
-    ? `Buggy ${selection.buggy.name}`
-    : (selection?.market?.id === 'ningun_auto' ? 'Sin Ganador' : 'Buggy Amarillo');
+    ? selection.buggy.name
+    : (selection?.market?.id === 'ningun_auto' ? 'Sin Ganador' : 'Amarillo');
   const marketColor = selection?.market?.accentColor || '#f59e0b';
   const buggyColor = selection?.buggy?.color || '#facc15';
   const buggySymbol = selection?.buggy?.symbol || '⚡';
@@ -106,7 +106,6 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
         onPointerDown={stopModalEvents}
         onPointerUp={stopModalEvents}
       >
-        {/* Botón cerrar X */}
         <button
           type="button"
           onClick={onClose}
@@ -116,292 +115,125 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
           <i className="ph ph-x" aria-hidden="true" />
         </button>
 
-        {/* Layout en dos columnas: Izquierda Voucher | Derecha Mapa de la Carrera */}
+        {/* Encabezado compacto */}
+        <div className={styles.voucherHeader}>
+          <div className={styles.ticketIconCircle}>
+            <i className="ph ph-ticket" aria-hidden="true" />
+          </div>
+          <div className={styles.headerTexts}>
+            <h2 className={styles.mainTitle}>¡Apuesta confirmada!</h2>
+            <span className={styles.ticketIdText}>Ticket #{ticketId}</span>
+          </div>
+        </div>
+
+        {/* Número de carrera: dato principal del voucher */}
+        <div className={styles.raceStrip}>
+          <div className={styles.raceStripMain}>
+            <span className={styles.raceStripLabel}>CARRERA</span>
+            <span className={styles.raceStripNumber}>Nº {nextRaceNumber}</span>
+          </div>
+          <div className={styles.raceStripSide}>
+            <span className={styles.raceStripTime}>{nextRaceTime} hrs</span>
+            <span className={isTargetRaceLive ? styles.statusLive : styles.statusWait}>
+              {isTargetRaceLive ? '● EN VIVO AHORA' : 'PRÓXIMA CARRERA'}
+            </span>
+          </div>
+        </div>
+
         <div className={styles.voucherGrid}>
-          {/* ================================================================
-              COLUMNA 1: RECIBO OFICIAL / VOUCHER DE COMPRA
-              ================================================================ */}
-          <div className={styles.voucherLeftCol}>
-            {/* Encabezado del Voucher */}
-            <div className={styles.voucherHeader}>
-              <div className={styles.ticketIconCircle}>
-                <i className="ph ph-ticket" aria-hidden="true" />
-              </div>
-              <span className={styles.subTitle}>
-                VOUCHER DE PARTICIPACIÓN OFICIAL
-              </span>
-              <h2 className={styles.mainTitle}>
-                ¡SELECCIÓN CONFIRMADA!
-              </h2>
-              <span className={styles.ticketIdText}>
-                Ticket ID: #{ticketId} • Válido para transmisión oficial
+          {/* Datos de la apuesta */}
+          <div className={styles.betCard}>
+            <div className={styles.betItem}>
+              <span className={styles.detailLabel}>Mercado</span>
+              <span className={styles.betValue} style={{ color: marketColor }}>{marketName}</span>
+            </div>
+            <div className={styles.betItem}>
+              <span className={styles.detailLabel}>Vehículo</span>
+              <span className={styles.betValue} style={{ color: buggyColor }}>
+                {selection?.buggy ? `${buggySymbol} ${buggyName}` : buggyName}
               </span>
             </div>
-
-            {/* Número de carrera: dato principal del voucher */}
-            <div className={styles.raceBanner}>
-              <span className={styles.raceBannerLabel}>TU APUESTA ES PARA LA CARRERA</span>
-              <span className={styles.raceBannerNumber}>Nº {nextRaceNumber}</span>
-              <span className={styles.raceBannerTime}>Largada a las {nextRaceTime} hrs</span>
-              <span className={isTargetRaceLive ? styles.raceBannerLive : styles.raceBannerWait}>
-                {isTargetRaceLive ? '● EN VIVO AHORA' : 'PRÓXIMA CARRERA • AÚN NO COMIENZA'}
+            <div className={styles.betItem}>
+              <span className={styles.detailLabel}>Pagado</span>
+              <span className={styles.betValue}>
+                {ticketPrice} <span className={styles.paidOk}>✓</span>
               </span>
             </div>
-
-
-            {/* Detalles del Voucher */}
-            <div className={styles.voucherDetailsCard}>
-              {/* Fila 1: Carrera & Precio */}
-              <div className={styles.rowGrid}>
-                <div className={styles.detailBox}>
-                  <div className={styles.detailLabel}>Carrera Elegida</div>
-                  <div className={styles.detailValueRace}>
-                    Carrera #{nextRaceNumber}
-                  </div>
-                  <div className={styles.detailSub}>
-                    Hora: {nextRaceTime} hrs
-                  </div>
-                </div>
-
-                <div className={styles.detailBoxHighlight}>
-                  <div className={styles.detailLabel}>Precio Pagado</div>
-                  <div className={styles.detailValuePrice}>{ticketPrice}</div>
-                  <div className={styles.detailSubConfirmed}>✓ Pago Confirmado</div>
-                </div>
-              </div>
-
-              {/* Fila 2: Mercado & Vehículo */}
-              <div className={styles.rowGrid}>
-                <div className={styles.detailBox}>
-                  <div className={styles.detailLabel}>Mercado</div>
-                  <div style={{ fontSize: '0.92rem', color: marketColor, fontWeight: 900, marginTop: '2px' }}>
-                    {marketName}
-                  </div>
-                  {selection?.market?.ruleBadge && (
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 700, marginTop: '2px' }}>
-                      {selection.market.ruleBadge}
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.detailBox}>
-                  <div className={styles.detailLabel}>Vehículo Elegido</div>
-                  <div
-                    style={{
-                      fontSize: '0.92rem',
-                      color: buggyColor,
-                      fontWeight: 900,
-                      marginTop: '2px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <span>{buggySymbol}</span>
-                    <span>{buggyName}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fila 3: Factor Multiplicador & Premio Posible */}
-              <div className={styles.rowGrid}>
-                <div className={styles.detailBox}>
-                  <div className={styles.detailLabel}>Factor de Apuesta</div>
-                  <div style={{ fontSize: '0.96rem', color: '#facc15', fontWeight: 900, marginTop: '2px' }}>
-                    {factor.toFixed(1).replace('.', ',')}x
-                  </div>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
-                    Multiplicador oficial
-                  </div>
-                </div>
-
-                <div className={styles.detailBoxHighlight}>
-                  <div className={styles.detailLabel}>Premio en caso de Ganar</div>
-                  <div style={{ fontSize: '1.05rem', color: '#4ade80', fontWeight: 900, marginTop: '2px' }}>
-                    ${estimatedPrize.toLocaleString('es-CL')}
-                  </div>
-                  <div style={{ fontSize: '0.68rem', color: '#86efac', fontWeight: 700, marginTop: '2px' }}>
-                    Pago estimado
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sección: Dónde ver la carrera */}
-            <div className={styles.infoBanner}>
-              <div className={styles.infoBannerIcon}>
-                <i className="ph ph-television-simple" aria-hidden="true" />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 900, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  ¿Dónde ver la carrera?
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#e2e8f0', lineHeight: 1.45, marginTop: '2px' }}>
-                  Al cumplirse las <strong>{nextRaceTime} hrs</strong>, presiona <strong>"VER CARRERA"</strong> para seguir la transmisión en vivo en directo.
-                </div>
-              </div>
-            </div>
-
-            {/* Botones de acción */}
-            <div className={styles.actionBtns}>
-              {isTargetRaceLive && (
-                <button
-                  type="button"
-                  onClick={handleWatchRace}
-                  className={styles.watchRaceBtn}
-                >
-                  <i className="ph ph-broadcast" style={{ fontSize: '1.2rem' }} aria-hidden="true" />
-                  <span>VER CARRERA EN DIRECTO AHORA</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={handleGoHome}
-                className={styles.goHomeBtn}
-              >
-                VOLVER AL INICIO A ESPERAR LA CARRERA
-              </button>
+            <div className={styles.betItem}>
+              <span className={styles.detailLabel}>Premio si ganas</span>
+              <span className={`${styles.betValue} ${styles.betPrize}`}>
+                ${estimatedPrize.toLocaleString('es-CL')}
+                <small className={styles.betFactor}>{factor.toFixed(1).replace('.', ',')}x</small>
+              </span>
             </div>
           </div>
 
-          {/* ================================================================
-              COLUMNA 2: MAPA DE LA CARRERA QUE SE VA A REALIZAR
-              ================================================================ */}
-          <div className={styles.voucherRightCol}>
-            <div className={styles.mapTitleHeader}>
-              <div className={styles.mapTitleLeft}>
-                <i className={`ph ph-compass ${styles.mapRadarIcon}`} aria-hidden="true" />
-                <span className={styles.mapTitleText}>MAPA OFICIAL DEL CIRCUITO</span>
-              </div>
-              <span className={styles.circuitTag}>DUNAS DEL PACÍFICO</span>
-            </div>
+          {/* Mini mapa del circuito */}
+          <div className={styles.mapCard}>
+            <svg viewBox="0 0 310 170" className={styles.svgCircuit} aria-label="Mapa del circuito Dunas del Pacífico">
+              <circle cx="155" cy="85" r="42" className={styles.gridRing} />
+              <circle cx="155" cy="85" r="75" className={styles.gridRing} />
 
-            {/* Contenedor del Mapa Vectorial */}
-            <div className={styles.mapSvgWrapper}>
-              <svg viewBox="0 0 310 170" className={styles.svgCircuit}>
-                {/* Cuadrícula de radar táctico */}
-                <circle cx="155" cy="85" r="42" className={styles.gridRing} />
-                <circle cx="155" cy="85" r="75" className={styles.gridRing} />
-                <line x1="155" y1="6" x2="155" y2="164" stroke="rgba(56,189,248,0.06)" strokeDasharray="2 4" />
-                <line x1="6" y1="85" x2="304" y2="85" stroke="rgba(56,189,248,0.06)" strokeDasharray="2 4" />
+              <path d={trackPathD} className={styles.trackGlow} />
+              <path d={trackPathD} className={styles.trackBase} />
+              <path d={trackPathD} className={styles.trackMain} />
+              <path ref={pathRef} d={trackPathD} className={styles.trackCenterLine} />
 
-                {/* Trazado de pista */}
-                <path d={trackPathD} className={styles.trackGlow} />
-                <path d={trackPathD} className={styles.trackBase} />
-                <path d={trackPathD} className={styles.trackMain} />
-                <path ref={pathRef} d={trackPathD} className={styles.trackCenterLine} />
+              {/* Largada y Meta con bandera a cuadros */}
+              <g transform="translate(67, 137)">
+                <rect x="0" y="0" width="16" height="16" fill="#000" rx="3" />
+                <rect x="0" y="0" width="8" height="8" fill="#fff" />
+                <rect x="8" y="8" width="8" height="8" fill="#fff" />
+                <rect x="0" y="0" width="16" height="16" fill="none" stroke="#f59e0b" strokeWidth="1.2" rx="3" />
+              </g>
 
-                {/* Marcador de Largada y Meta con bandera a cuadros */}
-                <g transform="translate(67, 137)">
-                  <rect x="0" y="0" width="16" height="16" fill="#000" rx="3" />
-                  <rect x="0" y="0" width="8" height="8" fill="#fff" />
-                  <rect x="8" y="8" width="8" height="8" fill="#fff" />
-                  <rect x="0" y="0" width="16" height="16" fill="none" stroke="#f59e0b" strokeWidth="1.2" rx="3" />
-                  <text x="8" y="-4" fill="#facc15" fontSize="7" fontWeight="900" textAnchor="middle">
-                    META / SALIDA
-                  </text>
+              {pathLength > 0 &&
+                sectorMarkers.map((sec, i) => {
+                  const pt = getPointAt(sec.pct);
+                  return (
+                    <g key={i} transform={`translate(${pt.x}, ${pt.y})`}>
+                      <circle cx="0" cy="0" r="6" className={styles.markerCircle} />
+                      <text x="0" y="0.5" className={styles.markerIcon}>
+                        {sec.icon}
+                      </text>
+                    </g>
+                  );
+                })}
+
+              {selection?.buggy && (
+                <g transform="translate(76, 145)">
+                  <circle cx="0" cy="0" r="8" fill={buggyColor} opacity="0.45">
+                    <animate attributeName="r" values="6;11;6" dur="1.8s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx="0" cy="0" r="5.5" fill={buggyColor} stroke="#fff" strokeWidth="1.5" />
                 </g>
-
-                {/* Marcadores de los 7 obstáculos a lo largo del circuito */}
-                {pathLength > 0 &&
-                  sectorMarkers.map((sec, i) => {
-                    const pt = getPointAt(sec.pct);
-                    return (
-                      <g key={i} transform={`translate(${pt.x}, ${pt.y})`}>
-                        <circle cx="0" cy="0" r="6" className={styles.markerCircle} />
-                        <text x="0" y="0.5" className={styles.markerIcon}>
-                          {sec.icon}
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                {/* Posición en grilla de salida del buggy seleccionado */}
-                {selection?.buggy && (
-                  <g transform="translate(76, 145)">
-                    <circle cx="0" cy="0" r="8" fill={buggyColor} opacity="0.45">
-                      <animate attributeName="r" values="6;11;6" dur="1.8s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite" />
-                    </circle>
-                    <circle cx="0" cy="0" r="5.5" fill={buggyColor} stroke="#fff" strokeWidth="1.5" />
-                    <text x="0" y="0.5" fontSize="6" fill="#000" fontWeight="900" textAnchor="middle" dominantBaseline="central">
-                      {selection.buggy.name?.[0] || '1'}
-                    </text>
-                  </g>
-                )}
-              </svg>
-            </div>
-
-            {/* Posición en Grilla de Salida */}
-            {selection?.buggy ? (
-              <div className={styles.userGridBadge}>
-                <div className={styles.userGridLeft}>
-                  <span
-                    className={styles.userGridSymbol}
-                    style={{ background: buggyColor, color: '#000' }}
-                  >
-                    {buggySymbol}
-                  </span>
-                  <div>
-                    <div className={styles.userGridText}>
-                      {buggyName} en la Grilla de Salida
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
-                      Carrera #{nextRaceNumber} • {nextRaceTime} hrs
-                    </div>
-                  </div>
-                </div>
-                <span className={styles.userGridTag}>CONFIRMADO</span>
-              </div>
-            ) : (
-              <div className={styles.userGridBadge}>
-                <div className={styles.userGridLeft}>
-                  <span
-                    className={styles.userGridSymbol}
-                    style={{ background: '#0ea5e9', color: '#000' }}
-                  >
-                    ✕
-                  </span>
-                  <div>
-                    <div className={styles.userGridText}>Pronóstico: Ningún Auto Llega</div>
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
-                      Supervivencia extrema en los 7 sectores
-                    </div>
-                  </div>
-                </div>
-                <span className={styles.userGridTag}>ACTIVO</span>
-              </div>
-            )}
-
-            {/* Ficha Técnica de la Pista */}
-            <div className={styles.circuitStatsGrid}>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Longitud</div>
-                <div className={styles.statPillValue}>1,140 m</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Sectores</div>
-                <div className={styles.statPillValue}>8 Tramos</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Peligros</div>
-                <div className={styles.statPillValue} style={{ color: '#ef4444' }}>7 Zonas</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Superficie</div>
-                <div className={styles.statPillValue}>Arena / Asfalto</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Clima</div>
-                <div className={styles.statPillValue} style={{ color: '#facc15' }}>Dunas Soleadas</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Dificultad</div>
-                <div className={styles.statPillValue} style={{ color: '#f59e0b' }}>Extrema</div>
-              </div>
-            </div>
+              )}
+            </svg>
+            <span className={styles.mapCaption}>Circuito Dunas del Pacífico • 1.140 m • 7 zonas de peligro</span>
           </div>
+        </div>
+
+        {/* Acciones */}
+        <div className={styles.actionBtns}>
+          {isTargetRaceLive && (
+            <button
+              type="button"
+              onClick={handleWatchRace}
+              className={styles.watchRaceBtn}
+            >
+              <i className="ph ph-broadcast" aria-hidden="true" />
+              <span>Ver carrera en directo</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleGoHome}
+            className={styles.goHomeBtn}
+          >
+            Volver al inicio
+          </button>
         </div>
       </div>
     </div>
