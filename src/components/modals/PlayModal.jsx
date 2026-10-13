@@ -138,6 +138,17 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
               </span>
             </div>
 
+            {/* Número de carrera: dato principal del voucher */}
+            <div className={styles.raceBanner}>
+              <span className={styles.raceBannerLabel}>TU APUESTA ES PARA LA CARRERA</span>
+              <span className={styles.raceBannerNumber}>Nº {nextRaceNumber}</span>
+              <span className={styles.raceBannerTime}>Largada a las {nextRaceTime} hrs</span>
+              <span className={isTargetRaceLive ? styles.raceBannerLive : styles.raceBannerWait}>
+                {isTargetRaceLive ? '● EN VIVO AHORA' : 'PRÓXIMA CARRERA • AÚN NO COMIENZA'}
+              </span>
+            </div>
+
+
             {/* Detalles del Voucher */}
             <div className={styles.voucherDetailsCard}>
               {/* Fila 1: Carrera & Precio */}

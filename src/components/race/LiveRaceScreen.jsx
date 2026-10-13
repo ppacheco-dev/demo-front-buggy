@@ -392,16 +392,24 @@ export default function LiveRaceScreen({
         {/* Columna Izquierda: Identificación única de la carrera */}
         <div className={styles.topBarLeft}>
           {isLive ? (
-            <div className={styles.liveBadgeGroup}>
-              <span className={styles.liveDot} />
-              <span className={styles.liveBadgeText}>EN VIVO</span>
-              <span className={styles.raceNumberText}>#{race.numero}</span>
+            <div className={`${styles.raceHeroBadge} ${styles.raceHeroLive}`}>
+              <div className={styles.raceHeroTag}>
+                <span className={styles.liveDot} />
+                <span>EN VIVO</span>
+              </div>
+              <span className={styles.raceHeroLabel}>CARRERA</span>
+              <span className={styles.raceHeroNumber}>Nº {race.numero}</span>
+              <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           ) : (
-            <div className={styles.replayBadgeGroup}>
-              <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
-              <span className={styles.replayBadgeText}>CARRERA #{race.numero}</span>
-              <span className={styles.raceTimeText}>{race.hora} hrs</span>
+            <div className={`${styles.raceHeroBadge} ${styles.raceHeroReplay}`}>
+              <div className={styles.raceHeroTag}>
+                <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
+                <span>REPETICIÓN</span>
+              </div>
+              <span className={styles.raceHeroLabel}>CARRERA</span>
+              <span className={styles.raceHeroNumber}>Nº {race.numero}</span>
+              <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           )}
 
@@ -786,7 +794,8 @@ export default function LiveRaceScreen({
               <i className={ningunAutoLlego ? "ph ph-warning-octagon" : "ph ph-flag-checkered"} aria-hidden="true" />
             </div>
 
-            <span className={styles.resultsEyebrow}>CARRERA #{race.numero} FINALIZADA</span>
+            <span className={styles.resultsRaceNumber}>CARRERA Nº {race.numero}</span>
+            <span className={styles.resultsEyebrow}>FINALIZADA • {race.hora} hrs</span>
 
             {ningunAutoLlego ? (
               <>
