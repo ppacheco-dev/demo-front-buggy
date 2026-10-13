@@ -454,7 +454,7 @@ export default function ArcadeFirstPersonCockpit({
 
           {/* Techo y travesaño superior */}
           <polygon points="-8,-30 1032,-30 894,72 130,72" fill="url(#fpvRoof)" />
-          <Tube x1="108" y1="60" x2="916" y2="60" w="26" />
+          <Tube x1="108" y1="60" x2="916" y2="60" w={26} />
 
           {/* Ruedas delanteras abiertas */}
           {[false, true].map((m) => {
@@ -497,10 +497,10 @@ export default function ArcadeFirstPersonCockpit({
 
           {/* Tubos inferiores de la jaula (salpicadero lateral) */}
           <polygon points="250,518 250,613 -95,613" fill="#161b28" />
-          <Tube x1="252" y1="498" x2="-520" y2="710" w="40" />
+          <Tube x1="252" y1="498" x2="-520" y2="710" w={40} />
           <Mirror>
             <polygon points="250,518 250,613 -95,613" fill="#161b28" />
-            <Tube x1="252" y1="498" x2="-520" y2="710" w="40" />
+            <Tube x1="252" y1="498" x2="-520" y2="710" w={40} />
           </Mirror>
 
           {/* Tablero */}
@@ -578,8 +578,8 @@ export default function ArcadeFirstPersonCockpit({
                   stroke="#12161f"
                   strokeWidth="3"
                 />
-                <Tube x1="-30" y1="-45" x2="128" y2="68" w="40" />
-                <Tube x1="128" y1="60" x2="266" y2="482" w="42" />
+                <Tube x1="-30" y1="-45" x2="128" y2="68" w={40} />
+                <Tube x1="128" y1="60" x2="266" y2="482" w={42} />
               </Wrap>
             );
           })}
