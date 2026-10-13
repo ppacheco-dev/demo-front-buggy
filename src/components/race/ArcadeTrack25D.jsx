@@ -109,6 +109,15 @@ export default function ArcadeTrack25D({
     sectorFraction >= 0.32 &&
     sectorFraction <= 0.44;
 
+  // Curvatura dinámica de la carretera según el tramo (efecto Horizon Chase / OutRun)
+  const trackCurve = useMemo(() => {
+    const tramo = currentSectorObstacle?.tramo || 1;
+    const curves = [0, 24, -28, 20, -34, 26, -18, 0];
+    const targetCurve = curves[(tramo - 1) % curves.length];
+    const t = (progress * 7) % 1;
+    return targetCurve * Math.sin(t * Math.PI);
+  }, [progress, currentSectorObstacle]);
+
   return (
     <div className={styles.arcadeContainer}>
       {/* 1. HUD SUPERIOR ARCADE (HORIZON CHASE STYLE) */}
@@ -125,6 +134,14 @@ export default function ArcadeTrack25D({
           </span>
         </div>
       </div>
+
+      {/* RÁFAGAS AERODINÁMICAS LATERALES A ALTA VELOCIDAD */}
+      {(leaderCar?.speedKmh || 0) > 145 && (
+        <div className={styles.arcadeSpeedStreaksOverlay}>
+          <div className={styles.arcadeWindStreakLeft} />
+          <div className={styles.arcadeWindStreakRight} />
+        </div>
+      )}
 
       {/* AVISO GIGANTE EN GRANDE ARRIBA DE LA PISTA QUE LUEGO DESAPARECE */}
       {bigAlert && (
@@ -161,12 +178,30 @@ export default function ArcadeTrack25D({
 
       {/* 3. PISTA EN PERSPECTIVA PSEUDO-3D */}
       <div className={styles.arcadeGround}>
-        {/* Desierto lateral exterior */}
-        <div className={styles.desertSandLeft} />
-        <div className={styles.desertSandRight} />
+        {/* Desierto lateral exterior con props de rally */}
+        <div className={styles.desertSandLeft}>
+          <div className={styles.roadsidePropBillboardLeft}>
+            <span>PACÍFICO RALLY</span>
+          </div>
+          <div className={styles.roadsidePropPalmLeft}>🌴</div>
+        </div>
+        <div className={styles.desertSandRight}>
+          <div className={styles.roadsidePropBillboardRight}>
+            <span>TURBO 99</span>
+          </div>
+          <div className={styles.roadsidePropPalmRight}>🌴</div>
+        </div>
 
-        {/* Carretera con bordillos y líneas de velocidad optimizadas a 60 FPS */}
-        <div className={`${styles.roadSurface} ${isMeteorImpactShake ? styles.roadSurfaceImpactShake : ''}`}>
+        {/* Carretera con bordillos, bandas de asfalto y líneas de velocidad */}
+        <div
+          className={`${styles.roadSurface} ${isMeteorImpactShake ? styles.roadSurfaceImpactShake : ''}`}
+          style={{
+            transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
+          }}
+        >
+          {/* Bandas de asfalto alternadas estilo OutRun / Horizon Chase */}
+          <div className={styles.roadAsphaltStripes} />
+
           {/* Bordillos vibratorios rayados laterales directos */}
           <div className={styles.roadCurbLeft} />
           <div className={styles.roadCurbRight} />
@@ -184,7 +219,7 @@ export default function ArcadeTrack25D({
             <div className={styles.roadLaneMarker} />
           </div>
 
-          {/* Arco pórtico de meta 3D en los últimos metros */}
+          {/* Arco pórtico de meta 3D en los últimos metros con semáforo y banderas */}
           {progress > 0.82 && (
             <div
               className={styles.finishArch25D}
@@ -194,8 +229,15 @@ export default function ArcadeTrack25D({
                 opacity: Math.min(1, (progress - 0.82) * 6),
               }}
             >
+              <div className={styles.finishGantryLights}>
+                <span className={styles.gantryLightGreen} />
+                <span className={styles.gantryLightAmber} />
+                <span className={styles.gantryLightRed} />
+              </div>
               <div className={styles.finishArchTruss}>
-                <span className={styles.finishArchBanner}>🏁 META FINAL • 1.140 METROS 🏁</span>
+                <span className={styles.finishFlagEmoji}>🏁</span>
+                <span className={styles.finishArchBanner}>META FINAL • 1.140 METROS</span>
+                <span className={styles.finishFlagEmoji}>🏁</span>
               </div>
             </div>
           )}
@@ -302,6 +344,14 @@ export default function ArcadeTrack25D({
                     filter: isJumping ? 'blur(6px)' : 'none',
                   }}
                 />
+
+                {/* Estela de arena todoterreno viva detrás de los neumáticos traseros */}
+                {!isJumping && car.speedKmh > 35 && (
+                  <div className={styles.arcadeTireDustWrapper}>
+                    <div className={styles.sandDustPlumeLeft} />
+                    <div className={styles.sandDustPlumeRight} />
+                  </div>
+                )}
 
                 {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (60 FPS NATIVO) */}
                 <ArcadeBuggyRearSprite

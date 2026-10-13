@@ -46,8 +46,8 @@
   justify-content: center;
   text-align: center;
   flex: 1 1 auto;
-  min-width: 0;
-  padding: 0 4px;
+  min-width: 220px;
+  padding: 0 8px;
 }
 
 .topBarRight {
@@ -193,17 +193,17 @@
 }
 
 .raceTitle {
-  font-size: clamp(0.72rem, 1.15vw, 1.05rem);
+  font-size: clamp(0.76rem, 1.05vw, 0.98rem);
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: #f8fafc;
   margin: 0;
   text-transform: uppercase;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.35), 0 2px 8px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .topBarActions {
@@ -248,11 +248,11 @@
   background: transparent;
   border: 1px solid transparent;
   color: #cbd5e1;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   cursor: pointer;
   transition: all 150ms ease;
   white-space: nowrap;

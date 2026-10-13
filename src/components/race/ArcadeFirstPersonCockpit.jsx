@@ -80,9 +80,9 @@ export default function ArcadeFirstPersonCockpit({
     const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (0.82 - minFraction)));
     const curve = norm * norm; // aceleración de perspectiva frontal
 
-    // De 44% (horizonte) a 63% (frente a nuestro morro)
-    const topPct = 44 + curve * 19;
-    const scale = 0.22 + curve * 0.48;
+    // De 12% (horizonte lejano) a 63% (justo frente a nuestro morro)
+    const topPct = 12 + curve * 51;
+    const scale = 0.20 + curve * 0.55;
     const opacity = norm < 0.08 ? norm / 0.08 : norm > 0.88 ? (1 - norm) / 0.12 : 1;
 
     return { isVisible: true, topPct, scale, opacity };
@@ -102,13 +102,30 @@ export default function ArcadeFirstPersonCockpit({
   // Física de suspensión / salto en el aire
   const jumpOffset = playerCar?.isJumping ? (playerCar?.dodgeOffsetY || -18) * 1.5 : 0;
 
-  // RPM LEDs (12 segmentos)
+  // RPM LEDs (14 segmentos con flash de sobregiro)
   const speed = playerCar?.speedKmh || 163;
-  const rpmCount = Math.min(12, Math.max(4, Math.round((speed / 230) * 12)));
+  const rpmCount = Math.min(14, Math.max(4, Math.round((speed / 235) * 14)));
+
+  // Marcha de transmisión simulada (MoTeC Display)
+  const currentGear = useMemo(() => {
+    if (speed < 30) return '1';
+    if (speed < 70) return '2';
+    if (speed < 110) return '3';
+    if (speed < 155) return '4';
+    if (speed < 195) return '5';
+    return '6';
+  }, [speed]);
+
+  // Presión de turbo boost (BAR)
+  const turboBoost = useMemo(() => {
+    if (playerCar?.isBoosting) return '2.6 BAR';
+    return `${(1.1 + (speed / 230) * 0.9).toFixed(1)} BAR`;
+  }, [playerCar?.isBoosting, speed]);
 
   const buggyColor = playerCar?.buggy?.color || '#facc15';
   const buggySymbol = playerCar?.buggy?.symbol || '⚡';
   const buggyName = playerCar?.buggy?.name || 'AMARILLO';
+  const distanceCoveredMeters = Math.min(1140, Math.round(progress * 1140));
 
   return (
     <div className={styles.cockpitContainer}>
@@ -160,7 +177,7 @@ export default function ArcadeFirstPersonCockpit({
             <div
               className={styles.finishArchFpv}
               style={{
-                top: `${Math.min(78, 20 + (progress - 0.82) * 280)}%`,
+                top: `${Math.min(78, 14 + (progress - 0.82) * 310)}%`,
                 transform: `translateX(-50%) scale(${0.45 + (progress - 0.82) * 2.2})`,
                 opacity: Math.min(1, (progress - 0.82) * 6),
               }}
@@ -189,21 +206,21 @@ export default function ArcadeFirstPersonCockpit({
             </div>
           )}
 
-          {/* Autos rivales que van ADELANTE del usuario (Perspectiva y Escala Corregidas) */}
+          {/* Autos rivales que van ADELANTE del usuario (Perspectiva 3D Realista) */}
           {carsAhead.map((car, idx) => {
-            const distAhead = Math.max(8, car.x - (playerCar?.x || 150));
+            const distAhead = Math.max(6, car.x - (playerCar?.x || 150));
             // Proximidad normalizada (0 = pegado a nuestro morro, 1 = lejos en el horizonte)
-            const normDist = Math.min(1, Math.max(0, distAhead / 180));
-            const pFactor = Math.pow(1 - normDist, 1.8);
+            const normDist = Math.min(1, Math.max(0, distAhead / 190));
+            const pFactor = Math.pow(1 - normDist, 1.6);
 
-            // Perspectiva: de 44% (horizonte) a 62% (justo encima de nuestro capó)
-            const top = 44 + pFactor * 18;
+            // Perspectiva: de 12% (horizonte distante) a 63% (justo delante de nuestro capó)
+            const top = 12 + pFactor * 51;
 
-            // Escala proporcionada: 0.16 (lejos) a 0.42 (cerca del morro)
-            const scale = 0.16 + pFactor * 0.26;
+            // Escala proporcionada: 0.15 (horizonte) a 0.48 (cerca del morro)
+            const scale = 0.15 + pFactor * 0.33;
 
-            // Desplazamiento lateral proporcional al ancho de la carretera en esa distancia
-            const laneWidth = 14 + pFactor * 65;
+            // Desplazamiento lateral proporcional al ancho cónico de la carretera
+            const laneWidth = 12 + pFactor * 84;
             const laneOffset = ((car.index % 3) - 1) * laneWidth;
 
             return (
@@ -217,11 +234,15 @@ export default function ArcadeFirstPersonCockpit({
                   zIndex: Math.round(10 + pFactor * 20),
                 }}
               >
+                {/* Sombra del auto en el suelo */}
+                <div className={styles.rivalRoadShadow} />
+
+                {/* Badge de identificación de auto y distancia en metros */}
                 <span
                   className={styles.aheadBadge}
                   style={{ background: car.buggy.color }}
                 >
-                  {car.buggy.symbol} #{car.buggy.number || (car.index + 1)} {car.buggy.name}
+                  {car.buggy.symbol} #{car.buggy.number || (car.index + 1)} +{Math.round(distAhead)}m
                 </span>
 
                 <ArcadeBuggyRearSprite
@@ -232,6 +253,9 @@ export default function ArcadeFirstPersonCockpit({
                   speedKmh={car.speedKmh}
                   steering={0}
                 />
+
+                {/* Estela de polvo del rival en aceleración */}
+                {car.speedKmh > 50 && <div className={styles.rivalTireDust} />}
               </div>
             );
           })}
@@ -329,6 +353,19 @@ export default function ArcadeFirstPersonCockpit({
         </div>
       </div>
 
+      {/* Ráfagas aerodinámicas de velocidad en el parabrisas a alta velocidad */}
+      {speed > 145 && (
+        <div className={styles.cockpitSpeedStreaksLayer}>
+          <div className={styles.windStreakColLeft} />
+          <div className={styles.windStreakColRight} />
+        </div>
+      )}
+
+      {/* Parasol superior de competición de rally (Sunstrip) */}
+      <div className={styles.windshieldSunstrip}>
+        <span className={styles.sunstripText}>★ GRAND PRIX PACÍFICO • RALLY CUP ★</span>
+      </div>
+
       {/* ====================================================================
           4. CABINA DEL PILOTO Y CAPÓ DEL BUGGY (ROLL CAGE & HOOD)
           ==================================================================== */}
@@ -339,20 +376,41 @@ export default function ArcadeFirstPersonCockpit({
         }}
       >
         <div className={styles.rollCageTopBar} />
-        <div className={styles.rollCageLeft} style={{ borderLeft: `5px solid ${buggyColor}` }} />
-        <div className={styles.rollCageRight} style={{ borderRight: `5px solid ${buggyColor}` }} />
+        <div className={styles.rollCageLeft} style={{ borderLeft: `6px solid ${buggyColor}` }}>
+          <div className={styles.cageBoltFixture} />
+        </div>
+        <div className={styles.rollCageRight} style={{ borderRight: `6px solid ${buggyColor}` }}>
+          <div className={styles.cageBoltFixture} />
+        </div>
 
         {/* Capó delantero del buggy visible en la base del parabrisas */}
         <div
           className={styles.buggyHoodNose}
           style={{
             transform: `translateX(-50%) translateY(${Math.sin(progress * 55) * 1.5}px)`,
+            borderColor: buggyColor,
           }}
         >
-          <div className={styles.hoodScoopAirIntake} />
-          <div className={styles.hoodSponsorDecal} style={{ color: buggyColor }}>
-            BUGGY {buggyName}
+          {/* Franja central de carreras en color del equipo */}
+          <div className={styles.hoodCenterLivery} style={{ background: buggyColor }} />
+
+          {/* Toma de aire con rejilla de panal (Honeycomb Scoop) */}
+          <div className={styles.hoodScoopAirIntake}>
+            <div className={styles.hoodMeshTexture} />
           </div>
+
+          {/* Pasadores de capó estilo rally (Hood Pins) */}
+          <div className={styles.hoodPinLeft} />
+          <div className={styles.hoodPinRight} />
+
+          {/* Calcomanía oficial del equipo */}
+          <div className={styles.hoodSponsorDecal} style={{ color: '#fff' }}>
+            #{playerCar?.buggy?.number || 1} • BUGGY {buggyName}
+          </div>
+
+          {/* Limpiaparabrisas deportivo en reposo */}
+          <div className={styles.windshieldWiperLeft} />
+          <div className={styles.windshieldWiperRight} />
         </div>
 
         <div className={styles.windshieldGlassSheen} />
@@ -374,68 +432,83 @@ export default function ArcadeFirstPersonCockpit({
       )}
 
       {/* ====================================================================
-          5. TABLERO DE INSTRUMENTOS (DASHBOARD & DIGITAL HUD)
+          5. TABLERO DE INSTRUMENTOS (MoTeC RACING DASHBOARD & DIGITAL HUD)
           ==================================================================== */}
       <div className={styles.dashboardPanel}>
         <div className={styles.dashboardBackground} />
 
         <div className={styles.dashboardHudRow}>
-          {/* Cluster Izquierdo: Velocímetro digital + RPM */}
+          {/* Cluster Izquierdo: Velocímetro digital + Marcha + Shift Lights */}
           <div className={styles.dashClusterLeft}>
-            <div className={styles.dashSpeedGroup}>
-              <span className={styles.dashSpeedNumber}>{speed}</span>
-              <span className={styles.dashSpeedUnit}>KM/H</span>
+            <div className={styles.dashTelemetryTopRow}>
+              <div className={styles.dashSpeedGroup}>
+                <span className={styles.dashSpeedNumber}>{speed}</span>
+                <span className={styles.dashSpeedUnit}>KM/H</span>
+              </div>
+
+              {/* Indicador Digital de Marcha (Gear Indicator) */}
+              <div className={styles.dashGearPill}>
+                <span className={styles.dashGearLabel}>GEAR</span>
+                <span className={styles.dashGearNum}>{currentGear}</span>
+              </div>
+
+              {/* Presión de Turbo Boost */}
+              <div className={styles.dashBoostPill}>
+                <span className={styles.dashBoostLabel}>TURBO</span>
+                <span className={styles.dashBoostNum}>{turboBoost}</span>
+              </div>
             </div>
 
-            {/* Barra de LEDs de RPM */}
+            {/* Barra de LEDs de RPM (14 segmentos con aviso de corte de inyección) */}
             <div className={styles.dashRpmBar}>
-              {[...Array(12)].map((_, i) => {
+              {[...Array(14)].map((_, i) => {
                 const isActive = i < rpmCount;
                 let ledClass = '';
                 if (isActive) {
                   if (i < 6) ledClass = styles.rpmLedActiveGreen;
-                  else if (i < 9) ledClass = styles.rpmLedActiveYellow;
-                  else ledClass = styles.rpmLedActiveRed;
+                  else if (i < 10) ledClass = styles.rpmLedActiveYellow;
+                  else if (i < 13) ledClass = styles.rpmLedActiveRed;
+                  else ledClass = styles.rpmLedActiveBlue;
                 }
                 return <div key={i} className={`${styles.rpmLed} ${ledClass}`} />;
               })}
             </div>
           </div>
 
-          {/* Cluster Derecho: Posición de carrera + Piloto */}
+          {/* Cluster Derecho: Posición de carrera + Distancia + Piloto */}
           <div className={styles.dashClusterRight}>
-            <div className={styles.dashPositionPill}>
-              <span>POSICIÓN:</span>
-              <span
-                className={isLeader ? styles.positionBadgeGold : styles.positionBadgeStandard}
-              >
-                {isLeader ? '👑 P1 LÍDER' : `P${playerRank}`}
-              </span>
+            <div className={styles.dashTelemetryTopRow}>
+              <div className={styles.dashPositionPill}>
+                <span>POS:</span>
+                <span
+                  className={isLeader ? styles.positionBadgeGold : styles.positionBadgeStandard}
+                >
+                  {isLeader ? '👑 P1 LÍDER' : `P${playerRank}`}
+                </span>
+              </div>
+
+              {/* Odómetro de pista */}
+              <div className={styles.dashDistPill}>
+                <span className={styles.dashDistLabel}>DIST:</span>
+                <span className={styles.dashDistNum}>{distanceCoveredMeters}m / 1140m</span>
+              </div>
             </div>
 
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.78rem',
+                gap: '8px',
+                fontSize: '0.80rem',
                 color: buggyColor,
-                fontWeight: 800,
+                fontWeight: 900,
               }}
             >
               <span>{buggySymbol}</span>
               <span>BUGGY {buggyName}</span>
               {playerCar?.isBoosting && (
-                <span
-                  style={{
-                    background: '#ef4444',
-                    color: '#fff',
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    fontSize: '0.65rem',
-                  }}
-                >
-                  NITRO
+                <span className={styles.nitroActiveTag}>
+                  NITRO BOOST
                 </span>
               )}
             </div>

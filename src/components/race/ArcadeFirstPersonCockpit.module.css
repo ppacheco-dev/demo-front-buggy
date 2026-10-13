@@ -313,19 +313,130 @@
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
 }
 
+.rivalRoadShadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 90px;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.2) 65%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.rivalTireDust {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 16px;
+  background: radial-gradient(circle at 50% 100%, rgba(217, 119, 6, 0.5) 0%, rgba(180, 83, 9, 0.25) 45%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: rivalDustFlicker 0.15s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes rivalDustFlicker {
+  0% { transform: translateX(-50%) scale(0.9); opacity: 0.5; }
+  100% { transform: translateX(-50%) scale(1.15); opacity: 0.85; }
+}
+
 .aheadBadge {
   font-size: 0.62rem;
   font-weight: 900;
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: 999px;
   color: #000;
   margin-bottom: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   white-space: nowrap;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 /* --------------------------------------------------------------------------
-   5. OBSTÁCULOS EN PISTA APROXIMÁNDOSE AL FRENTE
+   5. RÁFAGAS AERODINÁMICAS Y PARASOL RALLY (WIND STREAKS & SUNSTRIP)
+   -------------------------------------------------------------------------- */
+.cockpitSpeedStreaksLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 24;
+  overflow: hidden;
+}
+
+.windStreakColLeft,
+.windStreakColRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.windStreakColLeft {
+  left: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.35) 0px,
+    rgba(255, 255, 255, 0.35) 2px,
+    transparent 2px,
+    transparent 28px
+  );
+  animation: windRush 0.18s linear infinite;
+  mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
+}
+
+.windStreakColRight {
+  right: 0;
+  background: repeating-linear-gradient(
+    -135deg,
+    rgba(255, 255, 255, 0.35) 0px,
+    rgba(255, 255, 255, 0.35) 2px,
+    transparent 2px,
+    transparent 28px
+  );
+  animation: windRush 0.18s linear infinite;
+  mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+}
+
+@keyframes windRush {
+  from { background-position: 0 0; }
+  to { background-position: 0 56px; }
+}
+
+.windshieldSunstrip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.85) 85%, transparent 100%);
+  border-bottom: 2px solid rgba(250, 204, 21, 0.6);
+  z-index: 26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sunstripText {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   6. OBSTÁCULOS EN PISTA APROXIMÁNDOSE AL FRENTE
    -------------------------------------------------------------------------- */
 .fpvApproachingHazard {
   position: absolute;
@@ -339,7 +450,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   6. PARABRISAS Y CABINA (WINDSHIELD, ROLL CAGE & HOOD)
+   7. PARABRISAS Y CABINA (WINDSHIELD, ROLL CAGE & HOOD)
    -------------------------------------------------------------------------- */
 .cockpitFrameLayer {
   position: absolute;
@@ -362,6 +473,20 @@
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
+
+.cageBoltFixture {
+  position: absolute;
+  top: 35%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #64748b;
+  border: 2px solid #0f172a;
+  box-shadow: inset 0 0 4px #000;
+}
+
+.rollCageLeft .cageBoltFixture { right: 8px; }
+.rollCageRight .cageBoltFixture { left: 8px; }
 
 .rollCageLeft {
   left: 0;
@@ -393,10 +518,10 @@
   position: absolute;
   bottom: 110px;
   left: 50%;
-  width: min(84vw, 620px);
-  height: 60px;
+  width: min(86vw, 640px);
+  height: 64px;
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 55%, #020617 100%);
-  clip-path: polygon(24% 0%, 76% 0%, 95% 100%, 5% 100%);
+  clip-path: polygon(22% 0%, 78% 0%, 96% 100%, 4% 100%);
   border-top: 3px solid rgba(250, 204, 21, 0.7);
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.75);
   display: flex;
@@ -404,23 +529,86 @@
   align-items: center;
   justify-content: center;
   z-index: 26;
+  position: absolute;
+}
+
+.hoodCenterLivery {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  opacity: 0.85;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
 .hoodScoopAirIntake {
-  width: 130px;
-  height: 15px;
+  position: relative;
+  width: 140px;
+  height: 16px;
   background: #090d16;
   border-radius: 4px;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 0 6px #000;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 8px #000;
   margin-bottom: 3px;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.hoodMeshTexture {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    #1e293b 0px,
+    #1e293b 2px,
+    #020617 2px,
+    #020617 5px
+  );
+  opacity: 0.85;
+}
+
+.hoodPinLeft,
+.hoodPinRight {
+  position: absolute;
+  top: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid #0f172a;
+  box-shadow: 0 1px 4px #000;
+}
+
+.hoodPinLeft { left: 26%; }
+.hoodPinRight { right: 26%; }
+
+.windshieldWiperLeft,
+.windshieldWiperRight {
+  position: absolute;
+  bottom: -6px;
+  width: 110px;
+  height: 4px;
+  background: #334155;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.windshieldWiperLeft {
+  left: 20%;
+  transform: rotate(-4deg);
+}
+
+.windshieldWiperRight {
+  right: 20%;
+  transform: rotate(4deg);
 }
 
 .hoodSponsorDecal {
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.12em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  z-index: 2;
 }
 
 .windshieldGlassSheen {
@@ -694,18 +882,24 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: rgba(13, 19, 33, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(13, 19, 33, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 14px;
   padding: 8px 14px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), inset 0 0 10px rgba(255, 255, 255, 0.04);
+}
+
+.dashTelemetryTopRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .dashSpeedGroup {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 5px;
 }
 
 .dashSpeedNumber {
@@ -714,14 +908,65 @@
   font-variant-numeric: tabular-nums;
   line-height: 1;
   color: #fff;
-  text-shadow: 0 0 14px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
 }
 
 .dashSpeedUnit {
-  font-size: 0.82rem;
+  font-size: 0.80rem;
   font-weight: 900;
   color: #facc15;
   letter-spacing: 0.05em;
+}
+
+/* Indicador de marcha estilo MoTeC */
+.dashGearPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #020617;
+  border: 1.5px solid #38bdf8;
+  border-radius: 6px;
+  padding: 2px 7px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+}
+
+.dashGearLabel {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+.dashGearNum {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+/* Indicador de Turbo Boost */
+.dashBoostPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #020617;
+  border: 1.5px solid #f97316;
+  border-radius: 6px;
+  padding: 2px 7px;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
+}
+
+.dashBoostLabel {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.dashBoostNum {
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #fb923c;
+  font-variant-numeric: tabular-nums;
 }
 
 .dashRpmBar {
@@ -741,12 +986,22 @@
 .rpmLedActiveGreen { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
 .rpmLedActiveYellow { background: #facc15; box-shadow: 0 0 6px #facc15; }
 .rpmLedActiveRed { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+.rpmLedActiveBlue {
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8, 0 0 14px #a855f7;
+  animation: overrevFlash 0.1s infinite alternate;
+}
+
+@keyframes overrevFlash {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.7); }
+}
 
 .dashPositionPill {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.86rem;
+  gap: 6px;
+  font-size: 0.84rem;
   font-weight: 900;
 }
 
@@ -763,6 +1018,46 @@
   color: #fff;
   padding: 3px 10px;
   border-radius: 999px;
+}
+
+.dashDistPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.dashDistLabel {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.dashDistNum {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.nitroActiveTag {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+  animation: nitroPulse 0.3s infinite alternate ease-in-out;
+}
+
+@keyframes nitroPulse {
+  0% { transform: scale(0.96); filter: brightness(1); }
+  100% { transform: scale(1.04); filter: brightness(1.3); }
 }
 
 /* --------------------------------------------------------------------------

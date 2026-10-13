@@ -90,6 +90,58 @@
   overflow: hidden;
 }
 
+/* Ráfagas aerodinámicas de alta velocidad (Horizon Chase / F-Zero Turbo Effect) */
+.arcadeSpeedStreaksOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+}
+
+.arcadeWindStreakLeft,
+.arcadeWindStreakRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.arcadeWindStreakLeft {
+  left: 0;
+  background: repeating-linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.4) 0px,
+    rgba(255, 255, 255, 0.4) 2px,
+    transparent 2px,
+    transparent 24px
+  );
+  animation: arcadeWindRush 0.16s linear infinite;
+  mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
+}
+
+.arcadeWindStreakRight {
+  right: 0;
+  background: repeating-linear-gradient(
+    -140deg,
+    rgba(255, 255, 255, 0.4) 0px,
+    rgba(255, 255, 255, 0.4) 2px,
+    transparent 2px,
+    transparent 24px
+  );
+  animation: arcadeWindRush 0.16s linear infinite;
+  mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+}
+
+@keyframes arcadeWindRush {
+  from { background-position: 0 0; }
+  to { background-position: 0 48px; }
+}
+
 /* Terreno del desierto a los costados exteriores */
 .desertSandLeft,
 .desertSandRight {
@@ -104,17 +156,57 @@
     rgba(180, 83, 9, 0.3) 22px,
     rgba(120, 53, 15, 0.4) 44px
   );
+  overflow: hidden;
 }
 
 .desertSandLeft { left: 0; }
 .desertSandRight { right: 0; }
+
+/* Props de rally junto a la pista (Carteles patrocinadores y palmeras en parallax) */
+.roadsidePropBillboardLeft,
+.roadsidePropBillboardRight {
+  position: absolute;
+  top: 18%;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #facc15;
+  border-radius: 6px;
+  padding: 3px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  animation: roadsideParallax 4s linear infinite;
+}
+
+.roadsidePropBillboardLeft { left: 16%; }
+.roadsidePropBillboardRight { right: 16%; }
+
+.roadsidePropPalmLeft,
+.roadsidePropPalmRight {
+  position: absolute;
+  top: 36%;
+  font-size: 2rem;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.7));
+  animation: roadsideParallax 2.5s linear infinite;
+}
+
+.roadsidePropPalmLeft { left: 32%; }
+.roadsidePropPalmRight { right: 32%; }
+
+@keyframes roadsideParallax {
+  0% { transform: translateY(-30px) scale(0.4); opacity: 0; }
+  15% { opacity: 0.85; }
+  85% { opacity: 0.85; }
+  100% { transform: translateY(180px) scale(1.15); opacity: 0; }
+}
 
 /* La carretera en perspectiva 3D */
 .roadSurface {
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate3d(-50%, 0, 0) rotateX(46deg);
   transform-origin: 50% 0%;
   width: 78%;
   height: 165%;
@@ -122,6 +214,26 @@
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
   overflow: hidden;
   will-change: transform;
+  transition: transform 120ms ease-out;
+}
+
+/* Bandas de asfalto alternadas estilo OutRun / Horizon Chase */
+.roadAsphaltStripes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(17, 24, 39, 0.95) 0px,
+    rgba(17, 24, 39, 0.95) 30px,
+    rgba(31, 41, 55, 0.85) 30px,
+    rgba(31, 41, 55, 0.85) 60px
+  );
+  animation: moveAsphaltBands 0.3s linear infinite;
+}
+
+@keyframes moveAsphaltBands {
+  from { background-position: 0 0; }
+  to { background-position: 0 60px; }
 }
 
 .roadSurfaceImpactShake {
@@ -134,13 +246,13 @@
   100% { transform: translate3d(calc(-50% - 1px), 1px, 0) rotateX(46deg); filter: brightness(1.1); }
 }
 
-/* Bordillos vibratorios rayados laterales directos (Cero máscaras, 60 FPS directo) */
+/* Bordillos vibratorios rayados laterales directos con relieve 3D */
 .roadCurbLeft,
 .roadCurbRight {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 24px;
+  width: 26px;
   background: repeating-linear-gradient(
     180deg,
     #ffffff 0px,
@@ -148,13 +260,14 @@
     #dc2626 26px,
     #dc2626 52px
   );
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
   animation: moveCurbs 0.3s linear infinite;
   pointer-events: none;
   z-index: 2;
 }
 
-.roadCurbLeft { left: 0; }
-.roadCurbRight { right: 0; }
+.roadCurbLeft { left: 0; border-right: 2px solid #000; }
+.roadCurbRight { right: 0; border-left: 2px solid #000; }
 
 @keyframes moveCurbs {
   from { background-position: 0 0; }
@@ -180,8 +293,8 @@
   z-index: 3;
 }
 
-.roadsideMarkersLeft { left: 26px; }
-.roadsideMarkersRight { right: 26px; }
+.roadsideMarkersLeft { left: 28px; }
+.roadsideMarkersRight { right: 28px; }
 
 @keyframes moveMarkers {
   from { background-position: 0 0; }
@@ -224,15 +337,59 @@
   left: 50%;
   transform: translate3d(-50%, 0, 0);
   width: 92%;
-  height: 52px;
   z-index: 25;
   pointer-events: none;
   will-change: transform, top, opacity;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.finishGantryLights {
+  display: flex;
+  gap: 12px;
+  background: #020617;
+  border: 2px solid #334155;
+  border-radius: 999px;
+  padding: 4px 14px;
+  margin-bottom: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8);
+}
+
+.gantryLightGreen,
+.gantryLightAmber,
+.gantryLightRed {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.gantryLightGreen {
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: gantryBlink 0.6s infinite alternate;
+}
+
+.gantryLightAmber {
+  background: #facc15;
+  box-shadow: 0 0 8px #facc15;
+  animation: gantryBlink 0.6s infinite alternate 0.2s;
+}
+
+.gantryLightRed {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: gantryBlink 0.6s infinite alternate 0.4s;
+}
+
+@keyframes gantryBlink {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
 }
 
 .finishArchTruss {
   width: 100%;
-  height: 100%;
+  height: 54px;
   background: repeating-linear-gradient(
     90deg,
     #ffffff 0px,
@@ -246,6 +403,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
+}
+
+.finishFlagEmoji {
+  font-size: 1.4rem;
+  animation: flagWave 0.3s infinite alternate ease-in-out;
+}
+
+@keyframes flagWave {
+  from { transform: rotate(-8deg); }
+  to { transform: rotate(8deg); }
 }
 
 .finishArchBanner {
@@ -290,6 +458,41 @@
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 100%);
   border-radius: 50%;
   pointer-events: none;
+}
+
+/* Estela de polvo y arena detrás de los neumáticos traseros (Rooster Tail) */
+.arcadeTireDustWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 20px;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.sandDustPlumeLeft,
+.sandDustPlumeRight {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.75) 0%, rgba(217, 119, 6, 0.45) 45%, transparent 75%);
+  filter: blur(2px);
+  animation: dustBillow 0.22s infinite alternate ease-in-out;
+}
+
+.sandDustPlumeLeft {
+  animation-delay: 0.05s;
+}
+
+@keyframes dustBillow {
+  0% { transform: translate3d(0, 0, 0) scale(0.7); opacity: 0.45; }
+  100% { transform: translate3d(0, 8px, 0) scale(1.35); opacity: 0.9; }
 }
 
 /* Etiquetas flotantes sobre el auto */
