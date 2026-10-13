@@ -398,7 +398,7 @@ export default function LiveRaceScreen({
                 <span>EN VIVO</span>
               </div>
               <span className={styles.raceHeroLabel}>CARRERA</span>
-              <span className={styles.raceHeroNumber}>Nº {race.numero}</span>
+              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
               <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           ) : (
@@ -408,7 +408,7 @@ export default function LiveRaceScreen({
                 <span>REPETICIÓN</span>
               </div>
               <span className={styles.raceHeroLabel}>CARRERA</span>
-              <span className={styles.raceHeroNumber}>Nº {race.numero}</span>
+              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
               <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           )}
@@ -794,7 +794,7 @@ export default function LiveRaceScreen({
               <i className={ningunAutoLlego ? "ph ph-warning-octagon" : "ph ph-flag-checkered"} aria-hidden="true" />
             </div>
 
-            <span className={styles.resultsRaceNumber}>CARRERA Nº {race.numero}</span>
+            <span className={styles.resultsRaceNumber}>{`CARRERA Nº ${race.numero}`}</span>
             <span className={styles.resultsEyebrow}>FINALIZADA • {race.hora} hrs</span>
 
             {ningunAutoLlego ? (

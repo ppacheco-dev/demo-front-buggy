@@ -139,7 +139,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
             <div className={styles.raceStrip}>
               <div className={styles.raceStripMain}>
                 <span className={styles.raceStripLabel}>CARRERA</span>
-                <span className={styles.raceStripNumber}>Nº {nextRaceNumber}</span>
+                <span className={styles.raceStripNumber}>{`Nº ${nextRaceNumber}`}</span>
               </div>
               <div className={styles.raceStripSide}>
                 <span className={styles.raceStripTime}>Hora: {nextRaceTime} hrs</span>

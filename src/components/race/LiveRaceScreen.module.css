@@ -179,6 +179,7 @@
 }
 
 .raceHeroNumber {
+  white-space: nowrap;
   font-size: 1.6rem;
   line-height: 1;
   font-weight: 900;
@@ -196,6 +197,7 @@
 }
 
 .resultsRaceNumber {
+  white-space: nowrap;
   font-size: 1.7rem;
   font-weight: 900;
   line-height: 1.1;

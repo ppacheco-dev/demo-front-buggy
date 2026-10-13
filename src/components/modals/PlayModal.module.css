@@ -137,6 +137,8 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .raceStripLabel {
@@ -151,6 +153,7 @@
   line-height: 1;
   font-weight: 900;
   color: #fff;
+  white-space: nowrap;
   text-shadow: 0 0 18px rgba(245, 158, 11, 0.8);
 }
 
