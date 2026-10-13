@@ -1207,7 +1207,11 @@
 
 .resultsCard {
   width: 100%;
-  max-width: 590px;
+  max-width: 760px;
+  max-height: 92vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.4) rgba(0, 0, 0, 0.3);
   background: radial-gradient(circle at 50% 0%, #152445 0%, #091020 100%);
   border: 1px solid rgba(245, 158, 11, 0.4);
   border-radius: 20px;
@@ -1838,4 +1842,150 @@
     padding: 8px 8px 20px;
   }
 }
+
+/* ==========================================================================
+   REPORTE DE MERCADOS DETALLADO - ESTE SORTEO ACTUAL (Estilo Terminal Oficial)
+   ========================================================================== */
+.marketReportContainer {
+  width: 100%;
+  background: #030712;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0 16px;
+  font-family: Consolas, Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.marketReportBorderTop,
+.marketReportBorderMid,
+.marketReportDashedLine {
+  color: #475569;
+  font-size: 0.68rem;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  user-select: none;
+  line-height: 1.2;
+}
+
+.marketReportTitle {
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+  text-align: center;
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+
+.marketReportTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 4px 0;
+  scrollbar-width: thin;
+}
+
+.marketReportTable {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.thMercado {
+  text-align: left;
+  color: #cbd5e1;
+  font-weight: 700;
+  padding: 3px 6px;
+}
+
+.thCol {
+  text-align: right;
+  color: #cbd5e1;
+  font-weight: 700;
+  padding: 3px 6px;
+}
+
+.thDivider,
+.tdDivider {
+  text-align: center;
+  color: #475569;
+  font-weight: 400;
+  padding: 3px 2px;
+  user-select: none;
+  width: 12px;
+}
+
+.dashedTableRow td {
+  color: #475569;
+  font-size: 0.68rem;
+  padding: 1px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+}
+
+.marketReportRow td {
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.tdMercado {
+  text-align: left;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.tdCol {
+  text-align: right;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.marketReportSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 4px;
+  text-align: left;
+}
+
+.summaryLine {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.74rem;
+}
+
+.summaryKey {
+  color: #94a3b8;
+  font-weight: 500;
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.summaryVal {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .marketReportContainer {
+    padding: 8px 10px;
+  }
+  .marketReportTitle {
+    font-size: 0.75rem;
+  }
+  .summaryKey {
+    width: 200px;
+    font-size: 0.68rem;
+  }
+  .summaryVal {
+    font-size: 0.68rem;
+  }
+}
+
 

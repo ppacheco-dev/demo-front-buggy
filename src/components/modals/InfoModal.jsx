@@ -218,18 +218,80 @@ export default function InfoModal({
                     1. <strong>Carreras en Vivo cada 5 Minutos:</strong> Se transmite una carrera oficial en tiempo real con 6 buggies, telemetría, velocímetro y radar GPS de circuito.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    2. <strong>Mercados de Selección:</strong> Pronostica cuál buggy obtendrá el <strong>1º Lugar</strong>, <strong>2º Lugar</strong>, <strong>3º Lugar (Podio)</strong>, o si <strong>Ningún Auto Llega a la Meta</strong>.
+                    2. <strong>Mercados de Selección y Condiciones de Acierto:</strong>
+                    <br />• <strong>1º Lugar:</strong> Apuestas a que el auto elegido llegará en 1er lugar (Ganador).
+                    <br />• <strong>2º Lugar:</strong> Apuestas a que el auto elegido llegará en 1er o 2do lugar.
+                    <br />• <strong>3º Lugar (Podio):</strong> Apuestas a que el auto elegido llegará en 3er, 2do o 1er lugar.
+                    <br />• <strong>Sin Ganador (Ningún Auto Llega):</strong> Apuestas a que ningún auto llegará a la meta final por fallar los obstáculos del circuito.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    3. <strong>Obstáculos Letales en 8 Tramos:</strong> En cada tramo aparecen rocas gigantes, socavones, dunas cortantes y meteoritos. Los buggies intentan esquivarlos o saltarlos; si colisionan quedan destruidos y eliminados de la carrera.
+                    3. <strong>Obstáculos Letales en 8 Tramos:</strong> En cada tramo aparecen rocas, socavones, dunas cortantes y meteoritos. Si colisionan quedan destruidos y eliminados de la carrera.
                   </p>
                   <p className={styles.infoRuleItem}>
-                    4. <strong>Condición de Catástrofe:</strong> Si la pista destruye a todos los 6 buggies y ninguno cruza la meta final, el mercado <em>"Ningún auto llega a la meta"</em> es el ganador oficial.
-                  </p>
-                  <p className={styles.infoRuleItem}>
-                    5. <strong>Dos Cámaras de Transmisión:</strong> Durante la carrera en vivo puedes alternar libremente entre la vista <strong>Clásica 2D</strong> y la vista en perspectiva <strong>Arcade 2.5D</strong>.
+                    4. <strong>Condición Sin Ganador (Factor 14x):</strong> Si todos los 6 buggies son destruidos y ninguno cruza la meta final, el mercado <em>"Sin Ganador"</em> gana con un factor multiplicador de <strong>14.0x</strong>.
                   </p>
                 </div>
+
+                {/* Tabla Oficial de Factores de Apuesta */}
+                <div className={tableStyles.payoutTableContainer}>
+                  <h3 className={tableStyles.payoutTableTitle}>
+                    <i className="ph ph-scales" aria-hidden="true" />
+                    <span>Factores de Apuesta Oficiales (Premios)</span>
+                  </h3>
+                  <table className={tableStyles.payoutTable}>
+                    <thead>
+                      <tr>
+                        <th>Participante</th>
+                        <th>1º Puesto</th>
+                        <th>2º Puesto</th>
+                        <th>3º Puesto</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#ef4444' }}>🔥 ROJO</span></td>
+                        <td>3,7 x</td>
+                        <td>2,2 x</td>
+                        <td>1,8 x</td>
+                      </tr>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#3b82f6' }}>🌊 AZUL</span></td>
+                        <td>3,7 x</td>
+                        <td>2,2 x</td>
+                        <td>1,8 x</td>
+                      </tr>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#22c55e' }}>🍃 VERDE</span></td>
+                        <td>3,7 x</td>
+                        <td>2,2 x</td>
+                        <td>1,8 x</td>
+                      </tr>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#facc15' }}>⚡ AMARILLO</span></td>
+                        <td>6,0 x</td>
+                        <td>3,3 x</td>
+                        <td>2,6 x</td>
+                      </tr>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#a855f7' }}>🔮 MORADO</span></td>
+                        <td>6,0 x</td>
+                        <td>3,3 x</td>
+                        <td>2,6 x</td>
+                      </tr>
+                      <tr>
+                        <td><span className={tableStyles.buggyPill} style={{ '--buggy-color': '#f97316' }}>🏔️ NARANJO</span></td>
+                        <td>3,7 x</td>
+                        <td>2,2 x</td>
+                        <td>1,8 x</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div className={tableStyles.noWinnerHighlight}>
+                    <i className="ph ph-warning-circle" aria-hidden="true" />
+                    <span>Mercado <strong>Sin Ganador</strong> (Nadie gana / Ningún auto llega): Factor <strong>14x</strong></span>
+                  </div>
+                </div>
+
                 <div
                   className={styles.infoAssetBlock}
                   style={{
@@ -241,14 +303,15 @@ export default function InfoModal({
                     borderRadius: '12px',
                     background: 'rgba(245, 158, 11, 0.08)',
                     border: '1px solid rgba(245, 158, 11, 0.25)',
+                    marginTop: '12px',
                   }}
                 >
-                  <i className="ph ph-flag-checkered" style={{ fontSize: '42px', color: '#f59e0b', marginBottom: '6px' }} />
+                  <i className="ph ph-flag-checkered" style={{ fontSize: '38px', color: '#f59e0b', marginBottom: '6px' }} />
                   <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#facc15', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                     PRECIO POR JUGADA: $2.000
                   </span>
                   <span style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '4px', textAlign: 'center', lineHeight: 1.35 }}>
-                    Elige tu mercado, selecciona tu buggy y sigue la carrera en vivo con su voucher oficial numerado.
+                    El premio final se calcula multiplicando tu apuesta por el factor del participante y mercado correspondiente.
                   </span>
                 </div>
               </div>

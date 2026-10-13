@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { findBuggyByName } from '../../game/config/selectionData';
+import { findBuggyByName, generateDrawMarketReport, getBetMultiplier } from '../../game/config/selectionData';
 import { getOrCreateRace, REFERENCE_RACE_TRAMOS } from '../../game/config/raceStorageService';
 import BuggySprite from './BuggySprite';
 import ObstacleSprite from './ObstacleSprite';
@@ -338,13 +338,51 @@ export default function LiveRaceScreen({
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
   let userWon = false;
+  let userWonPlace = '';
   if (isFinished && isUserParticipatingInThisRace) {
     if (userMarketId === 'ningun_auto') {
       userWon = Boolean(ningunAutoLlego);
-    } else if (!ningunAutoLlego && winnerCar) {
-      userWon = Boolean(userBuggyName && userBuggyName.includes(winnerCar.buggy.name.toUpperCase()));
+    } else if (!ningunAutoLlego) {
+      const first = (rankedCars[0]?.buggy?.name || '').toUpperCase();
+      const second = (rankedCars[1]?.buggy?.name || '').toUpperCase();
+      const third = (rankedCars[2]?.buggy?.name || '').toUpperCase();
+      const uName = userBuggyName || '';
+
+      if (userMarketId === 'primer_lugar') {
+        userWon = Boolean(uName && first === uName);
+        userWonPlace = '1º lugar (Ganador)';
+      } else if (userMarketId === 'segundo_lugar') {
+        userWon = Boolean(uName && (first === uName || second === uName));
+        userWonPlace = first === uName ? '1º lugar' : '2º lugar';
+      } else if (userMarketId === 'tercer_lugar') {
+        userWon = Boolean(uName && (first === uName || second === uName || third === uName));
+        userWonPlace = first === uName ? '1º lugar' : second === uName ? '2º lugar' : '3º lugar';
+      }
     }
   }
+
+  const userWinAmount = useMemo(() => {
+    if (!userWon || !isUserParticipatingInThisRace) return 0;
+    const montoBase = Number(userSelection?.montoNum) || 2000;
+    if (userMarketId === 'ningun_auto') {
+      return Math.round(montoBase * 14.0);
+    }
+    const mult = getBetMultiplier(userBuggyName, userMarketId);
+    return Math.round(montoBase * mult);
+  }, [userWon, isUserParticipatingInThisRace, userSelection, userMarketId, userBuggyName]);
+
+  const drawMarketReport = useMemo(() => {
+    if (!isFinished) return null;
+    const p1 = (!ningunAutoLlego && winnerCar) ? winnerCar.buggy.name : (rankedCars[0]?.buggy?.name || 'ROJO');
+    const p2 = (!ningunAutoLlego && rankedCars[1]) ? rankedCars[1].buggy.name : 'AZUL';
+    const p3 = (!ningunAutoLlego && rankedCars[2]) ? rankedCars[2].buggy.name : 'VERDE';
+
+    return generateDrawMarketReport({
+      ningunAutoLlego: Boolean(ningunAutoLlego),
+      ganador: ningunAutoLlego ? 'NINGUNO' : p1,
+      podio: ningunAutoLlego ? [] : [p1, p2, p3],
+    });
+  }, [isFinished, ningunAutoLlego, winnerCar, rankedCars]);
 
   return (
     <div className={styles.container}>
@@ -784,8 +822,8 @@ export default function LiveRaceScreen({
                     <i className="ph ph-confetti" aria-hidden="true" />
                     <span>
                       {userMarketId === 'ningun_auto'
-                        ? '¡FELICITACIONES! ACERTASTE: NINGÚN AUTO LLEGÓ A LA META'
-                        : `¡FELICITACIONES! TU AUTO #${winnerCar?.buggy?.name} GANÓ LA CARRERA`}
+                        ? `¡FELICITACIONES! ACERTASTE: SIN GANADOR (PREMIO: $${userWinAmount.toLocaleString('es-CL')})`
+                        : `¡FELICITACIONES! TU AUTO ${userBuggyName} CUMPLIÓ EN ${userWonPlace} (PREMIO: $${userWinAmount.toLocaleString('es-CL')})`}
                     </span>
                   </>
                 ) : (
@@ -793,7 +831,7 @@ export default function LiveRaceScreen({
                     <i className="ph ph-info" aria-hidden="true" />
                     <span>
                       {ningunAutoLlego
-                        ? 'Ningún buggy completó el circuito. Ganó el mercado: Ningún auto llega a la meta.'
+                        ? 'Ningún buggy completó el circuito. Ganó el mercado: Sin Ganador.'
                         : 'La carrera ha concluido. ¡Prueba suerte en la siguiente!'}
                     </span>
                   </>
@@ -867,6 +905,88 @@ export default function LiveRaceScreen({
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* 5. Tabla Oficial: Reporte de Mercados Detallado - Este Sorteo Actual */}
+            {drawMarketReport && (
+              <div className={styles.marketReportContainer}>
+                <div className={styles.marketReportBorderTop}>
+                  ========================================================================================
+                </div>
+                <div className={styles.marketReportTitle}>
+                  REPORTE DE MERCADOS DETALLADO - ESTE SORTEO ACTUAL
+                </div>
+                <div className={styles.marketReportBorderMid}>
+                  ========================================================================================
+                </div>
+
+                <div className={styles.marketReportTableWrap}>
+                  <table className={styles.marketReportTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.thMercado}>Mercado</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>Tks Apost</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>Tks Ganad</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>$ Recaudado</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>$ Premios</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>HR %</th>
+                        <th className={styles.thDivider}>|</th>
+                        <th className={styles.thCol}>RTP %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className={styles.dashedTableRow}>
+                        <td colSpan="13">----------------------------------------------------------------------------------------</td>
+                      </tr>
+                      {drawMarketReport.rows.map((row) => (
+                        <tr key={row.mercado} className={styles.marketReportRow}>
+                          <td className={styles.tdMercado}>{row.mercado}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.tksApost}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.tksGanad}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.recaudado}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.premios}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.hr}</td>
+                          <td className={styles.tdDivider}>|</td>
+                          <td className={styles.tdCol}>{row.rtp}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className={styles.marketReportDashedLine}>
+                  ----------------------------------------------------------------------------------------
+                </div>
+
+                <div className={styles.marketReportSummary}>
+                  <div className={styles.summaryLine}>
+                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Apuestas</span>
+                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.apuestas}</span>
+                  </div>
+                  <div className={styles.summaryLine}>
+                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Premios</span>
+                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.premios}</span>
+                  </div>
+                  <div className={styles.summaryLine}>
+                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Monto Apostado</span>
+                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.montoApostado}</span>
+                  </div>
+                  <div className={styles.summaryLine}>
+                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Monto Premiados</span>
+                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.montoPremiados}</span>
+                  </div>
                 </div>
               </div>
             )}

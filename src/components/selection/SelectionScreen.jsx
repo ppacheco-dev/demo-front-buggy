@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MARKETS, BUGGIES } from '../../game/config/selectionData';
+import { MARKETS, BUGGIES, getBetMultiplier } from '../../game/config/selectionData';
 import { getRaceSchedule, formatSecondsToCountdown, TICKET_PRICE } from '../../game/config/raceTimeService';
 import styles from './SelectionScreen.module.css';
 
@@ -37,6 +37,9 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
   const selectedBuggy = BUGGIES.find((b) => b.id === selectedBuggyId) || BUGGIES[0];
   const requiresBuggy = selectedMarket.requiresBuggy !== false;
 
+  const activeMultiplier = getBetMultiplier(requiresBuggy ? selectedBuggy.name : null, selectedMarketId);
+  const estimatedPrize = Math.round(2000 * activeMultiplier);
+
   // Selección directa e instantánea sin abrir popup modal invasivo
   const handleSelectBuggy = (buggy) => {
     if (!requiresBuggy) return;
@@ -48,6 +51,8 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
       market: selectedMarket,
       buggy: requiresBuggy ? selectedBuggy : null,
       raceInfo: schedule,
+      multiplier: activeMultiplier,
+      premioEstimado: `$${estimatedPrize.toLocaleString('es-CL')}`,
     });
   };
 
@@ -128,6 +133,19 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                       {market.ruleBadge}
                     </div>
                   )}
+                  {market.id === 'ningun_auto' && (
+                    <div
+                      className={styles.marketRuleBadge}
+                      style={{
+                        borderColor: '#0ea5e9',
+                        color: '#38bdf8',
+                        marginTop: '4px',
+                        fontWeight: 900,
+                      }}
+                    >
+                      FACTOR 14x
+                    </div>
+                  )}
                   <p className={styles.marketDesc}>{market.description}</p>
                 </div>
 
@@ -171,6 +189,14 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                 <div className={styles.buggyFooter}>
                   <span className={styles.buggySymbol}>{buggy.symbol}</span>
                   <span className={styles.buggyName}>{buggy.name}</span>
+                  {requiresBuggy && (
+                    <span
+                      className={styles.buggyOddsPill}
+                      title={`Factor para ${selectedMarket.name}: ${getBetMultiplier(buggy.name, selectedMarketId).toFixed(1).replace('.', ',')}x`}
+                    >
+                      {getBetMultiplier(buggy.name, selectedMarketId).toFixed(1).replace('.', ',')}x
+                    </span>
+                  )}
                 </div>
 
                 <span
@@ -242,6 +268,16 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* Factor / Premio Posible */}
+            <div className={styles.selectionItem}>
+              <div className={styles.selectionItemText} style={{ paddingLeft: '8px' }}>
+                <span className={styles.selectionItemLabel}>Factor / Premio</span>
+                <span className={styles.selectionItemValue} style={{ color: '#4ade80' }}>
+                  {activeMultiplier.toFixed(1).replace('.', ',')}x (${estimatedPrize.toLocaleString('es-CL')})
+                </span>
+              </div>
             </div>
           </div>
         </div>

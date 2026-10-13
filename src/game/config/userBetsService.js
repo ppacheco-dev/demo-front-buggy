@@ -5,6 +5,7 @@
  */
 
 import { getStoredRaces } from './raceStorageService';
+import { getBetMultiplier, NO_WINNER_MULTIPLIER } from './selectionData';
 
 const USER_BETS_KEY = 'buggy_user_bets_v2';
 
@@ -132,14 +133,15 @@ export function getBetStatus(bet) {
 
     if (marketId === 'ningun_auto') {
       if (isCatastrophe) {
-        const premioNum = montoBase * 10;
+        const multiplier = NO_WINNER_MULTIPLIER; // 14.0x
+        const premioNum = Math.round(montoBase * multiplier);
         return {
           estado: 'GANADA',
           label: 'Ganada',
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: '¡Ningún auto llegó a la meta! Acierto total.',
+          detalle: `¡Sin ganador! Ningún auto llegó a la meta. Factor 14x.`,
           race,
         };
       }
@@ -161,7 +163,7 @@ export function getBetStatus(bet) {
         badgeClass: 'statusLost',
         premio: '$0',
         premioNum: 0,
-        detalle: 'Todos los buggies fueron destruidos por obstáculos',
+        detalle: 'Todos los buggies fueron destruidos por obstáculos (Sin ganador)',
         race,
       };
     }
@@ -169,14 +171,16 @@ export function getBetStatus(bet) {
     if (marketId === 'primer_lugar') {
       const winner = race.ganador?.toUpperCase();
       if (winner === buggyName) {
-        const premioNum = montoBase * 2;
+        const multiplier = getBetMultiplier(buggyName, 'primer_lugar');
+        const premioNum = Math.round(montoBase * multiplier);
+        const multDisplay = multiplier.toFixed(1).replace('.', ',');
         return {
           estado: 'GANADA',
           label: 'Ganada',
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: `¡Buggy ${buggyName} ganó en 1º lugar!`,
+          detalle: `¡Buggy ${buggyName} ganó en 1º lugar! Factor ${multDisplay}x.`,
           race,
         };
       }
@@ -197,14 +201,16 @@ export function getBetStatus(bet) {
       const userWon = first === buggyName || second === buggyName;
       if (userWon) {
         const place = first === buggyName ? '1º lugar' : '2º lugar';
-        const premioNum = Math.round(montoBase * 1.8);
+        const multiplier = getBetMultiplier(buggyName, 'segundo_lugar');
+        const premioNum = Math.round(montoBase * multiplier);
+        const multDisplay = multiplier.toFixed(1).replace('.', ',');
         return {
           estado: 'GANADA',
           label: 'Ganada',
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: `¡Buggy ${buggyName} cumplió llegando en ${place}! (1º o 2º lugar)`,
+          detalle: `¡Buggy ${buggyName} llegó en ${place}! Factor ${multDisplay}x.`,
           race,
         };
       }
@@ -226,14 +232,16 @@ export function getBetStatus(bet) {
       const userWon = first === buggyName || second === buggyName || third === buggyName;
       if (userWon) {
         const place = first === buggyName ? '1º' : second === buggyName ? '2º' : '3º';
-        const premioNum = Math.round(montoBase * 1.5);
+        const multiplier = getBetMultiplier(buggyName, 'tercer_lugar');
+        const premioNum = Math.round(montoBase * multiplier);
+        const multDisplay = multiplier.toFixed(1).replace('.', ',');
         return {
           estado: 'GANADA',
           label: 'Ganada',
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: `¡Buggy ${buggyName} hizo podio llegando en ${place} lugar! (1º, 2º o 3º)`,
+          detalle: `¡Buggy ${buggyName} hizo podio en ${place} lugar! Factor ${multDisplay}x.`,
           race,
         };
       }

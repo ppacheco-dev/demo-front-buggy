@@ -40,8 +40,8 @@ export const MARKETS = [
   {
     id: 'ningun_auto',
     name: 'NINGÚN AUTO LLEGA',
-    ruleBadge: 'TODOS CHOCAN (SIN GANADOR)',
-    description: 'Apuestas a que ningún auto llegará a la meta (todos se accidentan).',
+    ruleBadge: 'SIN GANADOR',
+    description: 'Apuestas a que ningún auto llegará a la meta (Sin Ganador).',
     icon: '/assets/images/markets/flag_crash.webp',
     accentColor: '#0ea5e9',
     borderGlow: 'rgba(14, 165, 233, 0.75)',
@@ -197,4 +197,181 @@ export const INITIAL_USER_STATE = {
   nextRaceTime: '15:30',
   initialCountdownSeconds: 105, // 00:01:45
 };
+
+/**
+ * Factores de apuesta oficiales (multiplicadores de premio):
+ * Participante    | 1º Puesto | 2º Puesto | 3º Puesto
+ * ---------------------------------------------------
+ * ROJO            | 3,7 x     | 2,2 x     | 1,8 x
+ * AZUL            | 3,7 x     | 2,2 x     | 1,8 x
+ * VERDE           | 3,7 x     | 2,2 x     | 1,8 x
+ * AMARILLO        | 6,0 x     | 3,3 x     | 2,6 x
+ * MORADO          | 6,0 x     | 3,3 x     | 2,6 x
+ * NARANJO         | 3,7 x     | 2,2 x     | 1,8 x
+ * Mercado Nadie gana / Sin Ganador: 14,0 x
+ */
+export const BET_MULTIPLIERS = {
+  ROJO: { primer_lugar: 3.7, segundo_lugar: 2.2, tercer_lugar: 1.8 },
+  AZUL: { primer_lugar: 3.7, segundo_lugar: 2.2, tercer_lugar: 1.8 },
+  VERDE: { primer_lugar: 3.7, segundo_lugar: 2.2, tercer_lugar: 1.8 },
+  AMARILLO: { primer_lugar: 6.0, segundo_lugar: 3.3, tercer_lugar: 2.6 },
+  MORADO: { primer_lugar: 6.0, segundo_lugar: 3.3, tercer_lugar: 2.6 },
+  NARANJO: { primer_lugar: 3.7, segundo_lugar: 2.2, tercer_lugar: 1.8 },
+  NARANJA: { primer_lugar: 3.7, segundo_lugar: 2.2, tercer_lugar: 1.8 },
+  BLANCO: { primer_lugar: 6.0, segundo_lugar: 3.3, tercer_lugar: 2.6 },
+};
+
+export const NO_WINNER_MULTIPLIER = 14.0;
+
+export function getBetMultiplier(buggyName, marketId) {
+  if (marketId === 'ningun_auto') {
+    return NO_WINNER_MULTIPLIER;
+  }
+  const norm = (buggyName || '').trim().toUpperCase();
+  const carTable = BET_MULTIPLIERS[norm] || BET_MULTIPLIERS['ROJO'];
+  return carTable[marketId] || 1.0;
+}
+
+/**
+ * Formatea número con puntos de miles para Chile (ej: 6000 -> "6.000")
+ */
+export function formatThousandsCL(num) {
+  return Math.round(num || 0).toLocaleString('es-CL');
+}
+
+/**
+ * Formatea porcentaje con coma decimal a 1 decimal (ej: 16.666 -> "16,7 %")
+ */
+export function formatPercentCL(num) {
+  return `${(num || 0).toFixed(1).replace('.', ',')} %`;
+}
+
+/**
+ * Genera el Reporte de Mercados Detallado para el sorteo actual según los resultados reales.
+ * @param {object} params
+ * @param {boolean} params.ningunAutoLlego
+ * @param {string} params.ganador - Nombre del auto en 1º lugar
+ * @param {string[]} params.podio - Nombres de los autos en podio [1º, 2º, 3º]
+ */
+export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] }) {
+  const isNoWinner = Boolean(ningunAutoLlego || ganador === 'NINGUNO');
+  const p1 = (podio[0] || ganador || 'ROJO').toUpperCase();
+  const p2 = (podio[1] || 'AZUL').toUpperCase();
+  const p3 = (podio[2] || 'VERDE').toUpperCase();
+
+  const TICKET_UNIT = 100;
+  const TICKETS_PER_CAR = 1000;
+  const TOTAL_CARS = 6;
+
+  // 1. Mercado Primero
+  const primeroApost = TOTAL_CARS * TICKETS_PER_CAR; // 6.000
+  const primeroRecaudado = primeroApost * TICKET_UNIT; // $600.000
+  let primeroGanad = 0;
+  let primeroPremios = 0;
+  if (!isNoWinner) {
+    primeroGanad = TICKETS_PER_CAR; // 1.000
+    const m1 = getBetMultiplier(p1, 'primer_lugar');
+    primeroPremios = primeroGanad * TICKET_UNIT * m1;
+  }
+  const primeroHR = (primeroGanad / primeroApost) * 100;
+  const primeroRTP = primeroRecaudado > 0 ? (primeroPremios / primeroRecaudado) * 100 : 0;
+
+  // 2. Mercado Segundo (El auto elegido llega en 1º o 2º lugar)
+  const segundoApost = TOTAL_CARS * TICKETS_PER_CAR; // 6.000
+  const segundoRecaudado = segundoApost * TICKET_UNIT; // $600.000
+  let segundoGanad = 0;
+  let segundoPremios = 0;
+  if (!isNoWinner) {
+    segundoGanad = TICKETS_PER_CAR * 2; // 2.000
+    const m2_p1 = getBetMultiplier(p1, 'segundo_lugar');
+    const m2_p2 = getBetMultiplier(p2, 'segundo_lugar');
+    segundoPremios = (TICKETS_PER_CAR * TICKET_UNIT * m2_p1) + (TICKETS_PER_CAR * TICKET_UNIT * m2_p2);
+  }
+  const segundoHR = (segundoGanad / segundoApost) * 100;
+  const segundoRTP = segundoRecaudado > 0 ? (segundoPremios / segundoRecaudado) * 100 : 0;
+
+  // 3. Mercado Tercero (El auto elegido llega en 1º, 2º o 3º lugar)
+  const terceroApost = TOTAL_CARS * TICKETS_PER_CAR; // 6.000
+  const terceroRecaudado = terceroApost * TICKET_UNIT; // $600.000
+  let terceroGanad = 0;
+  let terceroPremios = 0;
+  if (!isNoWinner) {
+    terceroGanad = TICKETS_PER_CAR * 3; // 3.000
+    const m3_p1 = getBetMultiplier(p1, 'tercer_lugar');
+    const m3_p2 = getBetMultiplier(p2, 'tercer_lugar');
+    const m3_p3 = getBetMultiplier(p3, 'tercer_lugar');
+    terceroPremios =
+      (TICKETS_PER_CAR * TICKET_UNIT * m3_p1) +
+      (TICKETS_PER_CAR * TICKET_UNIT * m3_p2) +
+      (TICKETS_PER_CAR * TICKET_UNIT * m3_p3);
+  }
+  const terceroHR = (terceroGanad / terceroApost) * 100;
+  const terceroRTP = terceroRecaudado > 0 ? (terceroPremios / terceroRecaudado) * 100 : 0;
+
+  // 4. Mercado TodosPerdedores (Sin Ganador / Nadie gana)
+  const todosApost = 1000;
+  const todosRecaudado = todosApost * TICKET_UNIT; // $100.000
+  let todosGanad = 0;
+  let todosPremios = 0;
+  if (isNoWinner) {
+    todosGanad = todosApost; // 1.000
+    todosPremios = todosGanad * TICKET_UNIT * NO_WINNER_MULTIPLIER; // $1.400.000
+  }
+  const todosHR = (todosGanad / todosApost) * 100;
+  const todosRTP = todosRecaudado > 0 ? (todosPremios / todosRecaudado) * 100 : 0;
+
+  // Resumen del sorteo
+  const totalApuestas = primeroApost + segundoApost + terceroApost + todosApost; // 19.000
+  const totalPremiosTks = primeroGanad + segundoGanad + terceroGanad + todosGanad;
+  const totalMontoApostado = primeroRecaudado + segundoRecaudado + terceroRecaudado + todosRecaudado; // 1.900.000
+  const totalMontoPremiados = primeroPremios + segundoPremios + terceroPremios + todosPremios;
+
+  return {
+    rows: [
+      {
+        mercado: 'Primero',
+        tksApost: formatThousandsCL(primeroApost),
+        tksGanad: formatThousandsCL(primeroGanad),
+        recaudado: `$${formatThousandsCL(primeroRecaudado)}`,
+        premios: `$${formatThousandsCL(primeroPremios)}`,
+        hr: formatPercentCL(primeroHR),
+        rtp: formatPercentCL(primeroRTP),
+      },
+      {
+        mercado: 'Segundo',
+        tksApost: formatThousandsCL(segundoApost),
+        tksGanad: formatThousandsCL(segundoGanad),
+        recaudado: `$${formatThousandsCL(segundoRecaudado)}`,
+        premios: `$${formatThousandsCL(segundoPremios)}`,
+        hr: formatPercentCL(segundoHR),
+        rtp: formatPercentCL(segundoRTP),
+      },
+      {
+        mercado: 'Tercero',
+        tksApost: formatThousandsCL(terceroApost),
+        tksGanad: formatThousandsCL(terceroGanad),
+        recaudado: `$${formatThousandsCL(terceroRecaudado)}`,
+        premios: `$${formatThousandsCL(terceroPremios)}`,
+        hr: formatPercentCL(terceroHR),
+        rtp: formatPercentCL(terceroRTP),
+      },
+      {
+        mercado: 'TodosPerdedores',
+        tksApost: formatThousandsCL(todosApost),
+        tksGanad: formatThousandsCL(todosGanad),
+        recaudado: `$${formatThousandsCL(todosRecaudado)}`,
+        premios: `$${formatThousandsCL(todosPremios)}`,
+        hr: formatPercentCL(todosHR),
+        rtp: formatPercentCL(todosRTP),
+      },
+    ],
+    resumen: {
+      apuestas: formatThousandsCL(totalApuestas),
+      premios: formatThousandsCL(totalPremiosTks),
+      montoApostado: formatThousandsCL(totalMontoApostado),
+      montoPremiados: formatThousandsCL(totalMontoPremiados),
+    },
+  };
+}
+
 

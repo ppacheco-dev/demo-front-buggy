@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { TICKET_PRICE } from '../../game/config/raceTimeService';
+import { getBetMultiplier } from '../../game/config/selectionData';
 import styles from './PlayModal.module.css';
 
 /**
@@ -26,10 +27,14 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
   const marketName = selection?.market?.name || 'PRIMER LUGAR';
   const buggyName = selection?.buggy
     ? `Buggy ${selection.buggy.name}`
-    : (selection?.market?.id === 'ningun_auto' ? 'Ningún auto' : 'Buggy Amarillo');
+    : (selection?.market?.id === 'ningun_auto' ? 'Sin Ganador' : 'Buggy Amarillo');
   const marketColor = selection?.market?.accentColor || '#f59e0b';
   const buggyColor = selection?.buggy?.color || '#facc15';
   const buggySymbol = selection?.buggy?.symbol || '⚡';
+
+  const factor = getBetMultiplier(selection?.buggy?.name, selection?.market?.id);
+  const montoBase = selection?.montoNum || 2000;
+  const estimatedPrize = Math.round(montoBase * factor);
 
   const nextRaceNumber =
     selection?.targetRaceNumber ||
@@ -172,6 +177,29 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                   >
                     <span>{buggySymbol}</span>
                     <span>{buggyName}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fila 3: Factor Multiplicador & Premio Posible */}
+              <div className={styles.rowGrid}>
+                <div className={styles.detailBox}>
+                  <div className={styles.detailLabel}>Factor de Apuesta</div>
+                  <div style={{ fontSize: '0.96rem', color: '#facc15', fontWeight: 900, marginTop: '2px' }}>
+                    {factor.toFixed(1).replace('.', ',')}x
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
+                    Multiplicador oficial
+                  </div>
+                </div>
+
+                <div className={styles.detailBoxHighlight}>
+                  <div className={styles.detailLabel}>Premio en caso de Ganar</div>
+                  <div style={{ fontSize: '1.05rem', color: '#4ade80', fontWeight: 900, marginTop: '2px' }}>
+                    ${estimatedPrize.toLocaleString('es-CL')}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#86efac', fontWeight: 700, marginTop: '2px' }}>
+                    Pago estimado
                   </div>
                 </div>
               </div>
