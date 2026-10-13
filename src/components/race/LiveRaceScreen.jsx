@@ -395,7 +395,7 @@ export default function LiveRaceScreen({
               title="Cámara 3D en Perspectiva Arcade (Por defecto)"
             >
               <i className="ph ph-game-controller" aria-hidden="true" />
-              <span>ARCADE 2.5D</span>
+              <span>Arcade 2.5D</span>
             </button>
             <button
               type="button"
@@ -404,7 +404,7 @@ export default function LiveRaceScreen({
               title="Vista Clásica Lateral"
             >
               <i className="ph ph-broadcast" aria-hidden="true" />
-              <span>CLÁSICA 2D</span>
+              <span>Clásica 2D</span>
             </button>
             {canUseFpv && (
               <button
@@ -414,8 +414,8 @@ export default function LiveRaceScreen({
                 title="Cámara en Primera Persona desde tu Buggy con espejo retrovisor y cabina"
               >
                 <i className="ph ph-steering-wheel" aria-hidden="true" />
-                <span>1ª PERSONA (FPV)</span>
-                <span className={styles.fpvHighlightBadge}>TU AUTO</span>
+                <span>1ª Persona</span>
+                <span className={styles.fpvHighlightBadge}>TÚ</span>
               </button>
             )}
           </div>

@@ -20,10 +20,11 @@
    1. TOP BAR (OFICIAL - 3 COLUMNAS LIMPIO Y EQUILIBRADO)
    ========================================================================== */
 .topBar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  padding: 0 20px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
   background: rgba(8, 14, 28, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
@@ -35,8 +36,8 @@
 .topBarLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-self: start;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .topBarCenter {
@@ -44,13 +45,16 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 4px;
 }
 
 .topBarRight {
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-self: end;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .liveBadgeGroup {
@@ -189,14 +193,17 @@
 }
 
 .raceTitle {
-  font-size: 1.05rem;
+  font-size: clamp(0.72rem, 1.15vw, 1.05rem);
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: #f8fafc;
   margin: 0;
   text-transform: uppercase;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .topBarActions {
@@ -227,21 +234,25 @@
 .cameraSegmentedGroup {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  background: rgba(15, 23, 42, 0.75);
+  padding: 2px 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cameraSegmentBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: transparent;
   border: 1px solid transparent;
   color: #cbd5e1;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   cursor: pointer;
   transition: all 150ms ease;
   white-space: nowrap;

@@ -6,13 +6,13 @@ import styles from './ArcadeFirstPersonCockpit.module.css';
 
 /**
  * ArcadeFirstPersonCockpit: Vista inmersiva en Primera Persona (FPV / Cabina del Piloto).
- * Permite al usuario experimentar la carrera desde el interior de su Buggy:
- * 1. Espejo retrovisor superior central con reflejo de los autos que vienen atrás.
- * 2. Carretera y paisaje frontal en perspectiva acelerada (dunas, montañas, cielo).
- * 3. Obstáculos aproximándose de frente (meteoritos, rocas, hoyos, grietas).
- * 4. Autos rivales que van adelante si el usuario no va en P1.
- * 5. Volante deportivo interactivo con emblema del Buggy y tablero digital (KM/H, RPM, Puesto).
- * 6. Física de saltos y esquives que inclinan la cabina.
+ * Correcciones de perspectiva y proporciones:
+ * 1. Los autos rivales adelante se mantienen SIEMPRE sobre la carretera en perspectiva correcta
+ *    (de 44% en el horizonte a 62% frente al capó), sin quedar tapados por el volante ni verse desproporcionadamente gigantes.
+ * 2. Capó frontal del buggy visible que delimita físicamente la carretera y da profundidad 3D real.
+ * 3. Carretera de rally con olas de espuma en el mar a la izquierda, acantilados a la derecha y huellas en la arena.
+ * 4. Volante deportivo optimizado con guantes de piloto, rotando fluidamente con virajes y esquives.
+ * 5. Espejo retrovisor superior central con reflejo interactivo de rivales y faros.
  */
 export default function ArcadeFirstPersonCockpit({
   cars = [],
@@ -52,12 +52,6 @@ export default function ArcadeFirstPersonCockpit({
       .sort((a, b) => b.x - a.x); // Más cercano al usuario primero
   }, [cars, playerCar, isPlayerEliminated]);
 
-  // Autos eliminados detrás del usuario
-  const crashedBehind = useMemo(() => {
-    if (!playerCar) return [];
-    return cars.filter((c) => c.name !== playerCar.name && c.isEliminated && c.x <= playerCar.x);
-  }, [cars, playerCar]);
-
   // Autos activos que van ADELANTE del usuario (visibles en la carretera al frente)
   const carsAhead = useMemo(() => {
     if (!playerCar || isPlayerEliminated) return [];
@@ -86,8 +80,9 @@ export default function ArcadeFirstPersonCockpit({
     const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (0.82 - minFraction)));
     const curve = norm * norm; // aceleración de perspectiva frontal
 
-    const topPct = 48 + curve * 40; // Desde horizonte (48%) hasta ruedas (88%)
-    const scale = 0.35 + curve * 1.25;
+    // De 44% (horizonte) a 63% (frente a nuestro morro)
+    const topPct = 44 + curve * 19;
+    const scale = 0.22 + curve * 0.48;
     const opacity = norm < 0.08 ? norm / 0.08 : norm > 0.88 ? (1 - norm) / 0.12 : 1;
 
     return { isVisible: true, topPct, scale, opacity };
@@ -108,7 +103,7 @@ export default function ArcadeFirstPersonCockpit({
   const jumpOffset = playerCar?.isJumping ? (playerCar?.dodgeOffsetY || -18) * 1.5 : 0;
 
   // RPM LEDs (12 segmentos)
-  const speed = playerCar?.speedKmh || 180;
+  const speed = playerCar?.speedKmh || 163;
   const rpmCount = Math.min(12, Math.max(4, Math.round((speed / 230) * 12)));
 
   const buggyColor = playerCar?.buggy?.color || '#facc15';
@@ -128,7 +123,7 @@ export default function ArcadeFirstPersonCockpit({
       </div>
 
       {/* ====================================================================
-          2. CARRETERA EN PERSPECTIVA FRONTAL HACIA EL PILOTO
+          2. CARRETERA EN PERSPECTIVA FRONTAL - RALLY PLAYA
           ==================================================================== */}
       <div
         className={styles.groundLayer}
@@ -136,12 +131,28 @@ export default function ArcadeFirstPersonCockpit({
           transform: `translateY(${-jumpOffset * 0.4}px)`,
         }}
       >
-        <div className={styles.desertShoulderLeft} />
-        <div className={styles.desertShoulderRight} />
+        {/* Costado Izquierdo: Costa y Océano turquesa con olas de espuma animadas */}
+        <div className={styles.desertShoulderLeft}>
+          <div className={styles.oceanSurfWaves} />
+          <div className={styles.seaStackRock} />
+        </div>
 
+        {/* Costado Derecho: Acantilados y dunas de rally */}
+        <div className={styles.desertShoulderRight}>
+          <div className={styles.cliffStrata} />
+          <span className={styles.palmTreeDecor}>🌴</span>
+        </div>
+
+        {/* Superficie de la Carretera en Perspectiva */}
         <div className={styles.roadSurface}>
+          {/* Bordillos vibratorios rayados */}
           <div className={styles.roadCurbLeft} />
           <div className={styles.roadCurbRight} />
+
+          {/* Huellas de neumáticos paralelas grabadas en la arena */}
+          <div className={styles.tireTrackGrooves} />
+
+          {/* Líneas divisorias de carril */}
           <div className={styles.roadLanes} />
 
           {/* Arco de meta frontal en el tramo final */}
@@ -149,13 +160,13 @@ export default function ArcadeFirstPersonCockpit({
             <div
               className={styles.finishArchFpv}
               style={{
-                top: `${Math.min(85, 20 + (progress - 0.82) * 320)}%`,
-                transform: `translateX(-50%) scale(${0.5 + (progress - 0.82) * 2.8})`,
+                top: `${Math.min(78, 20 + (progress - 0.82) * 280)}%`,
+                transform: `translateX(-50%) scale(${0.45 + (progress - 0.82) * 2.2})`,
                 opacity: Math.min(1, (progress - 0.82) * 6),
               }}
             >
               <div className={styles.finishArchGantry}>
-                🏁 META FINAL • CIRCUITO DUNAS 🏁
+                🏁 META FINAL • RALLY PLAYA 🏁
               </div>
             </div>
           )}
@@ -178,14 +189,22 @@ export default function ArcadeFirstPersonCockpit({
             </div>
           )}
 
-          {/* Autos rivales que van ADELANTE del usuario */}
+          {/* Autos rivales que van ADELANTE del usuario (Perspectiva y Escala Corregidas) */}
           {carsAhead.map((car, idx) => {
-            const distAhead = Math.max(10, car.x - (playerCar?.x || 150));
-            // Proximidad normalizada (más cerca = más abajo en el parabrisas y más grande)
-            const normDist = Math.min(1, Math.max(0, distAhead / 160));
-            const top = 48 + (1 - normDist) * 32; // de 48% a 80%
-            const scale = 0.35 + (1 - normDist) * 0.65;
-            const laneOffset = ((car.index % 3) - 1) * 60 * (scale * 1.5);
+            const distAhead = Math.max(8, car.x - (playerCar?.x || 150));
+            // Proximidad normalizada (0 = pegado a nuestro morro, 1 = lejos en el horizonte)
+            const normDist = Math.min(1, Math.max(0, distAhead / 180));
+            const pFactor = Math.pow(1 - normDist, 1.8);
+
+            // Perspectiva: de 44% (horizonte) a 62% (justo encima de nuestro capó)
+            const top = 44 + pFactor * 18;
+
+            // Escala proporcionada: 0.16 (lejos) a 0.42 (cerca del morro)
+            const scale = 0.16 + pFactor * 0.26;
+
+            // Desplazamiento lateral proporcional al ancho de la carretera en esa distancia
+            const laneWidth = 14 + pFactor * 65;
+            const laneOffset = ((car.index % 3) - 1) * laneWidth;
 
             return (
               <div
@@ -195,7 +214,7 @@ export default function ArcadeFirstPersonCockpit({
                   top: `${top}%`,
                   left: `calc(50% + ${laneOffset}px)`,
                   transform: `translate(-50%, -100%) scale(${scale})`,
-                  zIndex: Math.round(10 + (1 - normDist) * 20),
+                  zIndex: Math.round(10 + pFactor * 20),
                 }}
               >
                 <span
@@ -264,11 +283,10 @@ export default function ArcadeFirstPersonCockpit({
             {carsBehind.length > 0 ? (
               carsBehind.map((car, idx) => {
                 const distBehind = Math.max(12, (playerCar?.x || 0) - car.x);
-                // Si la distancia es pequeña, el auto se ve muy grande en el espejo
-                const distRatio = Math.min(1, Math.max(0, distBehind / 140)); // 0 = muy cerca, 1 = lejos
-                const mirrorScale = 1.15 - distRatio * 0.65; // 0.5 a 1.15
-                const mirrorTop = 72 - distRatio * 32; // 40% a 72%
-                const laneOffset = ((car.index % 3) - 1) * 36; // Distribución en carriles
+                const distRatio = Math.min(1, Math.max(0, distBehind / 140));
+                const mirrorScale = 1.15 - distRatio * 0.65;
+                const mirrorTop = 72 - distRatio * 32;
+                const laneOffset = ((car.index % 3) - 1) * 36;
 
                 return (
                   <div
@@ -290,7 +308,6 @@ export default function ArcadeFirstPersonCockpit({
                       }}
                     >
                       <span style={{ fontSize: '11px' }}>{car.buggy.symbol}</span>
-                      {/* Luces delanteras reflejadas hacia nosotros */}
                       <div className={styles.mirrorHeadlights}>
                         <div className={styles.mirrorHeadlightBeam} />
                         <div className={styles.mirrorHeadlightBeam} />
@@ -313,17 +330,31 @@ export default function ArcadeFirstPersonCockpit({
       </div>
 
       {/* ====================================================================
-          4. CABINA Y BARRAS ANTIVUELCO (ROLL CAGE & COCKPIT FRAME)
+          4. CABINA DEL PILOTO Y CAPÓ DEL BUGGY (ROLL CAGE & HOOD)
           ==================================================================== */}
       <div
         className={styles.cockpitFrameLayer}
         style={{
-          transform: `rotate(${steeringTilt * 0.25}deg) translateY(${jumpOffset * 0.25}px)`,
+          transform: `rotate(${steeringTilt * 0.18}deg) translateY(${jumpOffset * 0.25}px)`,
         }}
       >
         <div className={styles.rollCageTopBar} />
-        <div className={styles.rollCageLeft} style={{ borderLeft: `4px solid ${buggyColor}` }} />
-        <div className={styles.rollCageRight} style={{ borderRight: `4px solid ${buggyColor}` }} />
+        <div className={styles.rollCageLeft} style={{ borderLeft: `5px solid ${buggyColor}` }} />
+        <div className={styles.rollCageRight} style={{ borderRight: `5px solid ${buggyColor}` }} />
+
+        {/* Capó delantero del buggy visible en la base del parabrisas */}
+        <div
+          className={styles.buggyHoodNose}
+          style={{
+            transform: `translateX(-50%) translateY(${Math.sin(progress * 55) * 1.5}px)`,
+          }}
+        >
+          <div className={styles.hoodScoopAirIntake} />
+          <div className={styles.hoodSponsorDecal} style={{ color: buggyColor }}>
+            BUGGY {buggyName}
+          </div>
+        </div>
+
         <div className={styles.windshieldGlassSheen} />
       </div>
 
@@ -412,67 +443,129 @@ export default function ArcadeFirstPersonCockpit({
         </div>
 
         {/* ==================================================================
-            6. VOLANTE DEPORTIVO DE CARRERAS (STEERING WHEEL)
-               Gira en sincronía con los esquives y curvas
+            6. VOLANTE DEPORTIVO DE CARRERAS CON GUANTES (100% SVG)
+               Gira en sincronía con los esquives y curvas sin tapar la pista
             ================================================================== */}
         <div
           className={styles.steeringWheelWrapper}
           style={{
-            transform: `translateX(-50%) rotate(${steeringTilt}deg) translateY(${jumpOffset * 0.15}px)`,
+            transform: `translateX(-50%) rotate(${steeringTilt}deg) translateY(${jumpOffset * 0.15 + Math.sin(progress * 50) * 1.2}px)`,
           }}
         >
-          <svg viewBox="0 0 240 240" className={styles.wheelSvg}>
+          <svg viewBox="0 0 320 260" className={styles.wheelSvg} aria-label="Volante Deportivo">
+            <defs>
+              <linearGradient id="wheelRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1e293b" />
+                <stop offset="50%" stopColor="#0f172a" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+              <linearGradient id="spokeMetalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#64748b" />
+                <stop offset="50%" stopColor="#334155" />
+                <stop offset="100%" stopColor="#1e293b" />
+              </linearGradient>
+              <linearGradient id="gloveLeatherGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1e293b" />
+                <stop offset="40%" stopColor="#0f172a" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+            </defs>
+
             {/* Aro exterior del volante */}
             <circle
-              cx="120"
-              cy="120"
-              r="95"
+              cx="160"
+              cy="150"
+              r="90"
               fill="none"
-              stroke="#0f172a"
-              strokeWidth="24"
-              strokeLinecap="round"
+              stroke="url(#wheelRimGrad)"
+              strokeWidth="20"
             />
-            {/* Grips de cuero perforado */}
+            {/* Grip de cuero perforado */}
             <circle
-              cx="120"
-              cy="120"
-              r="95"
+              cx="160"
+              cy="150"
+              r="90"
               fill="none"
               stroke="#334155"
-              strokeWidth="20"
-              strokeDasharray="90 50 90 150"
+              strokeWidth="16"
+              strokeDasharray="60 35 60 120"
             />
-            {/* Acento de color en el aro superior (marca de las 12 en punto) */}
+            {/* Marca de las 12 en punto */}
             <path
-              d="M 115 25 L 125 25"
+              d="M 155 60 L 165 60"
               stroke={buggyColor}
-              strokeWidth="22"
+              strokeWidth="20"
               strokeLinecap="round"
             />
 
-            {/* Radios metálicos del volante (3-spoke) */}
-            <line x1="120" y1="120" x2="35" y2="120" stroke="#475569" strokeWidth="14" />
-            <line x1="120" y1="120" x2="205" y2="120" stroke="#475569" strokeWidth="14" />
-            <line x1="120" y1="120" x2="120" y2="205" stroke="#475569" strokeWidth="14" />
-
-            {/* Levas de cambio detrás del volante (paddle shifters) */}
-            <rect x="25" y="70" width="8" height="34" rx="3" fill="#64748b" />
-            <rect x="207" y="70" width="8" height="34" rx="3" fill="#64748b" />
+            {/* Radios metálicos del volante (3 radios) */}
+            <line x1="160" y1="150" x2="72" y2="150" stroke="url(#spokeMetalGrad)" strokeWidth="14" />
+            <line x1="160" y1="150" x2="248" y2="150" stroke="url(#spokeMetalGrad)" strokeWidth="14" />
+            <line x1="160" y1="150" x2="160" y2="235" stroke="url(#spokeMetalGrad)" strokeWidth="14" />
 
             {/* Núcleo central / bocina */}
-            <circle cx="120" cy="120" r="38" fill="#1e293b" stroke="#334155" strokeWidth="3" />
-            <circle cx="120" cy="120" r="32" fill="#0f172a" stroke={buggyColor} strokeWidth="2" />
-
-            {/* Símbolo del Buggy en el centro del volante */}
+            <circle cx="160" cy="150" r="36" fill="#0f172a" stroke="#475569" strokeWidth="3" />
+            <circle cx="160" cy="150" r="28" fill="#020617" stroke={buggyColor} strokeWidth="2" />
             <text
-              x="120"
-              y="126"
-              fontSize="24"
+              x="160"
+              y="156"
+              fill={buggyColor}
+              fontSize="18"
+              fontWeight="900"
               textAnchor="middle"
               dominantBaseline="central"
             >
               {buggySymbol}
             </text>
+
+            {/* GUANTES DEPORTIVOS EN LAS POSICIONES 9 Y 3 EN PUNTO */}
+            {/* Mano Izquierda */}
+            <g>
+              <path
+                d="M 35 260 L 58 190 L 88 198 L 70 260 Z"
+                fill="url(#gloveLeatherGrad)"
+                stroke="#0f172a"
+                strokeWidth="1.5"
+              />
+              <path d="M 56 190 L 88 198" stroke={buggyColor} strokeWidth="3.5" strokeLinecap="round" />
+              <path
+                d="M 58 185 C 54 168, 58 152, 68 140 C 80 130, 96 135, 98 150 C 101 166, 96 185, 88 194 Z"
+                fill="url(#gloveLeatherGrad)"
+                stroke="#0f172a"
+                strokeWidth="1.5"
+              />
+              <path d="M 64 160 Q 72 155 80 162" stroke={buggyColor} strokeWidth="3" strokeLinecap="round" fill="none" />
+              <path
+                d="M 84 150 C 92 145, 102 148, 100 158 C 98 166, 88 167, 82 160 Z"
+                fill="#0f172a"
+                stroke={buggyColor}
+                strokeWidth="1.5"
+              />
+            </g>
+
+            {/* Mano Derecha */}
+            <g>
+              <path
+                d="M 285 260 L 262 190 L 232 198 L 250 260 Z"
+                fill="url(#gloveLeatherGrad)"
+                stroke="#0f172a"
+                strokeWidth="1.5"
+              />
+              <path d="M 264 190 L 232 198" stroke={buggyColor} strokeWidth="3.5" strokeLinecap="round" />
+              <path
+                d="M 262 185 C 266 168, 262 152, 252 140 C 240 130, 224 135, 222 150 C 219 166, 224 185, 232 194 Z"
+                fill="url(#gloveLeatherGrad)"
+                stroke="#0f172a"
+                strokeWidth="1.5"
+              />
+              <path d="M 256 160 Q 248 155 240 162" stroke={buggyColor} strokeWidth="3" strokeLinecap="round" fill="none" />
+              <path
+                d="M 236 150 C 228 145, 218 148, 220 158 C 222 166, 232 167, 238 160 Z"
+                fill="#0f172a"
+                stroke={buggyColor}
+                strokeWidth="1.5"
+              />
+            </g>
           </svg>
         </div>
       </div>
