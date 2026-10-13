@@ -940,8 +940,6 @@ export default function LiveRaceScreen({
                         <th className={styles.thNumber}>Tks Ganad</th>
                         <th className={styles.thMoney}>$ Recaudado</th>
                         <th className={styles.thPrize}>$ Premios</th>
-                        <th className={styles.thPercent}>HR %</th>
-                        <th className={styles.thPercent}>RTP %</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -967,12 +965,6 @@ export default function LiveRaceScreen({
                             <span className={row.premios !== '$0' ? styles.prizePositiveText : styles.prizeZeroText}>
                               {row.premios}
                             </span>
-                          </td>
-                          <td className={styles.tdPercent}>
-                            <span className={styles.hrBadge}>{row.hr}</span>
-                          </td>
-                          <td className={styles.tdPercent}>
-                            <span className={styles.rtpBadge}>{row.rtp}</span>
                           </td>
                         </tr>
                       ))}

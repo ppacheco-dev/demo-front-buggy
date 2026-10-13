@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { TICKET_PRICE } from '../../game/config/raceTimeService';
+import { TICKET_PRICE, getRaceSchedule } from '../../game/config/raceTimeService';
 import { getBetMultiplier } from '../../game/config/selectionData';
 import styles from './PlayModal.module.css';
 
@@ -20,6 +20,14 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
     if (pathRef.current) {
       setPathLength(pathRef.current.getTotalLength());
     }
+  }, [isOpen]);
+
+  // Reloj para que el botón de directo aparezca solo cuando comienza la carrera apostada
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const id = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(id);
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -43,6 +51,9 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
   const nextRaceTime = selection?.targetRaceTime || selection?.raceInfo?.nextRaceTime || '15:15';
   const ticketPrice = selection?.monto || selection?.precio || TICKET_PRICE;
   const ticketId = selection?.ticketId || selection?.id || 'BG-583921';
+
+  // El botón "Ver carrera en directo" solo aplica si la carrera apostada es la que se está transmitiendo ahora
+  const isTargetRaceLive = Number(nextRaceNumber) === getRaceSchedule(new Date(nowTick)).currentRaceNumber;
 
   // Posiciones de los 7 sectores tácticos con obstáculos en el mapa
   const sectorMarkers = [
@@ -222,14 +233,16 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
 
             {/* Botones de acción */}
             <div className={styles.actionBtns}>
-              <button
-                type="button"
-                onClick={handleWatchRace}
-                className={styles.watchRaceBtn}
-              >
-                <i className="ph ph-broadcast" style={{ fontSize: '1.2rem' }} aria-hidden="true" />
-                <span>VER CARRERA EN DIRECTO AHORA</span>
-              </button>
+              {isTargetRaceLive && (
+                <button
+                  type="button"
+                  onClick={handleWatchRace}
+                  className={styles.watchRaceBtn}
+                >
+                  <i className="ph ph-broadcast" style={{ fontSize: '1.2rem' }} aria-hidden="true" />
+                  <span>VER CARRERA EN DIRECTO AHORA</span>
+                </button>
+              )}
 
               <button
                 type="button"
