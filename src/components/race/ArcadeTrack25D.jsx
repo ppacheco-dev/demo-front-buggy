@@ -44,7 +44,7 @@ export default function ArcadeTrack25D({
 
   // Carriles horizontales distribuidos estilizados
   const laneOffsets = useMemo(() => {
-    return [18, 30, 44, 56, 70, 82];
+    return [12, 28, 44, 58, 74, 89];
   }, []);
 
   // Cálculo de la aproximación en perspectiva 3D del obstáculo transversal para TODOS los autos
@@ -280,7 +280,7 @@ export default function ArcadeTrack25D({
 
             // Y position base en el plano de asfalto (36% horizonte a 78% primer plano)
             const topPct = 78 - distRatio * 38;
-            const scale = 1.18 - distRatio * 0.38;
+            const scale = (1.18 - distRatio * 0.38) * 1.5;
             const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 
             // Ventana en la que este auto en particular esquiva o salta el obstáculo

@@ -603,51 +603,104 @@ export default function ArcadeFirstPersonCockpit({
             <ellipse cx="512" cy="563" rx="25" ry="19" fill="#394156" stroke="#0d1019" strokeWidth="2" />
             <circle cx="512" cy="563" r="7" fill={buggyColor} />
 
-            {/* mano izquierda */}
+            {/* manos con guantes sin dedos */}
+            <defs>
+              <linearGradient id="fpvGlove" x1="0" y1="0" x2="0.4" y2="1">
+                <stop offset="0" stopColor="#3a4257" />
+                <stop offset="0.55" stopColor="#262c3c" />
+                <stop offset="1" stopColor="#171b27" />
+              </linearGradient>
+              <linearGradient id="fpvSleeve" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#141824" />
+                <stop offset="1" stopColor="#252b3c" />
+              </linearGradient>
+              <radialGradient id="fpvKnuckle" cx="0.4" cy="0.35" r="0.7">
+                <stop offset="0" stopColor="#4a5370" />
+                <stop offset="1" stopColor="#222838" />
+              </radialGradient>
+            </defs>
             {[false, true].map((m) => {
               const Wrap = m ? Mirror : React.Fragment;
               return (
                 <Wrap key={m ? 'hr' : 'hl'}>
-                  <polygon
-                    points="290,613 326,552 394,576 382,613"
-                    fill="url(#fpvSkin)"
-                    stroke="#14161f"
-                    strokeWidth="3"
-                  />
+                  {/* manga del traje */}
                   <path
-                    d="M 322 550 L 396 574 L 402 594 L 318 568 Z"
-                    fill="#1d212c"
+                    d="M 262 613 L 316 546 L 398 580 L 388 613 Z"
+                    fill="url(#fpvSleeve)"
+                    stroke="#0b0e17"
+                    strokeWidth="3"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M 276 600 L 322 560" stroke="#3b435a" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+                  {/* puño elástico */}
+                  <path
+                    d="M 316 546 L 342 535 L 410 562 L 398 580 Z"
+                    fill="#171b27"
+                    stroke="#0b0e17"
+                    strokeWidth="2.5"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M 326 548 L 402 573" stroke="#ff8a1f" strokeWidth="3" strokeLinecap="round" />
+
+                  {/* dedos: segmento de guante + yema visible */}
+                  {[
+                    [354, 460, -16],
+                    [373, 451, -7],
+                    [393, 450, 3],
+                    [412, 458, 13],
+                  ].map(([fx, fy, rot]) => (
+                    <g key={fx} transform={`rotate(${rot} ${fx + 8} ${fy + 20})`}>
+                      <rect x={fx} y={fy + 12} width="17" height="30" rx="8.5" fill="url(#fpvGlove)" stroke="#0b0e17" strokeWidth="2.2" />
+                      <rect x={fx + 0.5} y={fy} width="16" height="22" rx="8" fill="url(#fpvSkin)" stroke="#14161f" strokeWidth="2" />
+                      <path d={`M ${fx + 4} ${fy + 7} Q ${fx + 8.5} ${fy + 3} ${fx + 13} ${fy + 7}`} fill="none" stroke="#ffe0c4" strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+                      <path d={`M ${fx + 2} ${fy + 24} L ${fx + 15} ${fy + 24}`} stroke="#0b0e17" strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+                    </g>
+                  ))}
+
+                  {/* dorso del guante */}
+                  <path
+                    d="M 336 556 C 322 522 332 490 360 479 C 392 468 430 482 438 514 C 442 540 424 564 396 578 Z"
+                    fill="url(#fpvGlove)"
+                    stroke="#0b0e17"
+                    strokeWidth="3"
+                    strokeLinejoin="round"
+                  />
+                  {/* nudillos acolchados */}
+                  {[
+                    [358, 494],
+                    [377, 488],
+                    [396, 488],
+                    [415, 495],
+                  ].map(([kx, ky]) => (
+                    <circle key={kx} cx={kx} cy={ky} r="9" fill="url(#fpvKnuckle)" stroke="#0b0e17" strokeWidth="2" />
+                  ))}
+                  {/* costuras y panel central */}
+                  <path d="M 352 526 Q 388 508 424 524" fill="none" stroke="#0b0e17" strokeWidth="2" opacity="0.7" />
+                  <path
+                    d="M 356 531 Q 388 513 421 529"
+                    fill="none"
+                    stroke="#6b7590"
+                    strokeWidth="1.4"
+                    strokeDasharray="4 4"
+                    opacity="0.8"
+                  />
+                  <path d="M 346 548 Q 372 540 400 556" fill="none" stroke="#0b0e17" strokeWidth="1.8" opacity="0.6" />
+                  {/* correa de velcro en la muñeca */}
+                  <path
+                    d="M 340 546 L 404 570 L 398 580 L 334 556 Z"
+                    fill="#1c2130"
                     stroke="#0b0e17"
                     strokeWidth="2"
+                    strokeLinejoin="round"
                   />
-                  {[
-                    [364, 468, -16],
-                    [379, 463, -8],
-                    [394, 463, 2],
-                    [409, 468, 12],
-                  ].map(([fx, fy, rot]) => (
-                    <rect
-                      key={fx}
-                      x={fx}
-                      y={fy}
-                      width="14"
-                      height="28"
-                      rx="7"
-                      fill="#f2a46a"
-                      stroke="#14161f"
-                      strokeWidth="2"
-                      transform={`rotate(${rot} ${fx + 7} ${fy + 14})`}
-                    />
-                  ))}
-                  <path
-                    d="M 334 552 C 326 522 338 494 364 482 C 392 470 426 482 432 510 C 436 534 420 558 394 574 Z"
-                    fill="#272b37"
-                    stroke="#0e1017"
-                    strokeWidth="3"
-                  />
-                  <path d="M 352 504 Q 384 490 414 500" fill="none" stroke="#4b5266" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M 356 524 Q 388 510 420 522" fill="none" stroke="#0e1017" strokeWidth="2" opacity="0.7" />
-                  <ellipse cx="431" cy="528" rx="11" ry="20" transform="rotate(-18 431 528)" fill="#272b37" stroke="#0e1017" strokeWidth="2.5" />
+                  <circle cx="404" cy="568" r="3" fill="#ff8a1f" />
+
+                  {/* pulgar */}
+                  <g transform="rotate(-20 433 530)">
+                    <ellipse cx="433" cy="530" rx="12" ry="22" fill="url(#fpvGlove)" stroke="#0b0e17" strokeWidth="2.5" />
+                    <ellipse cx="433" cy="513" rx="8.5" ry="8" fill="url(#fpvSkin)" stroke="#14161f" strokeWidth="2" />
+                    <path d="M 428 512 Q 433 508 438 512" fill="none" stroke="#ffe0c4" strokeWidth="1.4" strokeLinecap="round" opacity="0.8" />
+                  </g>
                 </Wrap>
               );
             })}
