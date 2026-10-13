@@ -117,6 +117,17 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
               >
                 <div className={styles.marketHeader}>
                   <h3 className={styles.marketTitle}>{market.name}</h3>
+                  {market.ruleBadge && (
+                    <div
+                      className={styles.marketRuleBadge}
+                      style={{
+                        borderColor: market.accentColor,
+                        color: market.accentColor,
+                      }}
+                    >
+                      {market.ruleBadge}
+                    </div>
+                  )}
                   <p className={styles.marketDesc}>{market.description}</p>
                 </div>
 
@@ -203,6 +214,11 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                 <span className={styles.selectionItemValue} style={{ color: selectedMarket.accentColor }}>
                   {selectedMarket.name}
                 </span>
+                {selectedMarket.ruleBadge && (
+                  <span className={styles.selectionRuleHint}>
+                    {selectedMarket.ruleBadge}
+                  </span>
+                )}
               </div>
             </div>
 

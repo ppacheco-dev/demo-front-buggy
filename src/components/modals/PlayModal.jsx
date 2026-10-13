@@ -150,6 +150,11 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                   <div style={{ fontSize: '0.92rem', color: marketColor, fontWeight: 900, marginTop: '2px' }}>
                     {marketName}
                   </div>
+                  {selection?.market?.ruleBadge && (
+                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 700, marginTop: '2px' }}>
+                      {selection.market.ruleBadge}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.detailBox}>

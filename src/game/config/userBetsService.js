@@ -192,8 +192,11 @@ export function getBetStatus(bet) {
     }
 
     if (marketId === 'segundo_lugar') {
+      const first = (race.podio?.[0] || race.ganador)?.toUpperCase();
       const second = race.podio?.[1]?.toUpperCase();
-      if (second === buggyName) {
+      const userWon = first === buggyName || second === buggyName;
+      if (userWon) {
+        const place = first === buggyName ? '1º lugar' : '2º lugar';
         const premioNum = Math.round(montoBase * 1.8);
         return {
           estado: 'GANADA',
@@ -201,7 +204,7 @@ export function getBetStatus(bet) {
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: `¡Buggy ${buggyName} llegó en 2º lugar!`,
+          detalle: `¡Buggy ${buggyName} cumplió llegando en ${place}! (1º o 2º lugar)`,
           race,
         };
       }
@@ -211,14 +214,18 @@ export function getBetStatus(bet) {
         badgeClass: 'statusLost',
         premio: '$0',
         premioNum: 0,
-        detalle: `2º lugar oficial: ${second || 'N/D'}`,
+        detalle: `Top 2 oficial: 1º ${first || 'N/D'}, 2º ${second || 'N/D'}`,
         race,
       };
     }
 
     if (marketId === 'tercer_lugar') {
+      const first = (race.podio?.[0] || race.ganador)?.toUpperCase();
+      const second = race.podio?.[1]?.toUpperCase();
       const third = race.podio?.[2]?.toUpperCase();
-      if (third === buggyName) {
+      const userWon = first === buggyName || second === buggyName || third === buggyName;
+      if (userWon) {
+        const place = first === buggyName ? '1º' : second === buggyName ? '2º' : '3º';
         const premioNum = Math.round(montoBase * 1.5);
         return {
           estado: 'GANADA',
@@ -226,7 +233,7 @@ export function getBetStatus(bet) {
           badgeClass: 'statusWon',
           premio: `$${premioNum.toLocaleString('es-CL')}`,
           premioNum,
-          detalle: `¡Buggy ${buggyName} llegó en 3º lugar!`,
+          detalle: `¡Buggy ${buggyName} hizo podio llegando en ${place} lugar! (1º, 2º o 3º)`,
           race,
         };
       }
@@ -236,7 +243,7 @@ export function getBetStatus(bet) {
         badgeClass: 'statusLost',
         premio: '$0',
         premioNum: 0,
-        detalle: `3º lugar oficial: ${third || 'N/D'}`,
+        detalle: `Podio oficial: 1º ${first || 'N/D'}, 2º ${second || 'N/D'}, 3º ${third || 'N/D'}`,
         race,
       };
     }
