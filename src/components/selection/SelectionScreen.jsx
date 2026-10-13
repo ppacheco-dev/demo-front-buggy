@@ -133,19 +133,6 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
                       {market.ruleBadge}
                     </div>
                   )}
-                  {market.id === 'ningun_auto' && (
-                    <div
-                      className={styles.marketRuleBadge}
-                      style={{
-                        borderColor: '#0ea5e9',
-                        color: '#38bdf8',
-                        marginTop: '4px',
-                        fontWeight: 900,
-                      }}
-                    >
-                      FACTOR 14x
-                    </div>
-                  )}
                   <p className={styles.marketDesc}>{market.description}</p>
                 </div>
 
@@ -271,14 +258,16 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
             </div>
 
             {/* Factor / Premio Posible */}
-            <div className={styles.selectionItem}>
-              <div className={styles.selectionItemText} style={{ paddingLeft: '8px' }}>
-                <span className={styles.selectionItemLabel}>Factor / Premio</span>
-                <span className={styles.selectionItemValue} style={{ color: '#4ade80' }}>
-                  {activeMultiplier.toFixed(1).replace('.', ',')}x (${estimatedPrize.toLocaleString('es-CL')})
-                </span>
+            {requiresBuggy && (
+              <div className={styles.selectionItem}>
+                <div className={styles.selectionItemText} style={{ paddingLeft: '8px' }}>
+                  <span className={styles.selectionItemLabel}>Factor / Premio</span>
+                  <span className={styles.selectionItemValue} style={{ color: '#4ade80' }}>
+                    {activeMultiplier.toFixed(1).replace('.', ',')}x (${estimatedPrize.toLocaleString('es-CL')})
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

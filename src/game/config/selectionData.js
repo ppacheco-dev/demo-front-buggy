@@ -41,7 +41,7 @@ export const MARKETS = [
     id: 'ningun_auto',
     name: 'NINGÚN AUTO LLEGA',
     ruleBadge: 'SIN GANADOR',
-    description: 'Apuestas a que ningún auto llegará a la meta (Sin Ganador).',
+    description: 'Apuestas a que ningún auto llegará a la meta.',
     icon: '/assets/images/markets/flag_crash.webp',
     accentColor: '#0ea5e9',
     borderGlow: 'rgba(14, 165, 233, 0.75)',
@@ -325,11 +325,16 @@ export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] 
   const totalPremiosTks = primeroGanad + segundoGanad + terceroGanad + todosGanad;
   const totalMontoApostado = primeroRecaudado + segundoRecaudado + terceroRecaudado + todosRecaudado; // 1.900.000
   const totalMontoPremiados = primeroPremios + segundoPremios + terceroPremios + todosPremios;
+  const rtpGlobal = totalMontoApostado > 0 ? (totalMontoPremiados / totalMontoApostado) * 100 : 0;
+  const hrGlobal = totalApuestas > 0 ? (totalPremiosTks / totalApuestas) * 100 : 0;
 
   return {
     rows: [
       {
-        mercado: 'Primero',
+        mercado: 'Primer Lugar',
+        badge: '1º Puesto',
+        icon: 'trophy',
+        accentColor: '#f59e0b',
         tksApost: formatThousandsCL(primeroApost),
         tksGanad: formatThousandsCL(primeroGanad),
         recaudado: `$${formatThousandsCL(primeroRecaudado)}`,
@@ -338,7 +343,10 @@ export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] 
         rtp: formatPercentCL(primeroRTP),
       },
       {
-        mercado: 'Segundo',
+        mercado: 'Segundo Lugar',
+        badge: '1º o 2º Puesto',
+        icon: 'trophy',
+        accentColor: '#ef4444',
         tksApost: formatThousandsCL(segundoApost),
         tksGanad: formatThousandsCL(segundoGanad),
         recaudado: `$${formatThousandsCL(segundoRecaudado)}`,
@@ -347,7 +355,10 @@ export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] 
         rtp: formatPercentCL(segundoRTP),
       },
       {
-        mercado: 'Tercero',
+        mercado: 'Tercer Lugar',
+        badge: 'Podio (Top 3)',
+        icon: 'trophy',
+        accentColor: '#f97316',
         tksApost: formatThousandsCL(terceroApost),
         tksGanad: formatThousandsCL(terceroGanad),
         recaudado: `$${formatThousandsCL(terceroRecaudado)}`,
@@ -356,7 +367,10 @@ export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] 
         rtp: formatPercentCL(terceroRTP),
       },
       {
-        mercado: 'TodosPerdedores',
+        mercado: 'Sin Ganador',
+        badge: 'Nadie Llega',
+        icon: 'shield-slash',
+        accentColor: '#0ea5e9',
         tksApost: formatThousandsCL(todosApost),
         tksGanad: formatThousandsCL(todosGanad),
         recaudado: `$${formatThousandsCL(todosRecaudado)}`,
@@ -370,6 +384,8 @@ export function generateDrawMarketReport({ ningunAutoLlego, ganador, podio = [] 
       premios: formatThousandsCL(totalPremiosTks),
       montoApostado: formatThousandsCL(totalMontoApostado),
       montoPremiados: formatThousandsCL(totalMontoPremiados),
+      rtpGlobal: formatPercentCL(rtpGlobal),
+      hrGlobal: formatPercentCL(hrGlobal),
     },
   };
 }

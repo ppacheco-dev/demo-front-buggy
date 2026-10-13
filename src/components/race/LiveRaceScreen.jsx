@@ -909,83 +909,97 @@ export default function LiveRaceScreen({
               </div>
             )}
 
-            {/* 5. Tabla Oficial: Reporte de Mercados Detallado - Este Sorteo Actual */}
+            {/* 5. Reporte de Mercados Detallado (Tabla Gráfica Oficial) */}
             {drawMarketReport && (
-              <div className={styles.marketReportContainer}>
-                <div className={styles.marketReportBorderTop}>
-                  ========================================================================================
-                </div>
-                <div className={styles.marketReportTitle}>
-                  REPORTE DE MERCADOS DETALLADO - ESTE SORTEO ACTUAL
-                </div>
-                <div className={styles.marketReportBorderMid}>
-                  ========================================================================================
+              <div className={styles.marketReportCard}>
+                <div className={styles.marketReportHeader}>
+                  <div className={styles.marketReportTitleGroup}>
+                    <i className="ph ph-chart-bar" aria-hidden="true" />
+                    <div>
+                      <h3 className={styles.marketReportHeading}>
+                        Reporte de Mercados del Sorteo
+                      </h3>
+                      <p className={styles.marketReportSubheading}>
+                        Balance consolidado de apuestas, premios y retorno (RTP) de la Carrera #{race.numero}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.marketReportLiveTag}>
+                    <span className={styles.marketReportLiveDot} />
+                    <span>Sorteo #{race.numero}</span>
+                  </div>
                 </div>
 
-                <div className={styles.marketReportTableWrap}>
-                  <table className={styles.marketReportTable}>
+                <div className={styles.tableResponsiveWrapper}>
+                  <table className={styles.graphicReportTable}>
                     <thead>
                       <tr>
-                        <th className={styles.thMercado}>Mercado</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>Tks Apost</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>Tks Ganad</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>$ Recaudado</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>$ Premios</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>HR %</th>
-                        <th className={styles.thDivider}>|</th>
-                        <th className={styles.thCol}>RTP %</th>
+                        <th className={styles.thMarket}>Mercado</th>
+                        <th className={styles.thNumber}>Tks Apost</th>
+                        <th className={styles.thNumber}>Tks Ganad</th>
+                        <th className={styles.thMoney}>$ Recaudado</th>
+                        <th className={styles.thPrize}>$ Premios</th>
+                        <th className={styles.thPercent}>HR %</th>
+                        <th className={styles.thPercent}>RTP %</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className={styles.dashedTableRow}>
-                        <td colSpan="13">----------------------------------------------------------------------------------------</td>
-                      </tr>
                       {drawMarketReport.rows.map((row) => (
-                        <tr key={row.mercado} className={styles.marketReportRow}>
-                          <td className={styles.tdMercado}>{row.mercado}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.tksApost}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.tksGanad}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.recaudado}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.premios}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.hr}</td>
-                          <td className={styles.tdDivider}>|</td>
-                          <td className={styles.tdCol}>{row.rtp}</td>
+                        <tr key={row.mercado} className={styles.tableDataRow}>
+                          <td className={styles.tdMarket}>
+                            <span className={styles.marketNameText}>{row.mercado}</span>
+                            <span
+                              className={styles.marketBadgeTag}
+                              style={{ borderColor: row.accentColor, color: row.accentColor }}
+                            >
+                              {row.badge}
+                            </span>
+                          </td>
+                          <td className={styles.tdNumber}>{row.tksApost}</td>
+                          <td className={styles.tdNumber}>
+                            <span className={row.tksGanad !== '0' ? styles.ticketsWonBadge : styles.ticketsZeroBadge}>
+                              {row.tksGanad}
+                            </span>
+                          </td>
+                          <td className={styles.tdMoney}>{row.recaudado}</td>
+                          <td className={styles.tdPrize}>
+                            <span className={row.premios !== '$0' ? styles.prizePositiveText : styles.prizeZeroText}>
+                              {row.premios}
+                            </span>
+                          </td>
+                          <td className={styles.tdPercent}>
+                            <span className={styles.hrBadge}>{row.hr}</span>
+                          </td>
+                          <td className={styles.tdPercent}>
+                            <span className={styles.rtpBadge}>{row.rtp}</span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className={styles.marketReportDashedLine}>
-                  ----------------------------------------------------------------------------------------
-                </div>
-
-                <div className={styles.marketReportSummary}>
-                  <div className={styles.summaryLine}>
-                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Apuestas</span>
-                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.apuestas}</span>
+                {/* Métricas Resumen Consolidadas */}
+                <div className={styles.reportSummaryGrid}>
+                  <div className={styles.summaryKpiCard}>
+                    <span className={styles.kpiLabel}>Total Apuestas</span>
+                    <span className={styles.kpiValue}>{drawMarketReport.resumen.apuestas} <small>tks</small></span>
                   </div>
-                  <div className={styles.summaryLine}>
-                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Premios</span>
-                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.premios}</span>
+                  <div className={styles.summaryKpiCard}>
+                    <span className={styles.kpiLabel}>Total Premiados</span>
+                    <span className={styles.kpiValueSuccess}>{drawMarketReport.resumen.premios} <small>tks</small></span>
                   </div>
-                  <div className={styles.summaryLine}>
-                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Monto Apostado</span>
-                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.montoApostado}</span>
+                  <div className={styles.summaryKpiCard}>
+                    <span className={styles.kpiLabel}>Monto Apostado</span>
+                    <span className={styles.kpiValue}>${drawMarketReport.resumen.montoApostado}</span>
                   </div>
-                  <div className={styles.summaryLine}>
-                    <span className={styles.summaryKey}>[RESUMEN SORTEO] Monto Premiados</span>
-                    <span className={styles.summaryVal}>: {drawMarketReport.resumen.montoPremiados}</span>
+                  <div className={styles.summaryKpiCard}>
+                    <span className={styles.kpiLabel}>Monto Premiados</span>
+                    <span className={styles.kpiValueGold}>${drawMarketReport.resumen.montoPremiados}</span>
+                  </div>
+                  <div className={styles.summaryKpiCard}>
+                    <span className={styles.kpiLabel}>RTP General</span>
+                    <span className={styles.kpiValueRtp}>{drawMarketReport.resumen.rtpGlobal}</span>
                   </div>
                 </div>
               </div>
