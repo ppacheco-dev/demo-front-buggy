@@ -331,10 +331,8 @@ export default function LiveRaceScreen({
   const userBuggyName = isUserParticipatingInThisRace ? userSelection?.buggy?.name?.toUpperCase() : null;
   const activeUserBuggyName = userBuggyName || userSelection?.buggy?.name?.toUpperCase() || null;
 
-  const canUseFpv = Boolean(
-    (isUserParticipatingInThisRace && userSelection?.buggy) ||
-    userSelection?.buggy
-  );
+  // La vista en 1ª Persona (cabina) está siempre disponible tanto para jugadores como espectadores
+  const canUseFpv = true;
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
   let userWon = false;

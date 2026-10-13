@@ -1,286 +1,236 @@
 /* ==========================================================================
    ARCADE FIRST PERSON COCKPIT (FPV) STYLES
-   Perspectiva 3D Corregida y Proporciones Equilibradas
+   Inspirado en la estética retro-arcade y rally (Sunset Synthwave / Dune Buggy)
    ========================================================================== */
 
-.cockpitContainer {
+.cockpitStage {
   position: relative;
   width: 100%;
   height: 100%;
+  min-height: 480px;
   overflow: hidden;
-  background: #020617;
+  background: #0b0716;
   user-select: none;
   font-family: inherit;
   perspective: 900px;
 }
 
-/* --------------------------------------------------------------------------
-   1. CIELO Y PAISAJE EN PRIMERA PERSONA
-   -------------------------------------------------------------------------- */
-.skyLayer {
+/* ==========================================================================
+   1. CIELO AL ATARDECER Y ENORME SOL RADIANTE EN EL HORIZONTE
+   ========================================================================== */
+.skyBackdrop {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 44%;
-  background: linear-gradient(180deg, #091224 0%, #1e1b4b 28%, #854d0e 65%, #ca8a04 88%, #f59e0b 100%);
+  height: 42%;
+  background: linear-gradient(
+    180deg,
+    #130826 0%,
+    #2c0d38 22%,
+    #6a163e 45%,
+    #ab2c22 66%,
+    #dd5817 82%,
+    #f59e0b 94%,
+    #fef08a 100%
+  );
   overflow: hidden;
   z-index: 1;
 }
 
-.sunGlow {
+/* Rayas estilizadas de velocidad / polarizado en las esquinas superiores */
+.sideTintLinesLeft,
+.sideTintLinesRight {
   position: absolute;
-  top: 32%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fef08a 0%, #f59e0b 45%, transparent 75%);
-  box-shadow: 0 0 60px rgba(245, 158, 11, 0.6);
-  opacity: 0.9;
+  top: 0;
+  width: 28%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.55;
 }
 
-.mountainRidge {
-  position: absolute;
-  bottom: 0;
+.sideTintLinesLeft {
   left: 0;
-  width: 200%;
-  height: 42%;
   background: repeating-linear-gradient(
     135deg,
-    #1e1b2e 0px,
-    #1e1b2e 40px,
-    #2a2238 40px,
-    #2a2238 80px
+    rgba(255, 255, 255, 0.25) 0px,
+    rgba(255, 255, 255, 0.25) 3px,
+    transparent 3px,
+    transparent 22px
   );
-  clip-path: polygon(
-    0% 100%, 0% 55%, 8% 25%, 16% 50%, 25% 15%, 35% 60%, 45% 20%, 55% 50%,
-    65% 18%, 75% 55%, 85% 22%, 92% 48%, 100% 28%, 100% 100%
-  );
-  opacity: 0.75;
-  animation: parallaxScroll 30s linear infinite;
+  mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
 }
 
-.dunesBacking {
+.sideTintLinesRight {
+  right: 0;
+  background: repeating-linear-gradient(
+    -135deg,
+    rgba(255, 255, 255, 0.25) 0px,
+    rgba(255, 255, 255, 0.25) 3px,
+    transparent 3px,
+    transparent 22px
+  );
+  mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
+}
+
+/* Enorme Sol Atardecer Centrado en el Horizonte */
+.sunsetSun {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 200%;
-  height: 28%;
-  background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
-  clip-path: polygon(
-    0% 100%, 0% 40%, 12% 18%, 24% 45%, 38% 15%, 52% 42%, 66% 20%, 80% 50%, 94% 22%, 100% 38%, 100% 100%
-  );
-  opacity: 0.9;
-  animation: parallaxScroll 14s linear infinite;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #ffffff 0%, #fef08a 22%, #f97316 65%, #dc2626 95%);
+  box-shadow:
+    0 0 50px rgba(249, 115, 22, 0.9),
+    0 0 110px rgba(234, 88, 12, 0.6),
+    0 0 180px rgba(220, 38, 38, 0.4);
+  z-index: 2;
+  pointer-events: none;
 }
 
-@keyframes parallaxScroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.heatHaze {
+.sunInnerCore {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  background: linear-gradient(180deg, transparent 0%, rgba(245, 158, 11, 0.25) 100%);
+  inset: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffbeb 0%, #fde047 60%, transparent 100%);
   filter: blur(2px);
 }
 
-/* --------------------------------------------------------------------------
-   2. CARRETERA EN PERSPECTIVA FRONTAL
-   -------------------------------------------------------------------------- */
-.groundLayer {
+.sunCoronaGlow {
   position: absolute;
-  top: 42%;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.4) 0%, transparent 70%);
+  filter: blur(8px);
+}
+
+/* Silueta de montañas oscuras a lo largo del horizonte */
+.horizonMountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  background: #1e0d1e;
+  clip-path: polygon(
+    0% 100%, 0% 65%, 6% 35%, 14% 75%, 22% 25%, 32% 60%, 42% 18%, 52% 45%, 
+    62% 20%, 72% 65%, 82% 30%, 92% 55%, 100% 25%, 100% 100%
+  );
+  opacity: 0.95;
+  z-index: 3;
+}
+
+/* ==========================================================================
+   2. CARRETERA EN PERSPECTIVA DE 5 CARRILES Y HOMBROS DE ARENA
+   ========================================================================= */
+.groundPlane {
+  position: absolute;
+  top: 38%;
   left: 0;
   width: 100%;
-  height: 58%;
-  background: #1e1005;
+  height: 62%;
   overflow: hidden;
   z-index: 2;
   will-change: transform;
 }
 
-/* Costado Izquierdo: Océano turquesa con olas de espuma animadas */
-.desertShoulderLeft {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 50%;
-  background: linear-gradient(180deg, #0284c7 0%, #0369a1 40%, #075985 80%, #0c4a6e 100%);
-  overflow: hidden;
-}
-
-.oceanSurfWaves {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 80%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    170deg,
-    rgba(255, 255, 255, 0.6) 0px,
-    rgba(255, 255, 255, 0.6) 6px,
-    transparent 6px,
-    transparent 32px
-  );
-  filter: blur(1px);
-  opacity: 0.7;
-  animation: surfRoll 340ms linear infinite;
-}
-
-@keyframes surfRoll {
-  from { background-position: 0 0; }
-  to { background-position: 0 64px; }
-}
-
-.seaStackRock {
-  position: absolute;
-  top: 14%;
-  left: 20%;
-  width: 28px;
-  height: 40px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  clip-path: polygon(50% 0%, 100% 85%, 75% 100%, 15% 100%, 0% 70%);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
-  opacity: 0.85;
-}
-
-/* Costado Derecho: Acantilados y dunas de rally */
+/* Hombros de desierto / dunas doradas a los costados */
+.desertShoulderLeft,
 .desertShoulderRight {
   position: absolute;
   top: 0;
-  right: 0;
-  height: 100%;
+  bottom: 0;
   width: 50%;
-  background: linear-gradient(180deg, #78350f 0%, #581c87 35%, #311304 70%, #1e1b2e 100%);
+  background: linear-gradient(180deg, #9a3412 0%, #7c2d12 45%, #451a03 100%);
   overflow: hidden;
 }
 
-.cliffStrata {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    -25deg,
-    rgba(0, 0, 0, 0.22) 0px,
-    rgba(0, 0, 0, 0.22) 14px,
-    transparent 14px,
-    transparent 28px
-  );
-}
+.desertShoulderLeft { left: 0; }
+.desertShoulderRight { right: 0; }
 
-.palmTreeDecor {
-  position: absolute;
-  top: 8%;
-  left: 24%;
-  font-size: 1.8rem;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.7));
-}
-
-/* Superficie de la Carretera */
-.roadSurface {
+/* Pista de Carretera en Perspectiva */
+.highwayRoad {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   height: 100%;
-  clip-path: polygon(42% 0%, 58% 0%, 96% 100%, 4% 100%);
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 35%, #020617 100%);
+  clip-path: polygon(32% 0%, 68% 0%, 98% 100%, 2% 100%);
+  background: linear-gradient(180deg, #1e2638 0%, #151b27 35%, #0d121c 100%);
   overflow: hidden;
 }
 
-/* Bordillos vibratorios con perspectiva */
-.roadCurbLeft,
-.roadCurbRight {
+/* Bordillos vibratorios laterales en rojo y blanco con borde amarillo */
+.kerbRumbleLeft,
+.kerbRumbleRight {
   position: absolute;
   top: 0;
   height: 100%;
-  width: 22px;
+  width: 28px;
   background: repeating-linear-gradient(
     180deg,
     #ef4444 0px,
-    #ef4444 24px,
-    #ffffff 24px,
-    #ffffff 48px
+    #ef4444 26px,
+    #ffffff 26px,
+    #ffffff 52px
   );
-  animation: curbZoom 160ms linear infinite;
+  animation: kerbScroll 140ms linear infinite;
+  z-index: 2;
 }
 
-.roadCurbLeft {
-  left: 42%;
+.kerbRumbleLeft {
+  left: 32%;
   transform-origin: top left;
-  transform: skewX(-26deg);
+  transform: skewX(-24deg);
+  border-left: 4px solid #facc15;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.7);
 }
 
-.roadCurbRight {
-  right: 42%;
+.kerbRumbleRight {
+  right: 32%;
   transform-origin: top right;
-  transform: skewX(26deg);
+  transform: skewX(24deg);
+  border-right: 4px solid #facc15;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.7);
 }
 
-@keyframes curbZoom {
+@keyframes kerbScroll {
   from { background-position: 0 0; }
-  to { background-position: 0 48px; }
+  to { background-position: 0 52px; }
 }
 
-/* Huellas de neumáticos en la arena / asfalto */
-.tireTrackGrooves {
+/* Líneas divisorias de carril discontinuas en perspectiva 3D */
+.laneMarkerCol {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 100%;
-  border-left: 10px solid rgba(49, 19, 4, 0.6);
-  border-right: 10px solid rgba(49, 19, 4, 0.6);
-  animation: curbZoom 140ms linear infinite;
-}
-
-/* Líneas discontinuas de carril */
-.roadLanes {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
+  width: 6px;
   height: 100%;
   background: repeating-linear-gradient(
     180deg,
-    rgba(250, 204, 21, 0.9) 0px,
-    rgba(250, 204, 21, 0.9) 32px,
-    transparent 32px,
-    transparent 64px
+    rgba(255, 255, 255, 0.9) 0px,
+    rgba(255, 255, 255, 0.9) 34px,
+    transparent 34px,
+    transparent 78px
   );
-  animation: laneZoom 130ms linear infinite;
+  animation: laneScroll 130ms linear infinite;
+  transform-origin: 50% 0%;
 }
 
-@keyframes laneZoom {
+@keyframes laneScroll {
   from { background-position: 0 0; }
-  to { background-position: 0 64px; }
+  to { background-position: 0 78px; }
 }
 
-/* --------------------------------------------------------------------------
-   3. ARCO DE META FRONTAL
-   -------------------------------------------------------------------------- */
-.finishArchFpv {
+/* Arco de meta */
+.finishArchGantry {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.finishArchGantry {
   background: repeating-linear-gradient(
     45deg,
     #000 0px,
@@ -297,148 +247,13 @@
   font-size: 1.1rem;
   letter-spacing: 0.1em;
   text-align: center;
-}
-
-/* --------------------------------------------------------------------------
-   4. AUTOS QUE VAN ADELANTE (RIVALES AL FRENTE - PERSPECTIVA CORREGIDA)
-   -------------------------------------------------------------------------- */
-.rivalCarAhead {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  z-index: 15;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: transform 60ms linear;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
-}
-
-.rivalRoadShadow {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 50%);
-  width: 90px;
-  height: 12px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.2) 65%, transparent 100%);
-  border-radius: 50%;
+  z-index: 10;
   pointer-events: none;
-}
-
-.rivalTireDust {
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70px;
-  height: 16px;
-  background: radial-gradient(circle at 50% 100%, rgba(217, 119, 6, 0.5) 0%, rgba(180, 83, 9, 0.25) 45%, transparent 80%);
-  border-radius: 50%;
-  filter: blur(2px);
-  animation: rivalDustFlicker 0.15s infinite alternate ease-in-out;
-  pointer-events: none;
-}
-
-@keyframes rivalDustFlicker {
-  0% { transform: translateX(-50%) scale(0.9); opacity: 0.5; }
-  100% { transform: translateX(-50%) scale(1.15); opacity: 0.85; }
-}
-
-.aheadBadge {
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 1px 7px;
-  border-radius: 999px;
-  color: #000;
-  margin-bottom: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   white-space: nowrap;
-  letter-spacing: 0.04em;
-  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* --------------------------------------------------------------------------
-   5. RÁFAGAS AERODINÁMICAS Y PARASOL RALLY (WIND STREAKS & SUNSTRIP)
-   -------------------------------------------------------------------------- */
-.cockpitSpeedStreaksLayer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 24;
-  overflow: hidden;
-}
-
-.windStreakColLeft,
-.windStreakColRight {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 140px;
-  pointer-events: none;
-  opacity: 0.65;
-}
-
-.windStreakColLeft {
-  left: 0;
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.35) 0px,
-    rgba(255, 255, 255, 0.35) 2px,
-    transparent 2px,
-    transparent 28px
-  );
-  animation: windRush 0.18s linear infinite;
-  mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 100%);
-}
-
-.windStreakColRight {
-  right: 0;
-  background: repeating-linear-gradient(
-    -135deg,
-    rgba(255, 255, 255, 0.35) 0px,
-    rgba(255, 255, 255, 0.35) 2px,
-    transparent 2px,
-    transparent 28px
-  );
-  animation: windRush 0.18s linear infinite;
-  mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
-}
-
-@keyframes windRush {
-  from { background-position: 0 0; }
-  to { background-position: 0 56px; }
-}
-
-.windshieldSunstrip {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.85) 85%, transparent 100%);
-  border-bottom: 2px solid rgba(250, 204, 21, 0.6);
-  z-index: 26;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.sunstripText {
-  font-size: 0.72rem;
-  font-weight: 900;
-  color: #facc15;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
-}
-
-/* --------------------------------------------------------------------------
-   6. OBSTÁCULOS EN PISTA APROXIMÁNDOSE AL FRENTE
-   -------------------------------------------------------------------------- */
-.fpvApproachingHazard {
+/* Obstáculo transversal aproximándose de frente */
+.approachingHazard {
   position: absolute;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -449,664 +264,490 @@
   align-items: center;
 }
 
-/* --------------------------------------------------------------------------
-   7. PARABRISAS Y CABINA (WINDSHIELD, ROLL CAGE & HOOD)
-   -------------------------------------------------------------------------- */
-.cockpitFrameLayer {
+/* ==========================================================================
+   3. AUTOS RIVALES QUE VAN ADELANTE (Con placas de posición estilo píldora)
+   ========================================================================== */
+.rivalBuggySlot {
   position: absolute;
-  inset: 0;
-  z-index: 25;
-  pointer-events: none;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  will-change: transform, top, left;
+  transition: transform 60ms linear;
+}
+
+.rivalShadow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 40%);
+  width: 90px;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, transparent 75%);
+  border-radius: 50%;
+}
+
+/* Placa de posición estilo píldora (P1 LÍDER, P4, P6, etc.) */
+.rivalRankPill {
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 3px 12px;
+  border-radius: 999px;
+  margin-bottom: 3px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.05em;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.pillGoldLeader {
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.8), 0 3px 8px rgba(0, 0, 0, 0.9);
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   4. RUEDAS DELANTERAS TODOTERRENO VISIBLES (OPEN-WHEEL DUNE BUGGY)
+   ========================================================================== */
+.frontWheelsLayer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 190px;
+  pointer-events: none;
+  z-index: 12;
   will-change: transform;
 }
 
-.rollCageLeft,
-.rollCageRight {
-  position: absolute;
-  top: 0;
-  width: 58px;
-  height: 85%;
-  background: linear-gradient(90deg, #1e293b 0%, #334155 35%, #0f172a 100%);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9), 0 0 16px rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.cageBoltFixture {
-  position: absolute;
-  top: 35%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #64748b;
-  border: 2px solid #0f172a;
-  box-shadow: inset 0 0 4px #000;
-}
-
-.rollCageLeft .cageBoltFixture { right: 8px; }
-.rollCageRight .cageBoltFixture { left: 8px; }
-
-.rollCageLeft {
-  left: 0;
-  transform-origin: top left;
-  transform: skewX(-10deg);
-  border-top-right-radius: 12px;
-}
-
-.rollCageRight {
-  right: 0;
-  transform-origin: top right;
-  transform: skewX(10deg);
-  border-top-left-radius: 12px;
-}
-
-.rollCageTopBar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 22px;
-  background: linear-gradient(180deg, #090d16 0%, #1e293b 70%, #0a0f1d 100%);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
-}
-
-/* Capó delantero del buggy (bonnet) visible en la base del parabrisas */
-.buggyHoodNose {
-  position: absolute;
-  bottom: 110px;
-  left: 50%;
-  width: min(86vw, 640px);
-  height: 64px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 55%, #020617 100%);
-  clip-path: polygon(22% 0%, 78% 0%, 96% 100%, 4% 100%);
-  border-top: 3px solid rgba(250, 204, 21, 0.7);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.75);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 26;
-  position: absolute;
-}
-
-.hoodCenterLivery {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 32px;
-  opacity: 0.85;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
-}
-
-.hoodScoopAirIntake {
-  position: relative;
-  width: 140px;
-  height: 16px;
-  background: #090d16;
-  border-radius: 4px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 0 8px #000;
-  margin-bottom: 3px;
-  overflow: hidden;
-  z-index: 2;
-}
-
-.hoodMeshTexture {
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    #1e293b 0px,
-    #1e293b 2px,
-    #020617 2px,
-    #020617 5px
-  );
-  opacity: 0.85;
-}
-
-.hoodPinLeft,
-.hoodPinRight {
-  position: absolute;
-  top: 10px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #cbd5e1;
-  border: 2px solid #0f172a;
-  box-shadow: 0 1px 4px #000;
-}
-
-.hoodPinLeft { left: 26%; }
-.hoodPinRight { right: 26%; }
-
-.windshieldWiperLeft,
-.windshieldWiperRight {
-  position: absolute;
-  bottom: -6px;
-  width: 110px;
-  height: 4px;
-  background: #334155;
-  border-radius: 2px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.windshieldWiperLeft {
-  left: 20%;
-  transform: rotate(-4deg);
-}
-
-.windshieldWiperRight {
-  right: 20%;
-  transform: rotate(4deg);
-}
-
-.hoodSponsorDecal {
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  z-index: 2;
-}
-
-.windshieldGlassSheen {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-/* Parabrisas roto en caso de colisión fatal */
-.crackedWindshieldOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(220, 38, 38, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 40;
-  animation: crashFlash 300ms ease-in-out infinite alternate;
-}
-
-@keyframes crashFlash {
-  from { background-color: rgba(220, 38, 38, 0.15); }
-  to { background-color: rgba(220, 38, 38, 0.45); }
-}
-
-.crashAlertBox {
-  background: rgba(10, 14, 24, 0.95);
-  border: 3px solid #ef4444;
-  border-radius: 16px;
-  padding: 16px 28px;
-  text-align: center;
-  box-shadow: 0 0 50px rgba(239, 68, 68, 0.8);
-  animation: shakeAlert 100ms infinite;
-}
-
-@keyframes shakeAlert {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-3px, 2px); }
-  50% { transform: translate(3px, -2px); }
-  75% { transform: translate(-2px, -3px); }
-  100% { transform: translate(2px, 3px); }
-}
-
-/* --------------------------------------------------------------------------
-   7. ESPEJO RETROVISOR SUPERIOR CENTRAL (REARVIEW MIRROR)
-   -------------------------------------------------------------------------- */
-.rearviewMirrorContainer {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 35;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.9));
-}
-
-.mirrorMountStem {
-  width: 14px;
-  height: 12px;
-  background: linear-gradient(180deg, #334155 0%, #0f172a 100%);
-  border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.rearviewMirrorHousing {
-  width: min(90vw, 340px);
-  height: 88px;
-  background: linear-gradient(180deg, #1e293b 0%, #0b0f19 100%);
-  border: 2.5px solid #475569;
-  border-radius: 16px;
-  padding: 4px;
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
-    0 0 14px rgba(14, 165, 233, 0.15);
-  box-sizing: border-box;
-}
-
-.mirrorGlass {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #091224 0%, #1e1b4b 30%, #311304 65%, #0f172a 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.mirrorGlassGlare {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, transparent 45%);
-  pointer-events: none;
-  z-index: 10;
-}
-
-.mirrorHeaderTag {
-  position: absolute;
-  top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  padding: 1px 8px;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  color: #38bdf8;
-  white-space: nowrap;
-  z-index: 8;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.mirrorRadarDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #38bdf8;
-  animation: pulseDot 1s infinite alternate;
-}
-
-@keyframes pulseDot {
-  from { opacity: 0.4; }
-  to { opacity: 1; }
-}
-
-/* Carretera reflejada hacia atrás en el espejo */
-.mirrorRoadBehind {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 58%;
-  background: #090d16;
-  clip-path: polygon(42% 0%, 58% 0%, 88% 100%, 12% 100%);
-  overflow: hidden;
-}
-
-.mirrorRoadCenterLine {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 3px;
-  height: 100%;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(250, 204, 21, 0.7) 0px,
-    rgba(250, 204, 21, 0.7) 8px,
-    transparent 8px,
-    transparent 16px
-  );
-  animation: mirrorLaneZoom 180ms linear infinite;
-}
-
-@keyframes mirrorLaneZoom {
-  from { background-position: 0 16px; }
-  to { background-position: 0 0; }
-}
-
-.mirrorCarBehindSlot {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 80ms ease;
-  z-index: 5;
-}
-
-.mirrorCarBody {
-  position: relative;
-  width: 36px;
-  height: 22px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-}
-
-.mirrorHeadlights {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 3px;
-}
-
-.mirrorHeadlightBeam {
-  width: 7px;
-  height: 5px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 10px 4px rgba(255, 255, 255, 0.95);
-}
-
-.mirrorCarTag {
-  font-size: 0.55rem;
-  font-weight: 900;
-  color: #000;
-  background: #fff;
-  border-radius: 3px;
-  padding: 0 3px;
-  margin-top: 1px;
-}
-
-.mirrorEmptyRoadMsg {
-  position: absolute;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #94a3b8;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* --------------------------------------------------------------------------
-   8. TABLERO DE INSTRUMENTOS INFERIOR (LOWER DASHBOARD & HUD)
-   -------------------------------------------------------------------------- */
-.dashboardPanel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 170px;
-  z-index: 30;
-  pointer-events: none;
-}
-
-.dashboardBackground {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(180deg, transparent 0%, rgba(9, 13, 22, 0.85) 25%, #050811 100%);
-  clip-path: polygon(0% 45%, 15% 35%, 50% 24%, 85% 35%, 100% 45%, 100% 100%, 0% 100%);
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.9);
-}
-
-.dashboardHudRow {
+.frontWheelLeft,
+.frontWheelRight {
   position: absolute;
   bottom: 12px;
+  width: 140px;
+  height: 105px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%);
+  border-radius: 20px;
+  border: 3px solid #000000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+}
+
+.frontWheelLeft {
+  left: -20px;
+  transform: rotate(5deg);
+}
+
+.frontWheelRight {
+  right: -20px;
+  transform: rotate(-5deg);
+}
+
+/* Tacos y ranuras de tracción del neumático knobby */
+.tireTreads {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    #090d16 0px,
+    #090d16 12px,
+    #253047 12px,
+    #253047 24px
+  );
+  animation: wheelSpin 100ms linear infinite;
+}
+
+@keyframes wheelSpin {
+  from { background-position: 0 0; }
+  to { background-position: 0 24px; }
+}
+
+.wheelRimCenter {
+  position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: min(94vw, 860px);
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #94a3b8 0%, #334155 60%, #0f172a 100%);
+  border: 2.5px solid #000;
+  box-shadow: inset 0 0 6px #000;
+}
+
+.suspensionArm {
+  position: absolute;
+  top: 25px;
+  width: 45px;
+  height: 10px;
+  background: #475569;
+  border: 1.5px solid #000;
+}
+
+.frontWheelLeft .suspensionArm { right: -25px; transform: rotate(-15deg); }
+.frontWheelRight .suspensionArm { left: -25px; transform: rotate(15deg); }
+
+/* ==========================================================================
+   5. CAPÓ DELANTERO DEL BUGGY (En el color del auto del jugador)
+   ========================================================================== */
+.buggyHoodContainer {
+  position: absolute;
+  bottom: 85px;
+  left: 50%;
+  width: min(72vw, 520px);
+  height: 52px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.hoodBodyShape {
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(24% 0%, 76% 0%, 94% 100%, 6% 100%);
+  border-top: 3px solid rgba(0, 0, 0, 0.6);
+  position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoodCowlLines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 45px,
+    rgba(0, 0, 0, 0.4) 45px,
+    rgba(0, 0, 0, 0.4) 48px
+  );
+}
+
+.hoodCenterVent {
+  width: 110px;
+  height: 14px;
+  background: #020617;
+  border-radius: 4px;
+  border: 2px solid #000;
+  box-shadow: inset 0 0 8px #000;
+}
+
+/* ==========================================================================
+   6. JAULA ANTIVUELCO TUBULAR DE ACERO (ROLL CAGE)
+   ========================================================================== */
+.rollCageContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  will-change: transform;
+}
+
+/* Barra de techo horizontal superior */
+.cageRoofBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: linear-gradient(180deg, #111827 0%, #293548 50%, #0d131f 100%);
+  border-bottom: 3.5px solid #000000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+}
+
+/* Pilar A Izquierdo inclinado */
+.cagePillarLeft,
+.cagePillarRight {
+  position: absolute;
+  top: 0;
+  width: 38px;
+  height: 88%;
+  background: linear-gradient(90deg, #111827 0%, #334155 45%, #0f172a 100%);
+  border: 2px solid #000;
+  box-shadow: inset 0 0 10px #000;
+}
+
+.cagePillarLeft {
+  left: 12%;
+  transform-origin: top left;
+  transform: skewX(-14deg);
+}
+
+.cagePillarRight {
+  right: 12%;
+  transform-origin: top right;
+  transform: skewX(14deg);
+}
+
+/* Soportes triangulares de esquina (Gussets) */
+.cageGussetLeft,
+.cageGussetRight {
+  position: absolute;
+  top: 24px;
+  width: 32px;
+  height: 32px;
+  background: #1e293b;
+  border: 2px solid #000;
+}
+
+.cageGussetLeft {
+  right: -32px;
+  clip-path: polygon(0% 0%, 100% 0%, 0% 100%);
+}
+
+.cageGussetRight {
+  left: -32px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
+}
+
+/* Tubos diagonales laterales que forman las ventanas abiertas laterales */
+.cageSideDiagonalLeft,
+.cageSideDiagonalRight {
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 80%;
+  background: linear-gradient(90deg, #0f172a 0%, #334155 50%, #020617 100%);
+  border: 2px solid #000;
+}
+
+.cageSideDiagonalLeft {
+  left: 0;
+  transform-origin: top left;
+  transform: skewX(-24deg);
+}
+
+.cageSideDiagonalRight {
+  right: 0;
+  transform-origin: top right;
+  transform: skewX(24deg);
+}
+
+/* Barra transversal inferior de soporte */
+.cageCrossbarBase {
+  position: absolute;
+  bottom: 85px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #111827;
+  border-top: 2px solid #000;
+}
+
+/* ==========================================================================
+   7. TABLERO DE MANDOS CON INSTRUMENTOS Y BOTONES (DASHBOARD)
+   ========================================================================== */
+.dashboardConsole {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 105px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 45%, #050811 100%);
+  border-top: 4px solid #000000;
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.98);
+  z-index: 22;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 45px;
   box-sizing: border-box;
 }
 
-.dashClusterLeft,
-.dashClusterRight {
+/* Panel de interruptores de palanca a la izquierda (idéntico a la imagen) */
+.dashSwitchPanel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: rgba(13, 19, 33, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 14px;
-  padding: 8px 14px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), inset 0 0 10px rgba(255, 255, 255, 0.04);
+  gap: 8px;
+  background: #090d16;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: inset 0 0 10px #000, 0 4px 10px rgba(0, 0, 0, 0.8);
 }
 
-.dashTelemetryTopRow {
+.rockerSwitchOrange {
+  width: 22px;
+  height: 14px;
+  background: #ea580c;
+  border-radius: 3px;
+  border: 2px solid #000;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.8);
+}
+
+.rockerSwitchYellow {
+  width: 22px;
+  height: 14px;
+  background: #facc15;
+  border-radius: 3px;
+  border: 2px solid #000;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+}
+
+/* Cúpula de instrumentos detrás del volante */
+.instrumentBinnacle {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 70px;
+  background: #090d16;
+  border: 2.5px solid #1e293b;
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
+  box-shadow: inset 0 0 14px #000, 0 0 20px rgba(6, 182, 212, 0.15);
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  z-index: 23;
 }
 
-.dashSpeedGroup {
+.gaugesSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.dashRightBezel {
   display: flex;
-  align-items: baseline;
-  gap: 5px;
+  align-items: center;
 }
 
-.dashSpeedNumber {
-  font-size: 2.1rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+.gearPillMini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #020617;
+  border: 2px solid #38bdf8;
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
-.dashSpeedUnit {
-  font-size: 0.80rem;
+.gearPillMini span {
+  font-size: 0.55rem;
   font-weight: 900;
-  color: #facc15;
+  color: #94a3b8;
   letter-spacing: 0.05em;
 }
 
-/* Indicador de marcha estilo MoTeC */
-.dashGearPill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #020617;
-  border: 1.5px solid #38bdf8;
-  border-radius: 6px;
-  padding: 2px 7px;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
-}
-
-.dashGearLabel {
-  font-size: 0.58rem;
-  font-weight: 900;
-  color: #94a3b8;
-  letter-spacing: 0.04em;
-}
-
-.dashGearNum {
-  font-size: 1.05rem;
+.gearPillMini strong {
+  font-size: 1.1rem;
   font-weight: 900;
   color: #38bdf8;
   line-height: 1;
 }
 
-/* Indicador de Turbo Boost */
-.dashBoostPill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #020617;
-  border: 1.5px solid #f97316;
-  border-radius: 6px;
-  padding: 2px 7px;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
-}
-
-.dashBoostLabel {
-  font-size: 0.58rem;
-  font-weight: 900;
-  color: #94a3b8;
-}
-
-.dashBoostNum {
-  font-size: 0.76rem;
-  font-weight: 900;
-  color: #fb923c;
-  font-variant-numeric: tabular-nums;
-}
-
-.dashRpmBar {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-}
-
-.rpmLed {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.12);
-  transition: background 60ms;
-}
-
-.rpmLedActiveGreen { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-.rpmLedActiveYellow { background: #facc15; box-shadow: 0 0 6px #facc15; }
-.rpmLedActiveRed { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
-.rpmLedActiveBlue {
-  background: #38bdf8;
-  box-shadow: 0 0 10px #38bdf8, 0 0 14px #a855f7;
-  animation: overrevFlash 0.1s infinite alternate;
-}
-
-@keyframes overrevFlash {
-  0% { filter: brightness(1); }
-  100% { filter: brightness(1.7); }
-}
-
-.dashPositionPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.positionBadgeGold {
-  background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-  color: #000;
-  padding: 3px 10px;
-  border-radius: 999px;
-  box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
-}
-
-.positionBadgeStandard {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 999px;
-}
-
-.dashDistPill {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  padding: 2px 8px;
-}
-
-.dashDistLabel {
-  font-size: 0.58rem;
-  font-weight: 900;
-  color: #94a3b8;
-}
-
-.dashDistNum {
-  font-size: 0.72rem;
-  font-weight: 900;
-  color: #e2e8f0;
-  font-variant-numeric: tabular-nums;
-}
-
-.nitroActiveTag {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #fff;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
-  animation: nitroPulse 0.3s infinite alternate ease-in-out;
-}
-
-@keyframes nitroPulse {
-  0% { transform: scale(0.96); filter: brightness(1); }
-  100% { transform: scale(1.04); filter: brightness(1.3); }
-}
-
-/* --------------------------------------------------------------------------
-   9. VOLANTE DEPORTIVO DE CARRERAS (STEERING WHEEL)
-   -------------------------------------------------------------------------- */
-.steeringWheelWrapper {
+/* ==========================================================================
+   8. VOLANTE DEPORTIVO DE 3 RADIOS CON GUANTES DE PILOTO (100% SVG)
+   ========================================================================== */
+.steeringWheelLayer {
   position: absolute;
-  bottom: -24px;
+  bottom: -22px;
   left: 50%;
-  transform: translateX(-50%);
-  width: 220px;
-  height: 220px;
+  width: 440px;
+  height: 240px;
+  z-index: 26;
   pointer-events: none;
-  z-index: 32;
-  transition: transform 90ms cubic-bezier(0.2, 0.8, 0.3, 1);
-  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.95));
+  transition: transform 70ms cubic-bezier(0.2, 0.8, 0.3, 1);
+  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.95));
 }
 
-.wheelSvg {
+.steeringSvg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-/* --------------------------------------------------------------------------
-   10. ALERTAS EN PARABRISAS
-   -------------------------------------------------------------------------- */
-.windshieldWarningBanner {
+/* ==========================================================================
+   9. SELECTOR DE CÁMARA PARA ESPECTADOR
+   ========================================================================== */
+.spectatorCockpitSwitch {
   position: absolute;
-  top: 110px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 28;
+  top: 14px;
+  right: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(220, 38, 38, 0.92);
-  border: 2px solid #fff;
+  gap: 6px;
+  background: rgba(10, 15, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
   border-radius: 999px;
-  padding: 6px 18px;
-  box-shadow: 0 0 24px rgba(220, 38, 38, 0.8);
-  color: #fff;
-  font-weight: 900;
-  font-size: 0.86rem;
-  letter-spacing: 0.06em;
-  animation: pulseWarning 400ms infinite alternate;
+  backdrop-filter: blur(8px);
+  z-index: 30;
 }
 
-@keyframes pulseWarning {
-  from { transform: translateX(-50%) scale(1); opacity: 0.85; }
-  to { transform: translateX(-50%) scale(1.03); opacity: 1; }
+.switchLabel {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+}
+
+.spectatorCarBtn {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1.5px solid transparent;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.spectatorCarBtn:hover {
+  transform: scale(1.08);
+}
+
+.spectatorCarBtnActive {
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Crash alert overlay */
+.crashAlertOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(220, 38, 38, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  animation: crashAlertPulse 0.4s infinite alternate;
+}
+
+@keyframes crashAlertPulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+.crashBox {
+  background: rgba(10, 14, 24, 0.95);
+  border: 3px solid #ef4444;
+  border-radius: 16px;
+  padding: 20px 32px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.8);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN COCKPIT
+   ========================================================================== */
+@media (max-width: 900px) {
+  .frontWheelLeft { left: -35px; width: 110px; height: 85px; }
+  .frontWheelRight { right: -35px; width: 110px; height: 85px; }
+
+  .cagePillarLeft { left: 6%; }
+  .cagePillarRight { right: 6%; }
+
+  .dashboardConsole {
+    padding: 0 20px;
+    height: 95px;
+  }
+
+  .steeringWheelLayer {
+    width: 380px;
+    height: 210px;
+    bottom: -15px;
+  }
 }
