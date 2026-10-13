@@ -160,9 +160,12 @@ export default function GameContainer() {
   const handleConfirmSelection = useCallback((selection) => {
     // Generar un Ticket ID único de 6 dígitos que permanece fijo y persistente para este voucher
     const uniqueTicketId = `BG-${Math.floor(100000 + Math.random() * 900000)}`;
-    const targetRaceNumber = selection?.raceInfo?.nextRaceNumber || schedule.nextRaceNumber;
-    const targetRaceTime = selection?.raceInfo?.nextRaceTime || schedule.nextRaceTime;
-    const targetRaceDate = selection?.raceInfo?.todayStr || schedule.todayStr;
+    // REGLA: la apuesta SIEMPRE corresponde a la carrera siguiente respecto al instante exacto
+    // de la compra (si se compra durante la de las 10:30, entra a la de las 10:35).
+    const freshSchedule = getRaceSchedule(new Date());
+    const targetRaceNumber = freshSchedule.nextRaceNumber;
+    const targetRaceTime = freshSchedule.nextRaceTime;
+    const targetRaceDate = freshSchedule.todayStr;
 
     const fullSelection = {
       ...selection,

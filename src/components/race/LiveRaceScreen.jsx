@@ -331,8 +331,11 @@ export default function LiveRaceScreen({
   const userBuggyName = isUserParticipatingInThisRace ? userSelection?.buggy?.name?.toUpperCase() : null;
   const activeUserBuggyName = userBuggyName || userSelection?.buggy?.name?.toUpperCase() || null;
 
-  // La vista en 1ª Persona (cabina) está siempre disponible tanto para jugadores como espectadores
-  const canUseFpv = true;
+  // La vista en 1ª Persona (cabina) solo está habilitada para quien compró una apuesta para ESTA carrera
+  const canUseFpv = isUserParticipatingInThisRace;
+  useEffect(() => {
+    if (!canUseFpv && cameraMode === 'cockpitFpv') setCameraMode('arcade25d');
+  }, [canUseFpv, cameraMode]);
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
   let userWon = false;
@@ -909,7 +912,7 @@ export default function LiveRaceScreen({
 
             {/* 5. Reporte de Mercados Detallado (Tabla Gráfica Oficial) */}
             {drawMarketReport && (
-              <div className={styles.marketReportCard}>
+              <div className={`${styles.marketReportCard} ${styles.resultsReportCol}`}>
                 <div className={styles.marketReportHeader}>
                   <div className={styles.marketReportTitleGroup}>
                     <i className="ph ph-chart-bar" aria-hidden="true" />

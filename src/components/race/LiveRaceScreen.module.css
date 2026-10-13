@@ -1207,15 +1207,15 @@
 
 .resultsCard {
   width: 100%;
-  max-width: 760px;
-  max-height: 92vh;
+  max-width: 1120px;
+  max-height: 94vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(245, 158, 11, 0.4) rgba(0, 0, 0, 0.3);
   background: radial-gradient(circle at 50% 0%, #152445 0%, #091020 100%);
   border: 1px solid rgba(245, 158, 11, 0.4);
   border-radius: 20px;
-  padding: 24px;
+  padding: 16px 24px;
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.9),
     0 0 40px rgba(245, 158, 11, 0.25);
@@ -1225,6 +1225,46 @@
   text-align: center;
 }
 
+/* Escritorio: resumen a la izquierda y reporte de mercados a la derecha (menos alto, más ancho) */
+@media (min-width: 901px) {
+  .resultsCard {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.3fr);
+    grid-auto-rows: min-content;
+    column-gap: 24px;
+    align-content: start;
+    justify-items: center;
+  }
+
+  .resultsCard > * {
+    grid-column: 1;
+    width: 100%;
+  }
+
+  .resultsCard > .resultsTrophy {
+    width: 58px;
+  }
+
+  .resultsCard > .resultsReportCol {
+    grid-column: 2;
+    grid-row: 1 / span 9;
+    align-self: start;
+    margin: 0;
+  }
+
+  .resultsCard .podiumRow {
+    margin-bottom: 12px;
+  }
+
+  .resultsCard .podiumImg {
+    width: 48px;
+  }
+
+  .resultsCard .podiumImgFirst {
+    width: 58px;
+  }
+}
+
 .resultsCardCatastrophe {
   border-color: rgba(239, 68, 68, 0.6);
   background: radial-gradient(circle at 50% 0%, #30141a 0%, #0d0609 100%);
@@ -1232,6 +1272,7 @@
     0 24px 60px rgba(0, 0, 0, 0.95),
     0 0 40px rgba(239, 68, 68, 0.35);
 }
+
 
 .resultsTrophy {
   width: 58px;
