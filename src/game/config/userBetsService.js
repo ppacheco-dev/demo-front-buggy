@@ -36,11 +36,55 @@ export function saveUserBets(bets) {
   }
 }
 
+export function isDuplicateBet(targetRaceNumber, marketId, buggyNameOrId) {
+  const bets = getUserBets();
+  const num = Number(targetRaceNumber);
+  const targetMarket = marketId;
+  const targetBuggy = buggyNameOrId ? String(buggyNameOrId).toUpperCase() : null;
+
+  return bets.some((b) => {
+    if (Number(b.targetRaceNumber) !== num) return false;
+    if (b.market?.id !== targetMarket) return false;
+    if (targetMarket === 'ningun_auto') return true;
+    const bName = b.buggy?.name?.toUpperCase() || b.buggy?.id?.toUpperCase();
+    return bName === targetBuggy;
+  });
+}
+
+export function getUserBetsForRace(raceNumber) {
+  const bets = getUserBets();
+  const num = Number(raceNumber);
+  return bets.filter((b) => Number(b.targetRaceNumber) === num);
+}
+
 export function recordUserBet(selection) {
   const bets = getUserBets();
   const now = new Date();
   const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  const targetRaceNumber = selection.targetRaceNumber || selection.raceInfo?.nextRaceNumber || 100;
+  const marketId = selection.market?.id;
+  const buggyName = selection.buggy?.name?.toUpperCase() || null;
+
+  // Verificación estricta: NO permitir apuestas duplicadas para el mismo sorteo
+  const isDuplicate = bets.some((b) => {
+    if (Number(b.targetRaceNumber) !== Number(targetRaceNumber)) return false;
+    if (b.market?.id !== marketId) return false;
+    if (marketId === 'ningun_auto') return true;
+    return b.buggy?.name?.toUpperCase() === buggyName;
+  });
+
+  if (isDuplicate) {
+    console.warn('[UserBets] Apuesta duplicada prevenida para el sorteo #', targetRaceNumber);
+    const existing = bets.find(
+      (b) =>
+        Number(b.targetRaceNumber) === Number(targetRaceNumber) &&
+        b.market?.id === marketId &&
+        (marketId === 'ningun_auto' || b.buggy?.name?.toUpperCase() === buggyName)
+    );
+    return existing || null;
+  }
 
   // Formato de Ticket numérico limpio estilo referencia (ej: 5798148)
   const rawTicketId = selection.ticketId || String(Math.floor(5798100 + Math.random() * 8900));
@@ -55,7 +99,7 @@ export function recordUserBet(selection) {
     precio: '$2.000',
     monto: '$2.000',
     montoNum: 2000,
-    targetRaceNumber: selection.targetRaceNumber || selection.raceInfo?.nextRaceNumber || 100,
+    targetRaceNumber: targetRaceNumber,
     targetRaceTime: selection.targetRaceTime || selection.raceInfo?.nextRaceTime || '08:45',
     targetRaceDate: selection.targetRaceDate || dateStr,
     market: selection.market || { id: 'primer_lugar', name: 'Primer Lugar', accentColor: '#f59e0b' },

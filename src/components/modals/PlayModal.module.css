@@ -332,6 +332,33 @@
   transform: translateY(-1px);
 }
 
+.addAnotherBetBtn {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.32) 100%);
+  color: #fbbf24;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 120ms ease, filter 120ms ease, background 120ms ease, color 120ms ease;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+.addAnotherBetBtn:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.4) 0%, rgba(217, 119, 6, 0.5) 100%);
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  color: #fff;
+  border-color: #f59e0b;
+}
+
 .goHomeBtn {
   width: 100%;
   padding: 9px 16px;

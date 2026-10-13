@@ -130,6 +130,142 @@
   text-shadow: 0 2px 4px #000;
 }
 
+/* ---------- Selector de Buggies Elegidos por el Usuario (FPV) ---------- */
+.userBuggiesSwitch {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 42;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 15, 28, 0.88);
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  padding: 5px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 16px rgba(245, 158, 11, 0.25);
+}
+
+.userSwitchHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.userSwitchIcon {
+  font-size: 0.85rem;
+}
+
+.userSwitchLabel {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.userSwitchBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.userBuggyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid var(--btn-buggy-color, #fff);
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+
+.userBuggyBtn:hover {
+  transform: translateY(-1px) scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 12px var(--btn-buggy-color);
+}
+
+.userBuggyBtnActive {
+  background: var(--btn-buggy-color, #fff) !important;
+  color: #000 !important;
+  box-shadow: 0 0 16px var(--btn-buggy-color);
+  transform: scale(1.04);
+}
+
+.userBuggyBtnEliminated {
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.btnBuggySymbol {
+  font-size: 0.85rem;
+}
+
+.btnBuggyName {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.btnBuggyActiveBadge {
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 1px 5px;
+  background: #000;
+  color: #fff;
+  border-radius: 999px;
+  margin-left: 2px;
+  letter-spacing: 0.04em;
+}
+
+.btnBuggyCrashedBadge {
+  font-size: 0.7rem;
+}
+
+/* Indicador de chapa única para 1 solo buggy */
+.singleBuggyBadge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 42;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 15, 28, 0.88);
+  border: 1.5px solid var(--btn-buggy-color, #f59e0b);
+  padding: 5px 16px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px var(--btn-buggy-color);
+}
+
+.singleBuggyLabel {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.singleBuggyValue {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
 /* ---------- Selector de piloto (espectador) ---------- */
 .spectatorSwitch {
   position: absolute;
@@ -191,4 +327,28 @@
   padding: 20px 32px;
   text-align: center;
   box-shadow: 0 0 50px rgba(239, 68, 68, 0.8);
+}
+
+.switchAliveBuggyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 18px;
+  border: 2px solid;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.switchAliveBuggyBtn:hover {
+  transform: scale(1.06);
+  filter: brightness(1.2);
 }

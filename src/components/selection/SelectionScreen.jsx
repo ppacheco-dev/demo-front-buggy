@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MARKETS, BUGGIES, getBetMultiplier } from '../../game/config/selectionData';
 import { getRaceSchedule, formatSecondsToCountdown, TICKET_PRICE } from '../../game/config/raceTimeService';
+import { getUserBets } from '../../game/config/userBetsService';
 import styles from './SelectionScreen.module.css';
 
 const Buggy3DViewer = React.lazy(() => import('./Buggy3DViewer'));
@@ -22,6 +23,25 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
     return () => clearInterval(timer);
   }, [propSchedule]);
 
+  // Apuestas ya realizadas por el usuario para el sorteo próximo
+  const [existingBets, setExistingBets] = useState(() => {
+    return getUserBets().filter(
+      (b) => Number(b.targetRaceNumber) === Number(schedule?.nextRaceNumber)
+    );
+  });
+
+  useEffect(() => {
+    const syncBets = () => {
+      const all = getUserBets();
+      setExistingBets(
+        all.filter((b) => Number(b.targetRaceNumber) === Number(schedule?.nextRaceNumber))
+      );
+    };
+    syncBets();
+    const interval = setInterval(syncBets, 1000);
+    return () => clearInterval(interval);
+  }, [schedule?.nextRaceNumber]);
+
   // Cerrar preview con tecla Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -40,6 +60,28 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
   const activeMultiplier = getBetMultiplier(requiresBuggy ? selectedBuggy.name : null, selectedMarketId);
   const estimatedPrize = Math.round(2000 * activeMultiplier);
 
+  // Verificación de si la combinación actual ya fue apostada para este sorteo
+  const isCurrentSelectionDuplicate = useMemo(() => {
+    return existingBets.some((b) => {
+      if (b.market?.id !== selectedMarketId) return false;
+      if (!requiresBuggy) return true; // Mercado 'ningun_auto'
+      return b.buggy?.name?.toUpperCase() === selectedBuggy.name.toUpperCase();
+    });
+  }, [existingBets, selectedMarketId, selectedBuggy, requiresBuggy]);
+
+  // Helper para saber si un buggy ya tiene jugada en el mercado actual para este sorteo
+  const isBuggyAlreadyBet = (buggyName) => {
+    if (!requiresBuggy) return false;
+    return existingBets.some(
+      (b) =>
+        b.market?.id === selectedMarketId &&
+        b.buggy?.name?.toUpperCase() === buggyName.toUpperCase()
+    );
+  };
+
+  // Helper para saber si el mercado 'ningun_auto' ya fue jugado para este sorteo
+  const isNingunAutoAlreadyBet = existingBets.some((b) => b.market?.id === 'ningun_auto');
+
   // Selección directa e instantánea sin abrir popup modal invasivo
   const handleSelectBuggy = (buggy) => {
     if (!requiresBuggy) return;
@@ -47,6 +89,7 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
   };
 
   const handleConfirm = () => {
+    if (isCurrentSelectionDuplicate) return;
     onConfirm?.({
       market: selectedMarket,
       buggy: requiresBuggy ? selectedBuggy : null,
@@ -76,6 +119,16 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
           </div>
 
           <div className={styles.statsGroup}>
+            {existingBets.length > 0 && (
+              <div
+                className={styles.activeBetsPill}
+                title={`Tienes ${existingBets.length} apuesta(s) registrada(s) para la carrera Nº ${schedule.nextRaceNumber}`}
+              >
+                <i className="ph ph-ticket" aria-hidden="true" />
+                <span className={styles.activeBetsLabel}>APUESTAS:</span>
+                <span className={styles.activeBetsCount}>{existingBets.length}</span>
+              </div>
+            )}
             <div className={styles.pricePill} title="Precio por jugada">
               <span className={styles.priceLabel}>PRECIO:</span>
               <span className={styles.priceValue}>{TICKET_PRICE}</span>
@@ -110,6 +163,7 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
         <div className={styles.marketsGrid}>
           {MARKETS.map((market) => {
             const isSelected = selectedMarketId === market.id;
+            const isMarketAlreadyBet = market.id === 'ningun_auto' && isNingunAutoAlreadyBet;
             return (
               <div
                 key={market.id}
@@ -122,6 +176,11 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
               >
                 <div className={styles.marketHeader}>
                   <h3 className={styles.marketTitle}>{market.name}</h3>
+                  {isMarketAlreadyBet && (
+                    <div className={styles.marketAlreadyBetBadge}>
+                      ✓ YA JUGADO
+                    </div>
+                  )}
                   {market.ruleBadge && (
                     <div
                       className={styles.marketRuleBadge}
@@ -155,18 +214,25 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
           {BUGGIES.map((buggy) => {
             const isSelected = selectedBuggyId === buggy.id && requiresBuggy;
             const isDisabled = !requiresBuggy;
+            const isAlreadyBet = isBuggyAlreadyBet(buggy.name);
             return (
               <div
                 key={buggy.id}
                 className={`${styles.buggyCard} ${isSelected ? styles.buggyCardSelected : ''} ${
                   isDisabled ? styles.buggyDisabled : ''
-                }`}
+                } ${isAlreadyBet ? styles.buggyCardAlreadyBet : ''}`}
                 onClick={() => handleSelectBuggy(buggy)}
                 style={{
                   '--buggy-color': buggy.color,
                   '--buggy-glow': buggy.glowColor,
                 }}
               >
+                {isAlreadyBet && (
+                  <span className={styles.buggyAlreadyBetBadge}>
+                    ✓ APOSTADO
+                  </span>
+                )}
+
                 <div className={styles.buggyImageWrap}>
                   <img src={buggy.image} alt={buggy.name} className={styles.buggyImg} />
                 </div>
@@ -256,15 +322,37 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
         </div>
 
         {/* Confirm & Play Button */}
-        <button
-          type="button"
-          className={styles.confirmButton}
-          onClick={handleConfirm}
-          title="Confirmar Selección y Jugar"
-        >
-          <span>Confirmar Selección y Jugar</span>
-          <i className={`ph ph-caret-double-right ${styles.confirmButtonIcon}`} aria-hidden="true" />
-        </button>
+        <div className={styles.confirmButtonWrapper}>
+          {isCurrentSelectionDuplicate && (
+            <div className={styles.duplicateWarning}>
+              <i className="ph ph-warning-circle" aria-hidden="true" />
+              <span>Ya apostaste por esta combinación para este sorteo</span>
+            </div>
+          )}
+          <button
+            type="button"
+            className={`${styles.confirmButton} ${isCurrentSelectionDuplicate ? styles.confirmButtonDisabled : ''}`}
+            onClick={isCurrentSelectionDuplicate ? undefined : handleConfirm}
+            disabled={isCurrentSelectionDuplicate}
+            title={
+              isCurrentSelectionDuplicate
+                ? `Ya realizaste esta apuesta para el sorteo Nº ${schedule.nextRaceNumber}. Selecciona otro buggy u otro mercado.`
+                : 'Confirmar Selección y Jugar'
+            }
+          >
+            <span>
+              {isCurrentSelectionDuplicate
+                ? 'Apuesta Ya Realizada (Elige Otra)'
+                : 'Confirmar Selección y Jugar'}
+            </span>
+            <i
+              className={`ph ${
+                isCurrentSelectionDuplicate ? 'ph-prohibit' : 'ph-caret-double-right'
+              } ${styles.confirmButtonIcon}`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </footer>
 
       {/* Modal Ampliado: Izquierda Imagen/Animación, Derecha Detalles */}

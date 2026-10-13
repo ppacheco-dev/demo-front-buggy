@@ -126,7 +126,39 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 10px;
   z-index: 10;
+}
+
+.activeBetsPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  background: rgba(14, 165, 233, 0.16);
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  border-radius: 999px;
+  padding: 0 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 16px rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  font-size: 0.8rem;
+}
+
+.activeBetsLabel {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.activeBetsCount {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .raceTimeBlock,
@@ -347,6 +379,23 @@
   white-space: nowrap;
 }
 
+.marketAlreadyBetBadge {
+  display: inline-block;
+  align-self: center;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.25);
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  margin: 2px auto 4px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  white-space: nowrap;
+}
+
 .marketDesc {
   font-size: 0.75rem;
   color: #94a3b8;
@@ -438,6 +487,27 @@
   background: linear-gradient(180deg, rgba(20, 32, 56, 0.82) 0%, rgba(8, 14, 26, 0.94) 100%);
   border-color: var(--buggy-color);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6), 0 0 20px var(--buggy-glow);
+}
+
+.buggyCardAlreadyBet {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.buggyAlreadyBetBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.25);
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  z-index: 12;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
 .buggyZoomHint {
@@ -681,6 +751,30 @@
 }
 
 /* Right Confirm Button */
+.confirmButtonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.duplicateWarning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 5px 12px;
+  border-radius: 8px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  animation: fadeIn 0.2s ease;
+}
+
 .confirmButton {
   position: relative;
   display: flex;
@@ -712,6 +806,23 @@
 .confirmButton:active {
   transform: translateY(1px);
   filter: brightness(0.95);
+}
+
+.confirmButtonDisabled {
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.85;
+  filter: none !important;
+  transform: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.confirmButtonDisabled:hover {
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .confirmButtonIcon {

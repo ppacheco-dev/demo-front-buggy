@@ -17,6 +17,7 @@ export default function ArcadeTrack25D({
   rankedCars = [],
   progress = 0,
   currentSectorObstacle = {},
+  userBuggyNames = [],
   userBuggyName = null,
   isUserRace = false,
   isFinished = false,
@@ -267,9 +268,10 @@ export default function ArcadeTrack25D({
           {activeCars.map((car, idx) => {
             const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
             const isUserChoice =
-              isUserRace &&
-              userBuggyName &&
-              userBuggyName.includes(car.buggy.name.toUpperCase());
+              isUserRace && (
+                (Array.isArray(userBuggyNames) && userBuggyNames.includes(car.buggy.name.toUpperCase())) ||
+                (userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase()))
+              );
             const isLeader = rank === 1;
 
             // Carril asignado

@@ -9,7 +9,7 @@ import styles from './PlayModal.module.css';
  * dónde ver la carrera y acciones) y a la derecha el mapa del circuito con la ficha técnica.
  * El número de carrera es el dato más visible y aparece una sola vez.
  */
-export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, onGoToHome }) {
+export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, onGoToHome, onGoToBet }) {
   const pathRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
 
@@ -209,6 +209,20 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                 <button type="button" onClick={handleWatchRace} className={styles.watchRaceBtn}>
                   <i className="ph ph-broadcast" aria-hidden="true" />
                   <span>VER CARRERA EN DIRECTO AHORA</span>
+                </button>
+              )}
+              {onGoToBet && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose?.();
+                    onGoToBet?.();
+                  }}
+                  className={styles.addAnotherBetBtn}
+                  title="Hacer otra jugada para este mismo sorteo"
+                >
+                  <i className="ph ph-plus-circle" aria-hidden="true" />
+                  <span>HACER OTRA APUESTA PARA ESTE SORTEO</span>
                 </button>
               )}
               <button type="button" onClick={handleGoHome} className={styles.goHomeBtn}>

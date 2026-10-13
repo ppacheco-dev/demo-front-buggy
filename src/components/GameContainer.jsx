@@ -6,7 +6,7 @@ import RaceHistoryModal from './modals/RaceHistoryModal';
 import SelectionScreen from './selection/SelectionScreen';
 import LiveRaceScreen from './race/LiveRaceScreen';
 import { getRaceSchedule, formatSecondsToCountdown } from '../game/config/raceTimeService';
-import { recordUserBet } from '../game/config/userBetsService';
+import { recordUserBet, isDuplicateBet } from '../game/config/userBetsService';
 import { getOrCreateRace } from '../game/config/raceStorageService';
 import styles from './GameContainer.module.css';
 
@@ -158,14 +158,21 @@ export default function GameContainer() {
   }, []);
 
   const handleConfirmSelection = useCallback((selection) => {
-    // Generar un Ticket ID único de 6 dígitos que permanece fijo y persistente para este voucher
-    const uniqueTicketId = `BG-${Math.floor(100000 + Math.random() * 900000)}`;
     // REGLA: la apuesta SIEMPRE corresponde a la carrera siguiente respecto al instante exacto
     // de la compra (si se compra durante la de las 10:30, entra a la de las 10:35).
     const freshSchedule = getRaceSchedule(new Date());
     const targetRaceNumber = freshSchedule.nextRaceNumber;
     const targetRaceTime = freshSchedule.nextRaceTime;
     const targetRaceDate = freshSchedule.todayStr;
+
+    // Verificación de duplicado: No permitir apuestas repetidas para el mismo sorteo
+    if (isDuplicateBet(targetRaceNumber, selection?.market?.id, selection?.buggy?.name)) {
+      console.warn('[GameContainer] Intento de apuesta duplicada para la carrera Nº', targetRaceNumber);
+      return;
+    }
+
+    // Generar un Ticket ID único de 6 dígitos que permanece fijo y persistente para este voucher
+    const uniqueTicketId = `BG-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const fullSelection = {
       ...selection,
@@ -178,7 +185,7 @@ export default function GameContainer() {
     recordUserBet(fullSelection);
     setCurrentSelection(fullSelection);
     setPlayModalOpen(true);
-  }, [schedule]);
+  }, []);
 
   // Alternar pantalla completa
   const toggleFullscreen = async () => {
@@ -462,6 +469,7 @@ export default function GameContainer() {
           }
         }}
         onGoToHome={handleBackToMenu}
+        onGoToBet={handleGoToBet}
       />
 
       {/* Modal de Historial de Carreras y Consulta de JSON */}

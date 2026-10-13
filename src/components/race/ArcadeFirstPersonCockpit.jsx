@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
@@ -149,11 +149,44 @@ export default function ArcadeFirstPersonCockpit({
   rankedCars = [],
   progress = 0,
   currentSectorObstacle = {},
+  userBuggyNames = [],
   userBuggyName = null,
   isUserRace = true,
   isFinished = false,
   fatalEliminationByCar = {},
 }) {
+  // Normalizar nombres de buggies elegidos por el usuario en esta carrera
+  const normalizedChosenNames = useMemo(() => {
+    const list = [];
+    if (Array.isArray(userBuggyNames)) {
+      userBuggyNames.forEach((n) => {
+        if (n && typeof n === 'string') {
+          const upper = n.toUpperCase();
+          if (!list.includes(upper)) list.push(upper);
+        }
+      });
+    }
+    if (userBuggyName && typeof userBuggyName === 'string') {
+      const upper = userBuggyName.toUpperCase();
+      if (!list.includes(upper)) list.push(upper);
+    }
+    return list;
+  }, [userBuggyNames, userBuggyName]);
+
+  // Buggy actualmente en vista en la cabina
+  const [activeBuggyName, setActiveBuggyName] = useState(() => {
+    return normalizedChosenNames[0] || null;
+  });
+
+  // Sincronizar buggy activo si cambian los elegidos
+  useEffect(() => {
+    if (normalizedChosenNames.length > 0) {
+      if (!activeBuggyName || !normalizedChosenNames.includes(activeBuggyName)) {
+        setActiveBuggyName(normalizedChosenNames[0]);
+      }
+    }
+  }, [normalizedChosenNames, activeBuggyName]);
+
   const [spectatorSelectedName, setSpectatorSelectedName] = useState(null);
 
   // --- Escala del mundo para cubrir el contenedor ---
@@ -176,9 +209,10 @@ export default function ArcadeFirstPersonCockpit({
 
   // --- Auto desde el que se mira ---
   const playerCar = useMemo(() => {
-    if (userBuggyName) {
+    if (activeBuggyName) {
       const match = cars.find((c) =>
-        userBuggyName.toUpperCase().includes(c.buggy.name.toUpperCase())
+        c.buggy?.name?.toUpperCase() === activeBuggyName ||
+        c.name?.toUpperCase() === activeBuggyName
       );
       if (match) return match;
     }
@@ -188,7 +222,21 @@ export default function ArcadeFirstPersonCockpit({
     }
     // Espectador: por defecto se viaja en el último del pelotón para ver a todos adelante
     return rankedCars[rankedCars.length - 1] || cars[cars.length - 1] || null;
-  }, [cars, rankedCars, userBuggyName, spectatorSelectedName]);
+  }, [cars, rankedCars, activeBuggyName, spectatorSelectedName]);
+
+  // Objetos de autos correspondientes a los buggies elegidos
+  const chosenBuggyObjects = useMemo(() => {
+    if (normalizedChosenNames.length === 0) return [];
+    return normalizedChosenNames
+      .map((name) => cars.find((c) => c.buggy?.name?.toUpperCase() === name || c.name?.toUpperCase() === name))
+      .filter(Boolean);
+  }, [normalizedChosenNames, cars]);
+
+  // Si el auto activo se accidentó, buscar si tiene otro buggy elegido que siga en carrera
+  const otherAliveBuggy = useMemo(() => {
+    if (!playerCar?.isEliminated || chosenBuggyObjects.length <= 1) return null;
+    return chosenBuggyObjects.find((c) => c.name !== playerCar.name && !c.isEliminated) || null;
+  }, [playerCar, chosenBuggyObjects]);
 
   const isPlayerEliminated = Boolean(playerCar?.isEliminated);
 
@@ -716,8 +764,56 @@ export default function ArcadeFirstPersonCockpit({
         isFinished={isFinished}
       />
 
-      {/* Selector de piloto para el espectador */}
-      {!userBuggyName && cars.length > 1 && (
+      {/* Selector de cámara para los buggies elegidos por el usuario */}
+      {chosenBuggyObjects.length > 1 && (
+        <div className={styles.userBuggiesSwitch}>
+          <div className={styles.userSwitchHeader}>
+            <span className={styles.userSwitchIcon}>🎮</span>
+            <span className={styles.userSwitchLabel}>TUS BUGGIES:</span>
+          </div>
+          <div className={styles.userSwitchBtnGroup}>
+            {chosenBuggyObjects.map((c) => {
+              const isActive = (playerCar?.buggy?.name || '').toUpperCase() === c.buggy.name.toUpperCase();
+              const isEliminated = Boolean(c.isEliminated);
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  className={`${styles.userBuggyBtn} ${isActive ? styles.userBuggyBtnActive : ''} ${
+                    isEliminated ? styles.userBuggyBtnEliminated : ''
+                  }`}
+                  style={{
+                    '--btn-buggy-color': c.buggy.color,
+                  }}
+                  onClick={() => setActiveBuggyName(c.buggy.name.toUpperCase())}
+                  title={`Ver la carrera en 1ª persona desde tu Buggy ${c.buggy.name}${isEliminated ? ' (Accidentado)' : ''}`}
+                >
+                  <span className={styles.btnBuggySymbol}>{c.buggy.symbol}</span>
+                  <span className={styles.btnBuggyName}>{c.buggy.name}</span>
+                  {isActive && <span className={styles.btnBuggyActiveBadge}>EN CABINA</span>}
+                  {isEliminated && <span className={styles.btnBuggyCrashedBadge}>💥</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Si eligió un solo buggy, mostrar su chapa identificadora */}
+      {chosenBuggyObjects.length === 1 && (
+        <div
+          className={styles.singleBuggyBadge}
+          style={{ '--btn-buggy-color': chosenBuggyObjects[0].buggy.color }}
+        >
+          <span className={styles.singleBuggyLabel}>CABINA:</span>
+          <span className={styles.singleBuggyValue}>
+            {chosenBuggyObjects[0].buggy.symbol} BUGGY {chosenBuggyObjects[0].buggy.name}
+          </span>
+        </div>
+      )}
+
+      {/* Selector para modo espectador (cuando no hay buggies elegidos) */}
+      {chosenBuggyObjects.length === 0 && cars.length > 1 && (
         <div className={styles.spectatorSwitch}>
           <span className={styles.switchLabel}>VER DESDE:</span>
           {cars.map((c) => {
@@ -747,9 +843,24 @@ export default function ArcadeFirstPersonCockpit({
           <div className={styles.crashBox}>
             <div style={{ fontSize: '2rem' }}>💥</div>
             <div style={{ color: '#ef4444', fontWeight: 900 }}>¡VEHÍCULO ACCIDENTADO!</div>
-            <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>
+            <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginBottom: otherAliveBuggy ? '12px' : 0 }}>
               {playerCar?.causaEliminacion || 'Impacto en el tramo'}
             </div>
+            {otherAliveBuggy && (
+              <button
+                type="button"
+                className={styles.switchAliveBuggyBtn}
+                style={{
+                  borderColor: otherAliveBuggy.buggy.color,
+                  boxShadow: `0 0 16px ${otherAliveBuggy.buggy.color}55`,
+                }}
+                onClick={() => setActiveBuggyName(otherAliveBuggy.buggy.name.toUpperCase())}
+                title={`Cambiar a la cabina de tu otro buggy activo: ${otherAliveBuggy.buggy.name}`}
+              >
+                <span>CAMBIAR VISTA A {otherAliveBuggy.buggy.symbol} BUGGY {otherAliveBuggy.buggy.name}</span>
+                <i className="ph ph-arrow-right" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { findBuggyByName, generateDrawMarketReport, getBetMultiplier } from '../../game/config/selectionData';
 import { getOrCreateRace, REFERENCE_RACE_TRAMOS } from '../../game/config/raceStorageService';
+import { getUserBets } from '../../game/config/userBetsService';
 import BuggySprite from './BuggySprite';
 import ObstacleSprite from './ObstacleSprite';
 import CircuitMinimap from './CircuitMinimap';
@@ -318,18 +319,35 @@ export default function LiveRaceScreen({
     startRaceAnimation();
   };
 
-  // Evaluación de si la participación del usuario corresponde a ESTA carrera en particular
-  const targetRaceNumber = Number(userSelection?.targetRaceNumber || userSelection?.raceInfo?.nextRaceNumber);
-  const targetRaceTime = userSelection?.targetRaceTime || userSelection?.raceInfo?.nextRaceTime;
-  const isUserParticipatingInThisRace = Boolean(
-    userSelection &&
-    targetRaceNumber &&
-    targetRaceNumber === Number(race.numero)
-  );
+  // Obtener todas las apuestas realizadas por el usuario para ESTA carrera en particular
+  const userBetsForThisRace = useMemo(() => {
+    const all = getUserBets();
+    const list = all.filter((b) => Number(b.targetRaceNumber) === Number(race.numero));
+    // Si viene userSelection por prop y corresponde a esta carrera pero no está en la lista guardada
+    if (userSelection && Number(userSelection.targetRaceNumber) === Number(race.numero)) {
+      if (!list.some((b) => b.id === userSelection.id || b.ticketId === userSelection.ticketId)) {
+        list.unshift(userSelection);
+      }
+    }
+    return list;
+  }, [race.numero, userSelection]);
 
-  const userMarketId = isUserParticipatingInThisRace ? userSelection?.market?.id : null;
-  const userBuggyName = isUserParticipatingInThisRace ? userSelection?.buggy?.name?.toUpperCase() : null;
-  const activeUserBuggyName = userBuggyName || userSelection?.buggy?.name?.toUpperCase() || null;
+  const isUserParticipatingInThisRace = userBetsForThisRace.length > 0;
+
+  // Lista de nombres únicos de buggies elegidos por el usuario en esta carrera
+  const chosenBuggyNames = useMemo(() => {
+    return [
+      ...new Set(
+        userBetsForThisRace
+          .map((b) => b.buggy?.name?.toUpperCase())
+          .filter(Boolean)
+      ),
+    ];
+  }, [userBetsForThisRace]);
+
+  const activeUserBuggyName = chosenBuggyNames[0] || userSelection?.buggy?.name?.toUpperCase() || null;
+  const targetRaceNumber = Number(race.numero);
+  const targetRaceTime = race.hora;
 
   // La vista en 1ª Persona (cabina) solo está habilitada para quien compró una apuesta para ESTA carrera
   const canUseFpv = isUserParticipatingInThisRace;
@@ -338,39 +356,58 @@ export default function LiveRaceScreen({
   }, [canUseFpv, cameraMode]);
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
-  let userWon = false;
-  let userWonPlace = '';
-  if (isFinished && isUserParticipatingInThisRace) {
-    if (userMarketId === 'ningun_auto') {
-      userWon = Boolean(ningunAutoLlego);
-    } else if (!ningunAutoLlego) {
-      const first = (rankedCars[0]?.buggy?.name || '').toUpperCase();
-      const second = (rankedCars[1]?.buggy?.name || '').toUpperCase();
-      const third = (rankedCars[2]?.buggy?.name || '').toUpperCase();
-      const uName = userBuggyName || '';
+  // Evaluación detallada de cada apuesta del usuario para esta carrera
+  const evaluatedUserBets = useMemo(() => {
+    if (!isFinished || !isUserParticipatingInThisRace) return [];
 
-      if (userMarketId === 'primer_lugar') {
-        userWon = Boolean(uName && first === uName);
-        userWonPlace = '1º lugar (Ganador)';
-      } else if (userMarketId === 'segundo_lugar') {
-        userWon = Boolean(uName && (first === uName || second === uName));
-        userWonPlace = first === uName ? '1º lugar' : '2º lugar';
-      } else if (userMarketId === 'tercer_lugar') {
-        userWon = Boolean(uName && (first === uName || second === uName || third === uName));
-        userWonPlace = first === uName ? '1º lugar' : second === uName ? '2º lugar' : '3º lugar';
+    return userBetsForThisRace.map((bet) => {
+      const marketId = bet.market?.id || 'primer_lugar';
+      const bName = bet.buggy?.name?.toUpperCase() || '';
+      const montoBase = Number(bet.montoNum) || 2000;
+      let won = false;
+      let wonPlace = '';
+      let winAmount = 0;
+
+      if (marketId === 'ningun_auto') {
+        won = Boolean(ningunAutoLlego);
+        if (won) {
+          winAmount = Math.round(montoBase * 14.0);
+          wonPlace = 'Sin Ganador (Factor 14x)';
+        }
+      } else if (!ningunAutoLlego) {
+        const first = (rankedCars[0]?.buggy?.name || '').toUpperCase();
+        const second = (rankedCars[1]?.buggy?.name || '').toUpperCase();
+        const third = (rankedCars[2]?.buggy?.name || '').toUpperCase();
+
+        if (marketId === 'primer_lugar') {
+          won = Boolean(bName && first === bName);
+          wonPlace = '1º lugar (Ganador)';
+        } else if (marketId === 'segundo_lugar') {
+          won = Boolean(bName && (first === bName || second === bName));
+          wonPlace = first === bName ? '1º lugar' : '2º lugar';
+        } else if (marketId === 'tercer_lugar') {
+          won = Boolean(bName && (first === bName || second === bName || third === bName));
+          wonPlace = first === bName ? '1º lugar' : second === bName ? '2º lugar' : '3º lugar';
+        }
+
+        if (won) {
+          const mult = getBetMultiplier(bName, marketId);
+          winAmount = Math.round(montoBase * mult);
+        }
       }
-    }
-  }
 
-  const userWinAmount = useMemo(() => {
-    if (!userWon || !isUserParticipatingInThisRace) return 0;
-    const montoBase = Number(userSelection?.montoNum) || 2000;
-    if (userMarketId === 'ningun_auto') {
-      return Math.round(montoBase * 14.0);
-    }
-    const mult = getBetMultiplier(userBuggyName, userMarketId);
-    return Math.round(montoBase * mult);
-  }, [userWon, isUserParticipatingInThisRace, userSelection, userMarketId, userBuggyName]);
+      return {
+        bet,
+        won,
+        wonPlace,
+        winAmount,
+      };
+    });
+  }, [isFinished, isUserParticipatingInThisRace, userBetsForThisRace, ningunAutoLlego, rankedCars]);
+
+  const winningBets = evaluatedUserBets.filter((e) => e.won);
+  const totalUserWon = winningBets.reduce((acc, curr) => acc + curr.winAmount, 0);
+  const hasUserWonAny = winningBets.length > 0;
 
   const drawMarketReport = useMemo(() => {
     if (!isFinished) return null;
@@ -499,8 +536,9 @@ export default function LiveRaceScreen({
             rankedCars={rankedCars}
             progress={progress}
             currentSectorObstacle={currentSectorObstacle}
+            userBuggyNames={chosenBuggyNames}
             userBuggyName={activeUserBuggyName}
-            isUserRace={true}
+            isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
           />
@@ -510,7 +548,8 @@ export default function LiveRaceScreen({
             rankedCars={rankedCars}
             progress={progress}
             currentSectorObstacle={currentSectorObstacle}
-            userBuggyName={userBuggyName}
+            userBuggyNames={chosenBuggyNames}
+            userBuggyName={activeUserBuggyName}
             isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
@@ -523,7 +562,10 @@ export default function LiveRaceScreen({
             <div className={styles.lanesWrapper}>
             {liveCars.map((car, idx) => {
               const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
-              const isUserChoice = isUserParticipatingInThisRace && userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase());
+              const isUserChoice =
+                isUserParticipatingInThisRace &&
+                (chosenBuggyNames.includes(car.buggy.name.toUpperCase()) ||
+                  (activeUserBuggyName && activeUserBuggyName.includes(car.buggy.name.toUpperCase())));
               const isLeader = rank === 1 && !car.isEliminated;
 
               return (
@@ -685,7 +727,8 @@ export default function LiveRaceScreen({
             cars={liveCars}
             rankedCars={rankedCars}
             progress={progress}
-            userBuggyName={userBuggyName}
+            userBuggyNames={chosenBuggyNames}
+            userBuggyName={activeUserBuggyName}
             isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
             isLive={isLive}
@@ -698,7 +741,10 @@ export default function LiveRaceScreen({
 
           <div className={styles.leaderboardList}>
             {rankedCars.map((car, rankIdx) => {
-              const isUserChoice = isUserParticipatingInThisRace && userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase());
+              const isUserChoice =
+                isUserParticipatingInThisRace &&
+                (chosenBuggyNames.includes(car.buggy.name.toUpperCase()) ||
+                  (activeUserBuggyName && activeUserBuggyName.includes(car.buggy.name.toUpperCase())));
 
               return (
                 <div
@@ -754,19 +800,34 @@ export default function LiveRaceScreen({
           {isUserParticipatingInThisRace ? (
             <div className={styles.userSelectionCard}>
               <div className={styles.userSelectionHeader}>
-                <span className={styles.userSelectionLabel}>TU PARTICIPACIÓN:</span>
+                <span className={styles.userSelectionLabel}>
+                  TU PARTICIPACIÓN ({userBetsForThisRace.length > 1 ? `${userBetsForThisRace.length} APUESTAS` : '1 APUESTA'}):
+                </span>
                 <span className={styles.userSelectionBadgeActive}>JUGADA ACTIVA</span>
               </div>
-              <div className={styles.userSelectionDetails}>
-                {userSelection.ticketId && (
-                  <span>Ticket: <strong>#{userSelection.ticketId}</strong></span>
-                )}
-                <span>Carrera: <strong>#{targetRaceNumber} ({targetRaceTime} hrs)</strong></span>
-                <span>Mercado: <strong>{userSelection.market?.name}</strong></span>
-                {userSelection.buggy && (
-                  <span>Auto: <strong style={{ color: userSelection.buggy.color }}>{userSelection.buggy.name}</strong></span>
-                )}
-                <span>Precio: <strong>{userSelection.monto || userSelection.precio || TICKET_PRICE}</strong></span>
+              <div className={styles.userBetsList}>
+                {userBetsForThisRace.map((bet, bIdx) => (
+                  <div key={bet.id || bIdx} className={styles.userBetTicketItem}>
+                    <div className={styles.userBetTicketTop}>
+                      <span className={styles.userBetTicketId}>Ticket #{bet.ticketId || bet.id}</span>
+                      <span className={styles.userBetTicketPrice}>{bet.monto || bet.precio || TICKET_PRICE}</span>
+                    </div>
+                    <div className={styles.userBetTicketRow}>
+                      <span className={styles.userBetMarketBadge} style={{ color: bet.market?.accentColor }}>
+                        {bet.market?.name}
+                      </span>
+                      {bet.buggy ? (
+                        <span className={styles.userBetBuggyBadge} style={{ color: bet.buggy.color }}>
+                          {bet.buggy.symbol} {bet.buggy.name}
+                        </span>
+                      ) : (
+                        <span className={styles.userBetBuggyBadge} style={{ color: '#94a3b8' }}>
+                          Sin Ganador
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
@@ -776,7 +837,7 @@ export default function LiveRaceScreen({
                 <div className={styles.spectatorText}>
                   <span className={styles.spectatorTitle}>MODO ESPECTADOR</span>
                   <span className={styles.spectatorDesc}>
-                    Tu apuesta activa (#{userSelection.ticketId}) es para la <strong>Carrera #{targetRaceNumber} ({targetRaceTime} hrs)</strong>.
+                    Tu apuesta activa (#{userSelection.ticketId}) es para la <strong>Carrera #{userSelection.targetRaceNumber} ({userSelection.targetRaceTime} hrs)</strong>.
                   </span>
                 </div>
               </div>
@@ -824,16 +885,18 @@ export default function LiveRaceScreen({
             {isUserParticipatingInThisRace && (
               <div
                 className={`${styles.userResultBanner} ${
-                  userWon ? styles.userResultWon : styles.userResultLost
+                  hasUserWonAny ? styles.userResultWon : styles.userResultLost
                 }`}
               >
-                {userWon ? (
+                {hasUserWonAny ? (
                   <>
                     <i className="ph ph-confetti" aria-hidden="true" />
                     <span>
-                      {userMarketId === 'ningun_auto'
-                        ? `¡FELICITACIONES! ACERTASTE: SIN GANADOR (PREMIO: $${userWinAmount.toLocaleString('es-CL')})`
-                        : `¡FELICITACIONES! TU AUTO ${userBuggyName} CUMPLIÓ EN ${userWonPlace} (PREMIO: $${userWinAmount.toLocaleString('es-CL')})`}
+                      {winningBets.length === 1
+                        ? `¡FELICITACIONES! ACERTASTE: ${winningBets[0].bet.market?.name?.toUpperCase()} ${
+                            winningBets[0].bet.buggy ? `CON BUGGY ${winningBets[0].bet.buggy.name}` : '(SIN GANADOR)'
+                          } (PREMIO: $${totalUserWon.toLocaleString('es-CL')})`
+                        : `¡FELICITACIONES! ACERTASTE EN ${winningBets.length} DE TUS APUESTAS (PREMIO TOTAL: $${totalUserWon.toLocaleString('es-CL')})`}
                     </span>
                   </>
                 ) : (
@@ -842,7 +905,7 @@ export default function LiveRaceScreen({
                     <span>
                       {ningunAutoLlego
                         ? 'Ningún buggy completó el circuito. Ganó el mercado: Sin Ganador.'
-                        : 'La carrera ha concluido. ¡Prueba suerte en la siguiente!'}
+                        : 'La carrera ha concluido. Tus apuestas no resultaron premiadas. ¡Prueba suerte en la siguiente!'}
                     </span>
                   </>
                 )}

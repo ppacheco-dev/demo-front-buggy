@@ -1234,6 +1234,64 @@
   color: #fff;
 }
 
+.userBetsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.userBetTicketItem {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.userBetTicketTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.userBetTicketId {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+.userBetTicketPrice {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #facc15;
+}
+
+.userBetTicketRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.userBetMarketBadge {
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.userBetBuggyBadge {
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 /* Modo Espectador (cuando el usuario ve una carrera que no es la que apostó) */
 .spectatorCard {
   display: flex;

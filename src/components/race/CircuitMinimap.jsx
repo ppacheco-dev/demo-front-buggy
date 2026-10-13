@@ -10,6 +10,7 @@ export default function CircuitMinimap({
   cars = [],
   rankedCars = [],
   progress = 0,
+  userBuggyNames = [],
   userBuggyName = null,
   isUserRace = false,
   isFinished = false,
@@ -122,8 +123,8 @@ export default function CircuitMinimap({
 
               const isUserBuggy =
                 isUserRace &&
-                userBuggyName &&
-                userBuggyName.includes(car.buggy.name.toUpperCase());
+                (userBuggyNames.includes(car.buggy.name.toUpperCase()) ||
+                  (userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase())));
 
               return (
                 <g
