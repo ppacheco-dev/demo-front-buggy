@@ -162,8 +162,8 @@ export default function LiveRaceScreen({
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
 
-    // Easing suave (smoothstep / cúbico)
-    const smoothT = fraction * fraction * (3 - 2 * fraction);
+    // Easing suave: mezcla lineal + smoothstep para que los autos no se detengan en cada tramo
+    const smoothT = fraction * 0.65 + fraction * fraction * (3 - 2 * fraction) * 0.35;
 
     const fromTramo = tramos[segIndex]?.EstadosAutos || [];
     const toTramo = tramos[segIndex + 1]?.EstadosAutos || fromTramo;

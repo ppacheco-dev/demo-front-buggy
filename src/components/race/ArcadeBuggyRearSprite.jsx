@@ -67,7 +67,7 @@ const BUGGY_PALETTES = {
  * estilo Horizon Chase Turbo / OutRun / Sega Rally.
  * Diseñado específicamente para encajar de manera realista sobre la pista 2.5D en perspectiva.
  */
-export default function ArcadeBuggyRearSprite({
+function ArcadeBuggyRearSpriteBase({
   buggy = {},
   isEliminated = false,
   isBoosting = false,
@@ -350,3 +350,20 @@ export default function ArcadeBuggyRearSprite({
     </div>
   );
 }
+
+/**
+ * Memoizado: la telemetría cambia en cada fotograma (velocidad, inclinación), pero visualmente solo
+ * importan unos pocos estados discretos. Así el SVG pesado de 6 buggies no se re-renderiza a 60 Hz.
+ */
+const steeringBucket = (s) => (s < -0.2 ? -1 : s > 0.2 ? 1 : 0);
+
+const ArcadeBuggyRearSprite = React.memo(ArcadeBuggyRearSpriteBase, (prev, next) => (
+  (prev.buggy?.id || prev.buggy?.name) === (next.buggy?.id || next.buggy?.name) &&
+  prev.isEliminated === next.isEliminated &&
+  prev.isBoosting === next.isBoosting &&
+  prev.carNumber === next.carNumber &&
+  (prev.speedKmh > 30) === (next.speedKmh > 30) &&
+  steeringBucket(prev.steering) === steeringBucket(next.steering)
+));
+
+export default ArcadeBuggyRearSprite;
