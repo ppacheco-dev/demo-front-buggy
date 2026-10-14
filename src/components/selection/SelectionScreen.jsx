@@ -69,16 +69,6 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
     });
   }, [existingBets, selectedMarketId, selectedBuggy, requiresBuggy]);
 
-  // Helper para saber si un buggy ya tiene jugada en el mercado actual para este sorteo
-  const isBuggyAlreadyBet = (buggyName) => {
-    if (!requiresBuggy) return false;
-    return existingBets.some(
-      (b) =>
-        b.market?.id === selectedMarketId &&
-        b.buggy?.name?.toUpperCase() === buggyName.toUpperCase()
-    );
-  };
-
   // Helper para saber si el mercado 'ningun_auto' ya fue jugado para este sorteo
   const isNingunAutoAlreadyBet = existingBets.some((b) => b.market?.id === 'ningun_auto');
 
@@ -214,25 +204,18 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
           {BUGGIES.map((buggy) => {
             const isSelected = selectedBuggyId === buggy.id && requiresBuggy;
             const isDisabled = !requiresBuggy;
-            const isAlreadyBet = isBuggyAlreadyBet(buggy.name);
             return (
               <div
                 key={buggy.id}
                 className={`${styles.buggyCard} ${isSelected ? styles.buggyCardSelected : ''} ${
                   isDisabled ? styles.buggyDisabled : ''
-                } ${isAlreadyBet ? styles.buggyCardAlreadyBet : ''}`}
+                }`}
                 onClick={() => handleSelectBuggy(buggy)}
                 style={{
                   '--buggy-color': buggy.color,
                   '--buggy-glow': buggy.glowColor,
                 }}
               >
-                {isAlreadyBet && (
-                  <span className={styles.buggyAlreadyBetBadge}>
-                    ✓ APOSTADO
-                  </span>
-                )}
-
                 <div className={styles.buggyImageWrap}>
                   <img src={buggy.image} alt={buggy.name} className={styles.buggyImg} />
                 </div>
@@ -336,21 +319,12 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
             disabled={isCurrentSelectionDuplicate}
             title={
               isCurrentSelectionDuplicate
-                ? `Ya realizaste esta apuesta para el sorteo Nº ${schedule.nextRaceNumber}. Selecciona otro buggy u otro mercado.`
+                ? `Ya realizaste esta apuesta para el sorteo Nº ${schedule.nextRaceNumber}.`
                 : 'Confirmar Selección y Jugar'
             }
           >
-            <span>
-              {isCurrentSelectionDuplicate
-                ? 'Apuesta Ya Realizada (Elige Otra)'
-                : 'Confirmar Selección y Jugar'}
-            </span>
-            <i
-              className={`ph ${
-                isCurrentSelectionDuplicate ? 'ph-prohibit' : 'ph-caret-double-right'
-              } ${styles.confirmButtonIcon}`}
-              aria-hidden="true"
-            />
+            <span>Confirmar Selección y Jugar</span>
+            <i className={`ph ph-caret-double-right ${styles.confirmButtonIcon}`} aria-hidden="true" />
           </button>
         </div>
       </footer>
