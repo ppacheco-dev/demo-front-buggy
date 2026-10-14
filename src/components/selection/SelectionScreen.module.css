@@ -12,11 +12,17 @@
   font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   animation: fadeIn 120ms cubic-bezier(0, 0, 0.2, 1) forwards;
   will-change: opacity, transform;
   transform: translateZ(0);
+}
+
+.container::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes fadeIn {
@@ -828,12 +834,11 @@
     gap: 8px;
   }
   .bottomBar {
-    grid-template-columns: 1fr;
     gap: 10px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
   .container {
     padding: 8px 10px 24px;
     justify-content: flex-start;
@@ -1454,7 +1459,7 @@
 }
 
 /* Responsive para pantallas compactas y teléfonos */
-@media (max-width: 768px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
   .previewBackdrop {
     padding: 12px;
   }

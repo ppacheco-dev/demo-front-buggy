@@ -419,17 +419,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: clamp(8px, 1.5vh, 20px);
   background:
     radial-gradient(circle at 18% 14%, rgba(88, 166, 255, 0.12), transparent 40%),
     radial-gradient(circle at 82% 86%, rgba(31, 111, 235, 0.1), transparent 45%),
     rgba(13, 17, 23, 0.76);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 
 .infoModalCard {
-  width: min(95vw, 960px);
-  height: min(90vh, 720px);
+  width: min(95vw, 920px);
+  height: min(92vh, 680px);
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 14px;
@@ -442,10 +444,10 @@
     linear-gradient(180deg, rgba(88, 166, 255, 0.07) 0%, rgba(88, 166, 255, 0) 24%),
     linear-gradient(152deg, #1b222c 0%, #161b22 56%, #121820 100%);
   color: #c9d1d9;
-  padding: 22px;
+  padding: clamp(10px, 1.6vh, 22px);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: clamp(8px, 1.2vh, 16px);
   font-family: 'Manrope', 'Segoe UI', sans-serif;
   animation: infoModalEnter 220ms ease-out;
 }
@@ -1307,11 +1309,11 @@
 /* Área interactiva overlay para asegurar respuesta instantánea del botón JUGAR */
 .homePlayHitbox {
   position: absolute;
-  bottom: 9%;
+  bottom: calc(14% - clamp(56px, 12vh, 120px) / 2);
   left: 50%;
   transform: translateX(-50%);
-  width: min(84vw, 380px);
-  height: 95px;
+  width: min(28vw, 520px, 58vh);
+  height: clamp(56px, 12vh, 120px);
   background: transparent;
   border: none;
   border-radius: 999px;

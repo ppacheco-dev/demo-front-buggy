@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
 import { MARKETS, BUGGIES, getBetMultiplier } from '../../game/config/selectionData';
 import { getRaceSchedule, formatSecondsToCountdown, TICKET_PRICE } from '../../game/config/raceTimeService';
 import { getUserBets } from '../../game/config/userBetsService';
 import styles from './SelectionScreen.module.css';
 
 const Buggy3DViewer = React.lazy(() => import('./Buggy3DViewer'));
+
+// Escala mínima permitida al ajustar la pantalla al tamaño disponible
+const MIN_FIT_ZOOM = 0.4;
 
 export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSettings, schedule: propSchedule }) {
   const [selectedMarketId, setSelectedMarketId] = useState('primer_lugar');
@@ -89,8 +92,87 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
     });
   };
 
+  // ---------------------------------------------------------------------------
+  // Ajuste al viewport: escala toda la pantalla (manteniendo el diseño original)
+  // para que siempre quepa completa dentro del iframe, sin scrollbars.
+  // Se usa `zoom` (no `transform`) para no alterar los elementos `position: fixed`.
+  // ---------------------------------------------------------------------------
+  const containerRef = useRef(null);
+  const zoomRef = useRef(1);
+
+  const fitToViewport = useCallback(() => {
+    const el = containerRef.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+
+    const W = parent.clientWidth;
+    const H = parent.clientHeight;
+    if (!W || !H) return; // Pantalla oculta (display: none)
+
+    const apply = (z) => {
+      el.style.zoom = String(z);
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+      el.style.width = `${W / z}px`;
+      el.style.height = `${H / z}px`;
+    };
+
+    // Alto visual natural del contenido (sin estirar por space-between)
+    const measure = (z) => {
+      const cs = window.getComputedStyle(el);
+      const kids = Array.from(el.children).filter(
+        (c) => !c.classList.contains(styles.previewBackdrop)
+      );
+      let total = (parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)) * z;
+      const gap = parseFloat(cs.rowGap) || 0;
+      total += gap * Math.max(0, kids.length - 1) * z;
+      kids.forEach((k) => {
+        const ks = window.getComputedStyle(k);
+        total += k.getBoundingClientRect().height;
+        total += ((parseFloat(ks.marginTop) || 0) + (parseFloat(ks.marginBottom) || 0)) * z;
+      });
+      return total;
+    };
+
+    let z = zoomRef.current || 1;
+    for (let i = 0; i < 5; i += 1) {
+      apply(z);
+      const content = measure(z);
+      if (!content) break;
+      const next = Math.max(MIN_FIT_ZOOM, Math.min(1, z * (H / content) * 0.995));
+      if (Math.abs(next - z) < 0.002) {
+        z = next;
+        break;
+      }
+      z = next;
+    }
+    apply(z);
+    zoomRef.current = z;
+  }, []);
+
+  useLayoutEffect(() => {
+    fitToViewport();
+    const parent = containerRef.current?.parentElement;
+    const ro = new ResizeObserver(() => fitToViewport());
+    if (parent) ro.observe(parent);
+    window.addEventListener('resize', fitToViewport);
+    // Recalcular cuando terminan de cargar las imágenes
+    const imgs = containerRef.current?.querySelectorAll('img') || [];
+    imgs.forEach((img) => img.addEventListener('load', fitToViewport));
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', fitToViewport);
+      imgs.forEach((img) => img.removeEventListener('load', fitToViewport));
+    };
+  }, [fitToViewport]);
+
+  // Recalcular si cambia contenido que altera alturas
+  useLayoutEffect(() => {
+    fitToViewport();
+  }, [fitToViewport, existingBets.length, isCurrentSelectionDuplicate, selectedMarketId]);
+
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       {/* 1. TOP BAR */}
       <header className={styles.topBar}>
         <div className={styles.topBarMainRow}>

@@ -1365,8 +1365,8 @@
   scrollbar-color: rgba(245, 158, 11, 0.4) rgba(0, 0, 0, 0.3);
   background: radial-gradient(circle at 50% 0%, #152445 0%, #091020 100%);
   border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 20px;
-  padding: 16px 24px;
+  border-radius: 18px;
+  padding: clamp(8px, 1.3vh, 16px) clamp(12px, 1.5vw, 22px);
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.9),
     0 0 40px rgba(245, 158, 11, 0.25);
@@ -1374,15 +1374,16 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  box-sizing: border-box;
 }
 
 /* Escritorio: resumen a la izquierda y reporte de mercados a la derecha (menos alto, más ancho) */
-@media (min-width: 901px) {
+@media (min-width: 641px) and (min-height: 481px), (min-width: 901px) {
   .resultsCard {
     display: grid;
-    grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.3fr);
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.3fr);
     grid-auto-rows: min-content;
-    column-gap: 24px;
+    column-gap: clamp(12px, 1.6vw, 24px);
     align-content: start;
     justify-items: center;
   }
@@ -1393,7 +1394,7 @@
   }
 
   .resultsCard > .resultsTrophy {
-    width: 58px;
+    width: clamp(38px, 5vh, 52px);
   }
 
   .resultsCard > .resultsReportCol {
@@ -1404,15 +1405,15 @@
   }
 
   .resultsCard .podiumRow {
-    margin-bottom: 12px;
+    margin-bottom: clamp(6px, 1vh, 12px);
   }
 
   .resultsCard .podiumImg {
-    width: 48px;
+    width: clamp(34px, 4.5vh, 48px);
   }
 
   .resultsCard .podiumImgFirst {
-    width: 58px;
+    width: clamp(42px, 5.5vh, 60px);
   }
 }
 
@@ -1426,22 +1427,22 @@
 
 
 .resultsTrophy {
-  width: 58px;
-  height: 58px;
+  width: clamp(38px, 5vh, 52px);
+  height: clamp(38px, 5vh, 52px);
   border-radius: 50%;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   display: grid;
   place-items: center;
-  font-size: 1.8rem;
+  font-size: clamp(1.2rem, 2vh, 1.6rem);
   color: #000;
-  box-shadow: 0 0 24px rgba(245, 158, 11, 0.6);
-  margin-bottom: 8px;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+  margin-bottom: 4px;
 }
 
 .resultsTrophyCatastrophe {
   background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
   color: #fff;
-  box-shadow: 0 0 24px rgba(239, 68, 68, 0.7);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
 }
 
 .resultsEyebrow {
@@ -1453,19 +1454,19 @@
 }
 
 .resultsTitle {
-  font-size: 1.4rem;
+  font-size: clamp(1.05rem, 1.8vh, 1.35rem);
   font-weight: 900;
   color: #ffffff;
-  margin: 4px 0 6px;
+  margin: 2px 0 4px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .resultsTitleCatastrophe {
-  font-size: 1.4rem;
+  font-size: clamp(1.05rem, 1.8vh, 1.35rem);
   font-weight: 900;
   color: #f87171;
-  margin: 4px 0 6px;
+  margin: 2px 0 4px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
@@ -1474,16 +1475,16 @@
 .winningMarketBadge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(239, 68, 68, 0.25);
   border: 1px solid #ef4444;
   color: #fca5a5;
-  padding: 6px 16px;
+  padding: clamp(3px, 0.5vh, 6px) clamp(8px, 1vw, 14px);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: clamp(0.68rem, 0.95vh, 0.78rem);
   font-weight: 800;
-  margin: 6px 0 12px;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+  margin: 3px 0 6px;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
 }
 
 .winningMarketBadge strong {
@@ -1491,9 +1492,9 @@
 }
 
 .resultsSub {
-  font-size: 0.78rem;
+  font-size: clamp(0.68rem, 0.9vh, 0.76rem);
   color: #94a3b8;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 
 .userResultBanner {
@@ -1502,11 +1503,11 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  padding: clamp(4px, 0.6vh, 8px) 12px;
+  border-radius: 8px;
+  font-size: clamp(0.72rem, 1vh, 0.8rem);
   font-weight: 800;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .userResultWon {
@@ -1526,9 +1527,9 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 16px;
+  gap: clamp(8px, 1vw, 14px);
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: clamp(6px, 1vh, 12px);
 }
 
 .podiumColumn {
@@ -1638,7 +1639,7 @@
 .resultsActions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: clamp(4px, 0.6vh, 8px);
   width: 100%;
 }
 
@@ -1648,17 +1649,17 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
+  padding: clamp(7px, 1vh, 11px);
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: #000;
   border: none;
-  border-radius: 12px;
-  font-size: 0.86rem;
+  border-radius: 10px;
+  font-size: clamp(0.76rem, 1vh, 0.86rem);
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
   transition: all 140ms ease;
 }
 
@@ -1673,9 +1674,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 0.78rem;
+  padding: clamp(6px, 0.8vh, 9px);
+  border-radius: 8px;
+  font-size: clamp(0.7rem, 0.9vh, 0.78rem);
   font-weight: 800;
   cursor: pointer;
   transition: all 140ms ease;
@@ -1706,7 +1707,7 @@
 /* ==========================================================================
    RESPONSIVE DESIGN (Móvil y Pantallas Angostas)
    ========================================================================== */
-@media (max-width: 900px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
   .topBar {
     flex-wrap: wrap;
     padding: 6px 10px;

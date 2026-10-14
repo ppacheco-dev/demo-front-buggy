@@ -9,7 +9,8 @@ export default class MenuScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // 1. Fondo (Scene background): fondomovil en móvil / portrait, background en desktop
-    const isMobile = height > width || width <= 768;
+    const isPortrait = height > width;
+    const isMobile = isPortrait || width <= 640 || (height <= 480 && width <= 950);
     const bgKey = isMobile && this.textures.exists('fondomovil') ? 'fondomovil' : 'background';
     this.bg = this.add.image(width / 2, height / 2, bgKey);
     this.bg.setOrigin(0.5, 0.5);
@@ -202,8 +203,8 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   applyResponsiveLayout(width, height) {
-    const isMobile = height > width || width <= 768;
     const isPortrait = height > width;
+    const isMobile = isPortrait || width <= 640 || (height <= 480 && width <= 950);
 
     // 1. Fondo: en móvil usamos 'fondomovil', en escritorio 'background'
     const targetBgKey = isMobile && this.textures.exists('fondomovil') ? 'fondomovil' : 'background';
@@ -231,10 +232,13 @@ export default class MenuScene extends Phaser.Scene {
         logoScale = (maxLogoW / this.logo.width) * 1.25;
         logoY = height * 0.25;
       } else {
-        // En escritorio/apaisado: aumentado al doble (hasta 1000px de ancho)
-        const maxLogoW = Math.min(width * 0.65, 1000);
-        logoScale = maxLogoW / this.logo.width;
-        logoY = height * 0.26;
+        // Escritorio/apaisado: limitado por ancho Y alto para no chocar con el banner superior
+        const maxLogoW = Math.min(width * 0.55, 1000);
+        const maxLogoH = height * 0.3;
+        logoScale = Math.min(maxLogoW / this.logo.width, maxLogoH / this.logo.height);
+        const halfLogoH = (this.logo.height * logoScale) / 2;
+        const minSafeY = Math.max(72, height * 0.1) + halfLogoH;
+        logoY = Math.max(height * 0.26, minSafeY);
       }
 
       this.logo.setPosition(width / 2, logoY);
@@ -242,10 +246,21 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     // 3. Botón JUGAR: centrado en la parte inferior con presencia sólida
+    // Nota: la imagen btn_jugar tiene mucho margen transparente; el botón visible
+    // ocupa ~91% del ancho y ~38% del alto de la textura.
     if (this.btnPlay && this.btnPlay.width) {
-      const maxBtnW = isPortrait ? Math.min(width * 0.76, 320) : Math.min(width * 0.25, 360);
+      const VISIBLE_H_RATIO = 0.38;
+      let maxBtnW;
+      if (isPortrait) {
+        maxBtnW = Math.min(width * 0.76, 320);
+      } else {
+        // Escritorio: ~29% del ancho, limitado para que el botón visible no supere ~13% del alto
+        const maxByHeight = (height * 0.13 * this.btnPlay.width) / (this.btnPlay.height * VISIBLE_H_RATIO);
+        maxBtnW = Math.min(width * 0.29, 560, maxByHeight);
+      }
       this.btnBaseScale = maxBtnW / this.btnPlay.width;
-      const btnY = isPortrait ? height * 0.85 : height * 0.86;
+      const visibleHalfH = (this.btnPlay.height * VISIBLE_H_RATIO * this.btnBaseScale) / 2;
+      const btnY = isPortrait ? height * 0.85 : Math.min(height * 0.86, height - visibleHalfH - 24);
 
       this.btnPlay.setPosition(width / 2, btnY);
       this.btnPlay.setScale(this.btnBaseScale);
@@ -254,7 +269,22 @@ export default class MenuScene extends Phaser.Scene {
 
   handleResize(gameSize) {
     const { width, height } = gameSize;
+    if (this.logoTween) {
+      this.logoTween.stop();
+      this.logoTween = null;
+    }
     this.applyResponsiveLayout(width, height);
+    if (this.logo) {
+      this.logoTween = this.tweens.add({
+        targets: this.logo,
+        y: '-=10',
+        duration: 1800,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+      if (this.currentScreen && this.currentScreen !== 'menu') this.logoTween.pause();
+    }
     this.startBtnPulse();
   }
 
