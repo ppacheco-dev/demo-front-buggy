@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { getUserBets, getBetStatus } from '../../game/config/userBetsService';
 import styles from '../GameContainer.module.css';
 import tableStyles from './InfoModal.module.css';
+import { TICKET_PRICE } from '../../game/config/raceTimeService';
 
 export default function InfoModal({
   isOpen,
@@ -203,7 +204,14 @@ export default function InfoModal({
           ) : tab === 'rules' ? (
             <>
               <div className={styles.infoModalHeader}>
-                <p className={styles.infoModalEyebrow}>Reglas y Dinámica Oficial</p>
+                <div className={styles.infoModalEyebrowRow}>
+                  <p className={styles.infoModalEyebrow}>Reglas y Dinámica Oficial</p>
+                  <span className={styles.infoPriceChip} title="Precio por jugada">
+                    <i className="ph ph-ticket" aria-hidden="true" />
+                    <span>Precio por jugada:</span>
+                    <strong>{TICKET_PRICE}</strong>
+                  </span>
+                </div>
                 <h2 id="info-dialog-title" className={styles.infoModalTitle}>
                   Buggy: Circuito Dunas del Pacífico
                 </h2>
@@ -292,28 +300,6 @@ export default function InfoModal({
                   </div>
                 </div>
 
-                <div
-                  className={styles.infoAssetBlock}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 'clamp(8px, 1.2vh, 14px)',
-                    borderRadius: '12px',
-                    background: 'rgba(245, 158, 11, 0.08)',
-                    border: '1px solid rgba(245, 158, 11, 0.25)',
-                    marginTop: 'clamp(6px, 1vh, 10px)',
-                  }}
-                >
-                  <i className="ph ph-flag-checkered" style={{ fontSize: 'clamp(24px, 3vh, 32px)', color: '#f59e0b', marginBottom: '4px' }} />
-                  <span style={{ fontSize: 'clamp(0.76rem, 1vw, 0.86rem)', fontWeight: 900, color: '#facc15', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                    PRECIO POR JUGADA: $2.000
-                  </span>
-                  <span style={{ fontSize: 'clamp(0.64rem, 0.85vw, 0.72rem)', color: '#94a3b8', marginTop: '3px', textAlign: 'center', lineHeight: 1.3 }}>
-                    El premio final se calcula multiplicando tu apuesta por el factor del participante y mercado correspondiente.
-                  </span>
-                </div>
               </div>
             </>
           ) : (

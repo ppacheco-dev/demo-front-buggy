@@ -19,16 +19,16 @@
 }
 
 .modalCard {
-  width: clamp(320px, 66vw, 780px);
-  max-height: clamp(320px, 80vh, 580px);
-  max-width: calc(100vw - 32px);
+  width: clamp(320px, 66vw, 760px);
+  max-height: calc(100vh - 24px);
+  max-width: calc(100vw - 24px);
   overflow: hidden;
   background: linear-gradient(160deg, #131e36 0%, #0a1120 100%);
   border: 2px solid rgba(245, 158, 11, 0.6);
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 36px rgba(245, 158, 11, 0.22);
   position: relative;
-  padding: clamp(6px, 1.2vh, 12px) clamp(8px, 1.4vw, 14px);
+  padding: clamp(10px, 1.8vh, 18px) clamp(12px, 1.8vw, 20px);
   box-sizing: border-box;
   color: #fff;
   font-family: inherit;
@@ -36,15 +36,15 @@
 
 .closeBtn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: calc(clamp(10px, 1.8vh, 18px) + clamp(8px, 1.3vh, 12px) - 3px);
+  right: calc(clamp(12px, 1.8vw, 20px) + clamp(8px, 1.3vh, 12px));
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #94a3b8;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -61,28 +61,29 @@
 
 .voucherGrid {
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: clamp(8px, 1.2vw, 14px);
+  grid-template-columns: 1.1fr 1fr;
+  gap: clamp(10px, 1.6vw, 18px);
   align-items: stretch;
 }
 
-/* Columna izquierda: recibo */
+/* ---------- Columna izquierda: voucher ---------- */
 .voucherLeftCol {
   display: flex;
   flex-direction: column;
-  gap: clamp(4px, 0.8vh, 8px);
-  justify-content: space-between;
+  gap: clamp(6px, 1.1vh, 10px);
+  min-width: 0;
 }
 
 .voucherHeader {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding-right: 28px;
 }
 
 .ticketIconCircle {
-  width: 40px;
-  height: 40px;
+  width: clamp(30px, 4.6vh, 38px);
+  height: clamp(30px, 4.6vh, 38px);
   flex-shrink: 0;
   border-radius: 50%;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
@@ -90,46 +91,41 @@
   place-items: center;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.45);
   color: #000;
-  font-size: 20px;
+  font-size: clamp(16px, 2.4vh, 20px);
 }
 
 .headerTexts {
   display: flex;
   flex-direction: column;
-  line-height: 1.25;
-}
-
-.subTitle {
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
-  font-weight: 800;
-  color: #f59e0b;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .mainTitle {
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 1.3vw + 0.3rem, 1.15rem);
   font-weight: 900;
   color: #fff;
   margin: 0;
+  white-space: nowrap;
 }
 
 .ticketIdText {
   color: #94a3b8;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
 }
 
-/* Número de carrera: dato principal */
+/* Carrera: número, hora y estado */
 .raceStrip {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: clamp(4px, 0.7vh, 8px) clamp(8px, 1vw, 12px);
+  padding: clamp(5px, 0.9vh, 9px) clamp(10px, 1.2vw, 14px);
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.28) 0%, rgba(217, 119, 6, 0.1) 100%);
-  border: 2px solid #f59e0b;
-  box-shadow: 0 0 18px rgba(245, 158, 11, 0.25);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.26) 0%, rgba(217, 119, 6, 0.08) 100%);
+  border: 1.5px solid #f59e0b;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
 }
 
 .raceStripMain {
@@ -141,14 +137,14 @@
 }
 
 .raceStripLabel {
-  font-size: clamp(0.68rem, 1vh, 0.78rem);
+  font-size: clamp(0.62rem, 1vh, 0.72rem);
   font-weight: 900;
   letter-spacing: 0.16em;
   color: #fcd34d;
 }
 
 .raceStripNumber {
-  font-size: clamp(1.6rem, 3.2vh, 2.2rem);
+  font-size: clamp(1.4rem, 3.4vh, 2rem);
   line-height: 1;
   font-weight: 900;
   color: #fff;
@@ -160,23 +156,24 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 3px;
 }
 
 .raceStripTime {
-  font-size: clamp(0.78rem, 1.2vh, 0.9rem);
+  font-size: clamp(0.78rem, 1.3vh, 0.92rem);
   font-weight: 800;
   color: #e2e8f0;
+  white-space: nowrap;
 }
 
 .statusLive,
 .statusWait {
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 900;
-  letter-spacing: 0.06em;
-  text-align: right;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .statusLive {
@@ -190,39 +187,61 @@
   color: #7dd3fc;
 }
 
-/* Detalles de la apuesta */
+/* Resumen de la apuesta */
 .betCard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(3px, 0.5vh, 6px);
-  padding: clamp(4px, 0.7vh, 8px);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.8vh, 8px);
+  padding: clamp(6px, 1vh, 10px) clamp(8px, 1vw, 12px);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.32);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.betItem {
+.betRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: clamp(3px, 0.6vh, 6px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  min-width: 0;
+}
+
+.betRowValue {
+  font-size: clamp(0.78rem, 1.3vh, 0.92rem);
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.betTiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(4px, 0.6vw, 8px);
+}
+
+.betTile {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: clamp(3px, 0.5vh, 5px) clamp(6px, 0.8vw, 8px);
+  align-items: center;
+  gap: 2px;
+  padding: clamp(4px, 0.7vh, 7px) 4px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.07);
   min-width: 0;
 }
 
-.betItemHighlight {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.betItemWide {
-  grid-column: 1 / -1;
+.betTilePrize {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.35);
 }
 
 .detailLabel {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   color: #94a3b8;
   text-transform: uppercase;
   font-weight: 800;
@@ -230,15 +249,10 @@
 }
 
 .betValue {
-  font-size: clamp(0.78rem, 1.2vh, 0.92rem);
+  font-size: clamp(0.8rem, 1.3vh, 0.95rem);
   font-weight: 900;
   color: #fff;
-}
-
-.betSub {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #94a3b8;
+  white-space: nowrap;
 }
 
 .betFactor {
@@ -247,75 +261,24 @@
 
 .betPrize {
   color: #4ade80;
-  font-size: clamp(0.85rem, 1.3vh, 1.05rem);
-}
-
-.paidOk {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #10b981;
-}
-
-/* Dónde ver la carrera */
-.infoBanner {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border: 1.5px solid rgba(14, 165, 233, 0.4);
-  border-radius: 10px;
-  padding: clamp(3px, 0.5vh, 6px) clamp(6px, 0.8vw, 10px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-align: left;
-}
-
-.infoBannerIcon {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: #0ea5e9;
-  display: grid;
-  place-items: center;
-  color: #000;
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-
-.infoBannerText {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.infoBannerTitle {
-  font-size: 0.64rem;
-  font-weight: 900;
-  color: #38bdf8;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.infoBannerBody {
-  font-size: 0.7rem;
-  color: #e2e8f0;
-  line-height: 1.25;
 }
 
 /* Acciones */
 .actionBtns {
   display: flex;
   flex-direction: column;
-  gap: clamp(3px, 0.5vh, 6px);
+  gap: clamp(4px, 0.7vh, 7px);
 }
 
 .watchRaceBtn {
   width: 100%;
-  padding: clamp(6px, 0.9vh, 9px) 14px;
+  padding: clamp(6px, 1vh, 10px) 14px;
   border: none;
   border-radius: 999px;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #fff;
   font-weight: 900;
-  font-size: clamp(0.74rem, 1.1vh, 0.82rem);
+  font-size: clamp(0.72rem, 1.1vh, 0.82rem);
   letter-spacing: 0.04em;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
@@ -333,13 +296,13 @@
 
 .addAnotherBetBtn {
   width: 100%;
-  padding: clamp(6px, 0.9vh, 9px) 14px;
+  padding: clamp(6px, 1vh, 10px) 14px;
   border: 1px solid rgba(245, 158, 11, 0.45);
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.32) 100%);
   color: #fbbf24;
   font-weight: 900;
-  font-size: clamp(0.72rem, 1vh, 0.8rem);
+  font-size: clamp(0.7rem, 1.05vh, 0.8rem);
   letter-spacing: 0.04em;
   cursor: pointer;
   display: flex;
@@ -347,7 +310,6 @@
   justify-content: center;
   gap: 8px;
   transition: transform 120ms ease, filter 120ms ease, background 120ms ease, color 120ms ease;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
 }
 
 .addAnotherBetBtn:hover {
@@ -366,7 +328,7 @@
   background: rgba(255, 255, 255, 0.06);
   color: #e2e8f0;
   font-weight: 800;
-  font-size: clamp(0.68rem, 0.9vh, 0.76rem);
+  font-size: clamp(0.66rem, 1vh, 0.76rem);
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: background 120ms ease;
@@ -377,37 +339,30 @@
   color: #fff;
 }
 
-/* Columna derecha: mapa */
+/* ---------- Columna derecha: mapa ---------- */
 .voucherRightCol {
   background: rgba(8, 14, 28, 0.7);
   border: 1.5px solid rgba(59, 130, 246, 0.35);
   border-radius: 14px;
-  padding: clamp(8px, 1.2vh, 12px);
+  padding: clamp(8px, 1.3vh, 12px);
   display: flex;
   flex-direction: column;
-  gap: clamp(4px, 0.6vh, 8px);
+  gap: clamp(6px, 1vh, 10px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.05);
-  justify-content: space-between;
+  min-width: 0;
 }
 
 .mapTitleHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 0 30px 5px 0;
-}
-
-.mapTitleLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 0 32px 5px 0;
 }
 
 .mapRadarIcon {
   color: #38bdf8;
-  font-size: 1.1rem;
+  font-size: 1rem;
   animation: radarSpin 4s linear infinite;
 }
 
@@ -417,28 +372,18 @@
 }
 
 .mapTitleText {
-  font-size: 0.74rem;
+  font-size: clamp(0.62rem, 0.9vw, 0.72rem);
   font-weight: 900;
   letter-spacing: 0.08em;
   color: #e2e8f0;
-}
-
-.circuitTag {
-  background: rgba(14, 165, 233, 0.15);
-  border: 1px solid rgba(14, 165, 233, 0.4);
-  color: #38bdf8;
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
   white-space: nowrap;
 }
 
 .mapSvgWrapper {
   position: relative;
   width: 100%;
-  height: clamp(80px, 13vh, 140px);
+  flex: 1 1 auto;
+  min-height: clamp(90px, 16vh, 170px);
   background: radial-gradient(circle at center, #0f1c36 0%, #070c18 100%);
   border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: 10px;
@@ -447,6 +392,8 @@
 }
 
 .svgCircuit {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
@@ -505,58 +452,7 @@
   stroke-dasharray: 3 3;
 }
 
-/* Tu auto en la grilla de salida */
-.userGridBadge {
-  background: rgba(250, 204, 21, 0.1);
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  border-radius: 10px;
-  padding: 7px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.userGridLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.userGridSymbol {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 0.85rem;
-  font-weight: 900;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.userGridText {
-  font-size: 0.76rem;
-  font-weight: 800;
-  color: #fff;
-}
-
-.userGridSub {
-  font-size: 0.66rem;
-  color: #94a3b8;
-}
-
-.userGridTag {
-  background: #facc15;
-  color: #000;
-  font-size: 0.62rem;
-  font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 999px;
-  letter-spacing: 0.06em;
-}
-
-/* Ficha técnica */
+/* Ficha técnica mínima */
 .circuitStatsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -572,7 +468,7 @@
 }
 
 .statPillLabel {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   color: #94a3b8;
   font-weight: 700;
   text-transform: uppercase;
@@ -585,24 +481,33 @@
   font-weight: 900;
 }
 
-/* Pantallas angostas: una columna */
+/* ---------- Pantallas angostas / móvil: una columna ---------- */
 @media (max-width: 900px) and (orientation: portrait), (max-width: 680px), (max-height: 480px) and (max-width: 950px) {
   .voucherGrid {
     grid-template-columns: 1fr;
   }
 
   .modalCard {
-    max-width: 520px;
-    max-height: 94vh;
+    width: clamp(300px, 92vw, 460px);
   }
 
-  .mapTitleHeader {
-    padding-right: 0;
+  .voucherRightCol {
+    padding: 6px 8px;
+  }
+
+  .mapSvgWrapper {
+    flex: none;
+    height: clamp(84px, 14vh, 130px);
+    min-height: 0;
+  }
+
+  .circuitStatsGrid {
+    display: none;
   }
 }
 
-/* Pantallas bajas: la ficha técnica se oculta para ganar altura y modalCard se compacta */
-@media (max-height: 680px) {
+/* Alturas bajas: se compacta todo para que nada quede cortado */
+@media (max-height: 640px) {
   .circuitStatsGrid {
     display: none;
   }
@@ -610,16 +515,33 @@
 
 @media (max-height: 600px) and (orientation: landscape) {
   .modalCard {
-    width: min(86vw, 680px);
-    max-height: min(88vh, 460px);
-    padding: 6px 10px;
+    width: min(88vw, 700px);
+    padding: 8px 12px;
+  }
+
+  .voucherGrid {
+    grid-template-columns: 1.1fr 1fr;
+  }
+
+  .mapSvgWrapper {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 70px;
   }
 }
 
 @media (max-height: 420px) and (orientation: landscape) {
   .modalCard {
-    width: min(92vw, 580px);
-    max-height: min(94vh, 310px);
-    padding: 4px 8px;
+    width: min(94vw, 640px);
+    padding: 6px 10px;
+  }
+
+  .ticketIdText,
+  .mapTitleHeader {
+    display: none;
+  }
+
+  .voucherGrid {
+    gap: 8px;
   }
 }

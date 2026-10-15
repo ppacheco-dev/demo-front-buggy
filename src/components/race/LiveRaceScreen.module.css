@@ -206,7 +206,7 @@
   text-shadow: 0 0 18px rgba(245, 158, 11, 0.6);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
   .raceHeroNumber {
     font-size: 1.25rem;
   }
@@ -2331,4 +2331,60 @@
   }
 }
 
+/* ==========================================================================
+   AJUSTES FINOS MÓVIL: barra superior compacta sin desbordes
+   ========================================================================== */
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+  .topBarLeft {
+    min-width: 0;
+    max-width: 100%;
+  }
 
+  .raceHeroBadge {
+    gap: 5px;
+    padding: 3px 8px 3px 3px;
+    border-width: 1.5px;
+  }
+
+  .raceHeroTag {
+    padding: 4px 7px;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .raceHeroNumber {
+    font-size: 1.05rem;
+  }
+
+  .raceHeroTime {
+    padding-left: 6px;
+    font-size: 0.68rem;
+  }
+
+  .liveNoticeBtn {
+    padding: 3px 8px;
+    font-size: 0.6rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* Móvil horizontal: una sola fila en la barra superior para ganar alto de pista */
+@media (max-height: 480px) and (orientation: landscape) and (max-width: 950px) {
+  .topBar {
+    flex-wrap: nowrap;
+    padding: 4px 10px;
+  }
+
+  .topBarCenter {
+    display: none;
+  }
+
+  .raceProgressBarContainer {
+    height: 14px;
+  }
+
+  .mainStage {
+    height: calc(100dvh - 62px);
+  }
+}

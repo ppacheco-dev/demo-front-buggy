@@ -5,9 +5,10 @@ import styles from './PlayModal.module.css';
 
 /**
  * PlayModal: Voucher oficial de participación.
- * Layout compacto en dos columnas: a la izquierda el recibo (carrera, apuesta, factor, premio,
- * dónde ver la carrera y acciones) y a la derecha el mapa del circuito con la ficha técnica.
- * El número de carrera es el dato más visible y aparece una sola vez.
+ * Layout limpio en dos columnas, sin datos repetidos:
+ *  - Izquierda: carrera (número, hora, estado), resumen de la apuesta (mercado, vehículo,
+ *    apuesta, factor y premio) y acciones.
+ *  - Derecha: mapa del circuito con una ficha técnica mínima.
  */
 export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, onGoToHome, onGoToBet }) {
   const pathRef = useRef(null);
@@ -118,88 +119,62 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
 
         <div className={styles.voucherGrid}>
           {/* ================================================================
-              COLUMNA 1: RECIBO OFICIAL / VOUCHER DE COMPRA
+              COLUMNA 1: VOUCHER (carrera, apuesta y acciones)
               ================================================================ */}
           <div className={styles.voucherLeftCol}>
-            {/* Encabezado */}
             <div className={styles.voucherHeader}>
               <div className={styles.ticketIconCircle}>
                 <i className="ph ph-ticket" aria-hidden="true" />
               </div>
               <div className={styles.headerTexts}>
-                <span className={styles.subTitle}>VOUCHER DE PARTICIPACIÓN OFICIAL</span>
-                <h2 className={styles.mainTitle}>¡SELECCIÓN CONFIRMADA!</h2>
-                <span className={styles.ticketIdText}>
-                  Ticket ID: #{ticketId} • Válido para transmisión oficial
-                </span>
+                <h2 className={styles.mainTitle}>¡Selección confirmada!</h2>
+                <span className={styles.ticketIdText}>Ticket #{ticketId}</span>
               </div>
             </div>
 
-            {/* Número de carrera: dato principal */}
+            {/* Carrera: número, hora y estado en una sola franja */}
             <div className={styles.raceStrip}>
               <div className={styles.raceStripMain}>
                 <span className={styles.raceStripLabel}>CARRERA</span>
-                <span className={styles.raceStripNumber}>{`Nº ${nextRaceNumber}`}</span>
+                <span className={styles.raceStripNumber}>{`Nº ${nextRaceNumber}`}</span>
               </div>
               <div className={styles.raceStripSide}>
-                <span className={styles.raceStripTime}>Hora: {nextRaceTime} hrs</span>
+                <span className={styles.raceStripTime}>{nextRaceTime} hrs</span>
                 <span className={isTargetRaceLive ? styles.statusLive : styles.statusWait}>
-                  {isTargetRaceLive ? '● EN VIVO AHORA' : 'PRÓXIMA CARRERA • AÚN NO COMIENZA'}
+                  {isTargetRaceLive ? '● EN VIVO' : 'PRÓXIMA'}
                 </span>
               </div>
             </div>
 
-            {/* Detalles de la apuesta */}
+            {/* Resumen de la apuesta */}
             <div className={styles.betCard}>
-              <div className={styles.betItem}>
+              <div className={styles.betRow}>
                 <span className={styles.detailLabel}>Mercado</span>
-                <span className={styles.betValue} style={{ color: marketColor }}>{marketName}</span>
-                {selection?.market?.ruleBadge && (
-                  <span className={styles.betSub}>{selection.market.ruleBadge}</span>
-                )}
+                <span className={styles.betRowValue} style={{ color: marketColor }}>{marketName}</span>
               </div>
-
-              <div className={styles.betItem}>
-                <span className={styles.detailLabel}>Vehículo Elegido</span>
-                <span className={styles.betValue} style={{ color: buggyColor }}>
+              <div className={styles.betRow}>
+                <span className={styles.detailLabel}>Vehículo</span>
+                <span className={styles.betRowValue} style={{ color: buggyColor }}>
                   {buggySymbol} {buggyName}
                 </span>
               </div>
-
-              <div className={`${styles.betItem} ${styles.betItemHighlight}`}>
-                <span className={styles.detailLabel}>Precio Pagado</span>
-                <span className={styles.betValue}>{ticketPrice}</span>
-                <span className={styles.paidOk}>✓ Pago Confirmado</span>
-              </div>
-
-              <div className={styles.betItem}>
-                <span className={styles.detailLabel}>Factor de Apuesta</span>
-                <span className={`${styles.betValue} ${styles.betFactor}`}>
-                  {factor.toFixed(1).replace('.', ',')}x
-                </span>
-                <span className={styles.betSub}>Multiplicador oficial</span>
-              </div>
-
-              <div className={`${styles.betItem} ${styles.betItemHighlight} ${styles.betItemWide}`}>
-                <span className={styles.detailLabel}>Premio en caso de Ganar</span>
-                <span className={`${styles.betValue} ${styles.betPrize}`}>
-                  ${estimatedPrize.toLocaleString('es-CL')}
-                </span>
-                <span className={styles.paidOk}>Pago estimado</span>
-              </div>
-            </div>
-
-            {/* Dónde ver la carrera */}
-            <div className={styles.infoBanner}>
-              <div className={styles.infoBannerIcon}>
-                <i className="ph ph-television-simple" aria-hidden="true" />
-              </div>
-              <div className={styles.infoBannerText}>
-                <span className={styles.infoBannerTitle}>¿Dónde ver la carrera?</span>
-                <span className={styles.infoBannerBody}>
-                  Al cumplirse las <strong>{nextRaceTime} hrs</strong>, presiona <strong>"VER CARRERA"</strong> para
-                  seguir la transmisión en vivo.
-                </span>
+              <div className={styles.betTiles}>
+                <div className={styles.betTile}>
+                  <span className={styles.detailLabel}>Apuesta</span>
+                  <span className={styles.betValue}>{ticketPrice}</span>
+                </div>
+                <div className={styles.betTile}>
+                  <span className={styles.detailLabel}>Factor</span>
+                  <span className={`${styles.betValue} ${styles.betFactor}`}>
+                    {factor.toFixed(1).replace('.', ',')}x
+                  </span>
+                </div>
+                <div className={`${styles.betTile} ${styles.betTilePrize}`}>
+                  <span className={styles.detailLabel}>Premio</span>
+                  <span className={`${styles.betValue} ${styles.betPrize}`}>
+                    ${estimatedPrize.toLocaleString('es-CL')}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -208,7 +183,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
               {isTargetRaceLive && (
                 <button type="button" onClick={handleWatchRace} className={styles.watchRaceBtn}>
                   <i className="ph ph-broadcast" aria-hidden="true" />
-                  <span>VER CARRERA EN DIRECTO AHORA</span>
+                  <span>VER CARRERA EN DIRECTO</span>
                 </button>
               )}
               {onGoToBet && (
@@ -222,25 +197,22 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                   title="Hacer otra jugada para este mismo sorteo"
                 >
                   <i className="ph ph-plus-circle" aria-hidden="true" />
-                  <span>HACER OTRA APUESTA PARA ESTE SORTEO</span>
+                  <span>HACER OTRA APUESTA</span>
                 </button>
               )}
               <button type="button" onClick={handleGoHome} className={styles.goHomeBtn}>
-                VOLVER AL INICIO A ESPERAR LA CARRERA
+                VOLVER AL INICIO
               </button>
             </div>
           </div>
 
           {/* ================================================================
-              COLUMNA 2: MAPA DE LA CARRERA QUE SE VA A REALIZAR
+              COLUMNA 2: MAPA DEL CIRCUITO
               ================================================================ */}
           <div className={styles.voucherRightCol}>
             <div className={styles.mapTitleHeader}>
-              <div className={styles.mapTitleLeft}>
-                <i className={`ph ph-compass ${styles.mapRadarIcon}`} aria-hidden="true" />
-                <span className={styles.mapTitleText}>MAPA OFICIAL DEL CIRCUITO</span>
-              </div>
-              <span className={styles.circuitTag}>DUNAS DEL PACÍFICO</span>
+              <i className={`ph ph-compass ${styles.mapRadarIcon}`} aria-hidden="true" />
+              <span className={styles.mapTitleText}>CIRCUITO DUNAS DEL PACÍFICO</span>
             </div>
 
             <div className={styles.mapSvgWrapper}>
@@ -298,60 +270,19 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
               </svg>
             </div>
 
-            {/* Posición en la grilla de salida */}
-            {selection?.buggy ? (
-              <div className={styles.userGridBadge}>
-                <div className={styles.userGridLeft}>
-                  <span className={styles.userGridSymbol} style={{ background: buggyColor, color: '#000' }}>
-                    {buggySymbol}
-                  </span>
-                  <div>
-                    <div className={styles.userGridText}>{buggyName} en la Grilla de Salida</div>
-                    <div className={styles.userGridSub}>Carrera Nº {nextRaceNumber} • {nextRaceTime} hrs</div>
-                  </div>
-                </div>
-                <span className={styles.userGridTag}>CONFIRMADO</span>
-              </div>
-            ) : (
-              <div className={styles.userGridBadge}>
-                <div className={styles.userGridLeft}>
-                  <span className={styles.userGridSymbol} style={{ background: '#0ea5e9', color: '#000' }}>
-                    ✕
-                  </span>
-                  <div>
-                    <div className={styles.userGridText}>Pronóstico: Ningún Auto Llega</div>
-                    <div className={styles.userGridSub}>Supervivencia extrema en los 7 sectores</div>
-                  </div>
-                </div>
-                <span className={styles.userGridTag}>ACTIVO</span>
-              </div>
-            )}
-
-            {/* Ficha técnica de la pista */}
+            {/* Ficha técnica mínima */}
             <div className={styles.circuitStatsGrid}>
               <div className={styles.statPill}>
                 <div className={styles.statPillLabel}>Longitud</div>
                 <div className={styles.statPillValue}>1,140 m</div>
               </div>
               <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Sectores</div>
-                <div className={styles.statPillValue}>8 Tramos</div>
+                <div className={styles.statPillLabel}>Tramos</div>
+                <div className={styles.statPillValue}>8</div>
               </div>
               <div className={styles.statPill}>
                 <div className={styles.statPillLabel}>Peligros</div>
-                <div className={styles.statPillValue} style={{ color: '#ef4444' }}>7 Zonas</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Superficie</div>
-                <div className={styles.statPillValue}>Arena / Asfalto</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Clima</div>
-                <div className={styles.statPillValue} style={{ color: '#facc15' }}>Dunas Soleadas</div>
-              </div>
-              <div className={styles.statPill}>
-                <div className={styles.statPillLabel}>Dificultad</div>
-                <div className={styles.statPillValue} style={{ color: '#f59e0b' }}>Extrema</div>
+                <div className={styles.statPillValue} style={{ color: '#ef4444' }}>7 zonas</div>
               </div>
             </div>
           </div>

@@ -157,7 +157,7 @@
   100% { transform: translate(12px, -18px) scale(0.2); opacity: 0; }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
   .obstacleSvg {
     width: 44px;
     height: 32px;

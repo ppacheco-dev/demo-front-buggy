@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { findBuggyByName, generateDrawMarketReport, getBetMultiplier } from '../../game/config/selectionData';
 import { getOrCreateRace, REFERENCE_RACE_TRAMOS } from '../../game/config/raceStorageService';
 import { getUserBets } from '../../game/config/userBetsService';
@@ -12,6 +12,12 @@ import styles from './LiveRaceScreen.module.css';
 
 // Duración total de la carrera en milisegundos (22s de acción pura estilo videojuego)
 const RACE_DURATION_MS = 22000;
+
+// Dimensiones de diseño de la vista de escritorio. Si el viewport es más pequeño, toda la
+// pantalla se escala proporcionalmente (igual que la selección de mercado) para que quepa completa.
+const DESIGN_WIDTH = 1240;
+const DESIGN_HEIGHT = 620;
+const MIN_FIT_ZOOM = 0.4;
 
 export default function LiveRaceScreen({
   onBackToMenu,
@@ -65,6 +71,52 @@ export default function LiveRaceScreen({
   const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' (por defecto) | 'broadcast2d' | 'cockpitFpv'
   const animFrameRef = useRef(null);
   const startTimeRef = useRef(null);
+
+  // Ajuste al viewport: usa `zoom` (no `transform`) para no alterar elementos `position: fixed`.
+  // En móvil / portrait se conserva el layout responsivo nativo.
+  const containerRef = useRef(null);
+  const fitToViewport = useCallback(() => {
+    const el = containerRef.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+
+    const W = parent.clientWidth;
+    const H = parent.clientHeight;
+    if (!W || !H) return;
+
+    const isMobileMode =
+      window.matchMedia('(max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px)').matches ||
+      W <= 640 ||
+      (H > W && W <= 900);
+
+    if (isMobileMode) {
+      el.style.zoom = '';
+      el.style.width = '';
+      el.style.height = '';
+      el.style.right = '';
+      el.style.bottom = '';
+      return;
+    }
+
+    const z = Math.max(MIN_FIT_ZOOM, Math.min(1, W / DESIGN_WIDTH, H / DESIGN_HEIGHT));
+    el.style.zoom = String(z);
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+    el.style.width = `${W / z}px`;
+    el.style.height = `${H / z}px`;
+  }, []);
+
+  useLayoutEffect(() => {
+    fitToViewport();
+    const parent = containerRef.current?.parentElement;
+    const ro = new ResizeObserver(() => fitToViewport());
+    if (parent) ro.observe(parent);
+    window.addEventListener('resize', fitToViewport);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', fitToViewport);
+    };
+  }, [fitToViewport]);
 
   // Lista fija de nombres de autos para consistencia
   const carNames = useMemo(() => {
@@ -423,7 +475,7 @@ export default function LiveRaceScreen({
   }, [isFinished, ningunAutoLlego, winnerCar, rankedCars]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       {/* 1. Barra Superior Oficial: Limpia, Equilibrada y Sin Ruido Visual */}
       <header className={styles.topBar}>
         {/* Columna Izquierda: Identificación única de la carrera */}
