@@ -109,6 +109,24 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
     const H = parent.clientHeight;
     if (!W || !H) return; // Pantalla oculta (display: none)
 
+    // En pantallas móviles / portrait / compactas, preservar el layout responsivo nativo con scroll vertical
+    const isMobileMode =
+      window.matchMedia('(max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px)').matches ||
+      (W <= 640) ||
+      (H > W && W <= 900);
+
+    if (isMobileMode) {
+      el.style.zoom = '';
+      el.style.width = '';
+      el.style.height = '';
+      el.style.right = '';
+      el.style.bottom = '';
+      zoomRef.current = 1;
+      return;
+    }
+
+    // Modo escritorio / iframe horizontal: ajustar zoom para que todo quepa sin scrollbars
+    const baseW = 1140;
     const apply = (z) => {
       el.style.zoom = String(z);
       el.style.right = 'auto';
@@ -137,9 +155,11 @@ export default function SelectionScreen({ onConfirm, onBackToMenu, onOpenSetting
     let z = zoomRef.current || 1;
     for (let i = 0; i < 5; i += 1) {
       apply(z);
-      const content = measure(z);
-      if (!content) break;
-      const next = Math.max(MIN_FIT_ZOOM, Math.min(1, z * (H / content) * 0.995));
+      const contentH = measure(z);
+      if (!contentH) break;
+      const scaleH = (H / contentH) * 0.995;
+      const scaleW = (W / baseW) * 0.995;
+      const next = Math.max(MIN_FIT_ZOOM, Math.min(1, Math.min(z * scaleH, scaleW)));
       if (Math.abs(next - z) < 0.002) {
         z = next;
         break;

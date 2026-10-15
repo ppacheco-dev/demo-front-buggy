@@ -978,16 +978,20 @@
     min-height: 104px;
     padding: 5px 3px 6px;
     border-radius: 10px;
+    overflow: hidden;
   }
 
   .buggyImageWrap {
     height: 52px;
     margin-bottom: 2px;
+    overflow: hidden;
   }
 
   .buggyImg {
     max-height: 52px;
-    width: 110%;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
   }
 
   .buggyPlatform {
