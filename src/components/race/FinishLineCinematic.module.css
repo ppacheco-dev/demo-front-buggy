@@ -1,0 +1,212 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1500;
+  overflow: hidden;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 0%, #1b2a52 0%, #070c1c 70%);
+  animation: overlayIn 300ms ease-out;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 80% 12%, rgba(251, 146, 60, 0.45) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(76, 29, 149, 0.35) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+/* Escena en perspectiva: el plano de la pista se rota 45° para verlo en diagonal */
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1100px;
+}
+
+.plane {
+  position: relative;
+  flex: none;
+  width: 780px;
+  height: 400px;
+  transform-style: preserve-3d;
+  transform: rotateX(58deg) rotateZ(-45deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 70px),
+    linear-gradient(180deg, #2a3350 0%, #1a2138 100%);
+  border: 6px solid #e2e8f0;
+  border-left: none;
+  border-right: none;
+  border-radius: 6px;
+  box-shadow: 0 0 0 6px #ef4444, 0 40px 80px rgba(0, 0, 0, 0.7);
+  animation: planeIn 700ms ease-out both;
+}
+
+@keyframes planeIn {
+  from { transform: rotateX(58deg) rotateZ(-30deg) translateX(-60px); opacity: 0; }
+  to { transform: rotateX(58deg) rotateZ(-45deg) translateX(0); opacity: 1; }
+}
+
+.laneLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 3px dashed rgba(255, 255, 255, 0.28);
+}
+
+.laneLine:first-child,
+.laneLine:last-of-type {
+  display: none;
+}
+
+/* Línea de meta */
+.finishLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 44px;
+  background:
+    repeating-conic-gradient(#fff 0% 25%, #0b0f1a 0% 50%) 0 0 / 22px 22px;
+  box-shadow: 0 0 24px rgba(250, 204, 21, 0.6);
+}
+
+.finishFlag {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%) rotateZ(45deg);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #facc15;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.8);
+}
+
+/* Buggies: se posicionan en el plano y se "ponen de pie" con rotación inversa */
+.carSlot {
+  position: absolute;
+  left: -12%;
+  width: 0;
+  height: 0;
+  animation: carRun 3.1s cubic-bezier(0.22, 0.8, 0.3, 1) var(--delay, 0s) forwards;
+}
+
+@keyframes carRun {
+  from { left: -12%; }
+  to { left: var(--end-left, 90%); }
+}
+
+.carBillboard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: center bottom;
+  transform: translate(-50%, -85%) rotateZ(45deg) rotateX(-58deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.carImg {
+  width: 128px;
+  height: auto;
+  filter: drop-shadow(0 14px 12px rgba(0, 0, 0, 0.85));
+}
+
+.carTag {
+  font-size: 15px;
+  font-weight: 900;
+  color: #000;
+  padding: 1px 9px;
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Confeti */
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  opacity: 0;
+  border-radius: 2px;
+  animation: confettiFall 2.4s ease-in forwards;
+}
+
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(560px) rotate(540deg); }
+}
+
+.caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  animation: captionIn 600ms ease-out 1.2s both;
+}
+
+@keyframes captionIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.captionTop {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow: 0 0 22px rgba(250, 204, 21, 0.85), 0 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+.captionWinner {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #facc15;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Móvil vertical: el plano se reduce para que quepa */
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
+  .plane {
+    width: 760px;
+    height: 260px;
+    transform: rotateX(58deg) rotateZ(-45deg) scale(0.62);
+  }
+
+  @keyframes planeIn {
+    from { transform: rotateX(58deg) rotateZ(-30deg) scale(0.62); opacity: 0; }
+    to { transform: rotateX(58deg) rotateZ(-45deg) scale(0.62); opacity: 1; }
+  }
+
+  .carImg {
+    width: 110px;
+  }
+
+  .captionTop {
+    font-size: 1.4rem;
+  }
+}

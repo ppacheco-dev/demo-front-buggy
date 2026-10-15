@@ -1549,7 +1549,26 @@
   border-color: rgba(245, 158, 11, 0.6);
   background: linear-gradient(180deg, rgba(245, 158, 11, 0.2) 0%, rgba(14, 24, 46, 0.9) 100%);
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
-  transform: translateY(-8px);
+  min-height: 150px;
+}
+
+/* Escalones del podio: 1º más alto, 2º intermedio y 3º más abajo */
+.podiumSecond {
+  min-height: 124px;
+  border-color: rgba(203, 213, 225, 0.45);
+}
+
+.podiumThird {
+  min-height: 100px;
+  border-color: rgba(205, 127, 50, 0.5);
+}
+
+.podiumSecond .podiumPlace {
+  color: #e2e8f0;
+}
+
+.podiumThird .podiumPlace {
+  color: #e0a46a;
 }
 
 .crownIcon {
@@ -2367,4 +2386,51 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
+}
+
+/* ==========================================================================
+   CUENTA REGRESIVA DE LARGADA (3, 2, 1, GO)
+   ========================================================================== */
+.countdownOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, rgba(5, 9, 20, 0.35) 0%, rgba(5, 9, 20, 0.7) 100%);
+  pointer-events: none;
+}
+
+.countdownNumber,
+.countdownGo {
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  animation: countdownPop 900ms ease-out both;
+}
+
+.countdownNumber {
+  font-size: 11rem;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(250, 204, 21, 0.9), 0 8px 0 rgba(0, 0, 0, 0.45);
+}
+
+.countdownGo {
+  font-size: 8rem;
+  color: #4ade80;
+  text-shadow: 0 0 44px rgba(74, 222, 128, 0.95), 0 8px 0 rgba(0, 0, 0, 0.45);
+  animation-duration: 800ms;
+}
+
+@keyframes countdownPop {
+  0% { opacity: 0; transform: scale(2.2); }
+  30% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; transform: scale(0.96); }
+  100% { opacity: 0; transform: scale(0.7); }
+}
+
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
+  .countdownNumber { font-size: 8rem; }
+  .countdownGo { font-size: 5.5rem; }
 }
