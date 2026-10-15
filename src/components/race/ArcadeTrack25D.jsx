@@ -43,9 +43,9 @@ export default function ArcadeTrack25D({
     return { minX: min, maxX: Math.max(min + 60, max) };
   }, [activeCars]);
 
-  // Carriles horizontales distribuidos estilizados
+  // Carriles horizontales centrados dentro de la calzada ajustada (ancho 58%)
   const laneOffsets = useMemo(() => {
-    return [12, 28, 44, 58, 74, 89];
+    return [24, 34, 45, 55, 66, 76];
   }, []);
 
   // Cálculo de la aproximación en perspectiva 3D del obstáculo transversal para TODOS los autos
@@ -119,38 +119,27 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
-  // Pórtico de META en 2.5D: aparece suavemente en el horizonte durante el tramo final
-  // y avanza por la calzada en perspectiva acelerada, cubriendo el ancho exacto de la pista.
+  // Pórtico de META en 2.5D: aparece únicamente en la recta final (después de superar los obstáculos)
+  // en el mismo plano y ancho exacto de la pista de carreras, completo y visible desde el inicio.
   const finishGantry = useMemo(() => {
-    // Inicia en el 75% de la carrera (sprint final hacia la meta)
-    const startProgress = 0.75;
+    // Inicia estrictamente al 93% (llegada a meta tras superar el último foso)
+    const startProgress = 0.93;
     if (progress < startProgress) {
-      return { visible: false, top: 26, width: 24, scale: 0.32, opacity: 0 };
+      return { visible: false, roadY: 0, opacity: 0 };
     }
 
-    // Progreso normalizado del sprint final (0 a 1)
+    // Progreso del sprint de llegada (0 a 1)
     const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
 
-    // Curva de perspectiva 3D acelerada (los objetos distantes avanzan despacio y aceleran visualmente al acercarse)
-    const p = Math.pow(t, 1.85);
+    // Posición a lo largo de la calzada (desde 16% en la lejanía hasta 82% en primer plano)
+    const roadY = 16 + Math.pow(t, 1.45) * 66;
 
-    // Posición Y en pantalla: desde el horizonte (26%) hasta el primer plano cruzado (88%)
-    const top = 26 + p * 62;
-
-    // Ancho proporcional al trapecio de la carretera en esa altura Y (de 24% en el horizonte a 94% en primer plano)
-    const width = 24 + p * 70;
-
-    // Escala del pórtico para perspectiva 2.5D realista
-    const scale = 0.32 + p * 0.96;
-
-    // Fade-in suave al inicio para que aparezca con total naturalidad
-    const opacity = Math.min(1, t * 5);
+    // Aparece completo desde el inicio con fade-in rápido y firme
+    const opacity = Math.min(1, 0.45 + t * 4);
 
     return {
       visible: true,
-      top,
-      width,
-      scale,
+      roadY,
       opacity,
     };
   }, [progress]);
@@ -258,21 +247,19 @@ export default function ArcadeTrack25D({
 
         </div>
 
-        {/* Línea de meta a cuadros en el asfalto (por debajo de los buggies) */}
+        {/* Línea de meta a cuadros en el asfalto (mismo plano 3D que la carretera, por debajo de los buggies) */}
         {finishGantry.visible && (
           <div
-            className={styles.groundFinishLine}
+            className={styles.groundFinishTrackPlane}
             style={{
-              left: `calc(50% + ${trackCurve}px)`,
-              top: `${finishGantry.top}%`,
-              width: `${finishGantry.width}%`,
+              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
               opacity: finishGantry.opacity,
-              transform: `translate3d(-50%, -50%, 0) rotateZ(${-trackCurve * 0.12}deg) scale(${finishGantry.scale})`,
             }}
           >
-            <div className={styles.finishLineCheckers} />
-            <div className={styles.finishLineBorderTop} />
-            <div className={styles.finishLineBorderBottom} />
+            <div
+              className={styles.asphaltFinishCheckers}
+              style={{ top: `${finishGantry.roadY}%` }}
+            />
           </div>
         )}
 
@@ -421,47 +408,46 @@ export default function ArcadeTrack25D({
           })}
         </div>
 
-        {/* Pórtico superior de META: pilares anclados en los bordillos y arco elevado sobre los autos */}
+        {/* Pórtico superior de META (mismo plano 3D que la carretera, elevado sobre los autos) */}
         {finishGantry.visible && (
           <div
-            className={styles.overheadGantryArch}
+            className={styles.overheadFinishTrackPlane}
             style={{
-              left: `calc(50% + ${trackCurve}px)`,
-              top: `${finishGantry.top}%`,
-              width: `${finishGantry.width}%`,
+              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
               opacity: finishGantry.opacity,
-              transform: `translate3d(-50%, -100%, 0) rotateZ(${-trackCurve * 0.12}deg) scale(${finishGantry.scale})`,
             }}
           >
-            {/* Pilar izquierdo anclado en el bordillo izquierdo */}
-            <div className={styles.gantryPillarLeft}>
-              <div className={styles.gantryPillarBody} />
-              <div className={styles.gantryPillarBase} />
-            </div>
-
-            {/* Pilar derecho anclado en el bordillo derecho */}
-            <div className={styles.gantryPillarRight}>
-              <div className={styles.gantryPillarBody} />
-              <div className={styles.gantryPillarBase} />
-            </div>
-
-            {/* Arco transversal superior elevado que cruza la pista */}
-            <div className={styles.gantryTrussArch}>
-              {/* Luces de carrera estilo semáforo */}
-              <div className={styles.finishGantryLights}>
-                <span className={styles.gantryLightGreen} />
-                <span className={styles.gantryLightAmber} />
-                <span className={styles.gantryLightRed} />
+            <div
+              className={styles.gantry3DArch}
+              style={{ top: `${finishGantry.roadY}%` }}
+            >
+              {/* Pilar izquierdo anclado directamente en el bordillo izquierdo */}
+              <div className={styles.gantry3DPillarLeft}>
+                <div className={styles.gantry3DPillarBody} />
+                <div className={styles.gantry3DPillarBase} />
               </div>
 
-              {/* Banner central con META y cuadros */}
-              <div className={styles.gantryBannerFrame}>
-                <div className={styles.gantryFlagWingLeft} />
-                <div className={styles.gantryCenterBoard}>
-                  <span className={styles.gantryTitleText}>META</span>
-                  <span className={styles.gantrySubtitleText}>DUNAS DEL PACÍFICO • 1.140 M</span>
+              {/* Pilar derecho anclado directamente en el bordillo derecho */}
+              <div className={styles.gantry3DPillarRight}>
+                <div className={styles.gantry3DPillarBody} />
+                <div className={styles.gantry3DPillarBase} />
+              </div>
+
+              {/* Banner superior con semáforo y cartel de META */}
+              <div className={styles.gantry3DBanner}>
+                <div className={styles.gantry3DLights}>
+                  <span className={styles.gantryLightGreen} />
+                  <span className={styles.gantryLightAmber} />
+                  <span className={styles.gantryLightRed} />
                 </div>
-                <div className={styles.gantryFlagWingRight} />
+                <div className={styles.gantry3DBannerFrame}>
+                  <div className={styles.gantry3DFlagWing} />
+                  <div className={styles.gantry3DCenterBoard}>
+                    <span className={styles.gantry3DTitle}>META</span>
+                    <span className={styles.gantry3DSub}>DUNAS DEL PACÍFICO • 1.140 M</span>
+                  </div>
+                  <div className={styles.gantry3DFlagWing} />
+                </div>
               </div>
             </div>
           </div>
