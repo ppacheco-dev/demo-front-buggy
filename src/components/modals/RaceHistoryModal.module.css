@@ -19,15 +19,17 @@
 }
 
 .modalCard {
-  width: min(95vw, 780px);
-  max-height: min(92vh, 680px);
+  width: clamp(320px, 66vw, 760px);
+  height: clamp(320px, 78vh, 580px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: radial-gradient(circle at 50% 0%, #15223e 0%, #080f1e 100%);
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: 16px;
-  padding: clamp(10px, 1.6vh, 20px) clamp(12px, 1.8vw, 24px);
+  padding: clamp(8px, 1.4vh, 16px) clamp(10px, 1.6vw, 20px);
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.9),
     0 0 35px rgba(245, 158, 11, 0.15);
@@ -39,7 +41,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: clamp(6px, 1vh, 12px);
+  padding-bottom: clamp(4px, 0.8vh, 10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
@@ -47,46 +49,46 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: clamp(8px, 1.2vw, 14px);
 }
 
 .iconCircle {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: clamp(32px, 3.8vw, 40px);
+  height: clamp(32px, 3.8vw, 40px);
+  border-radius: 10px;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: #000;
   display: grid;
   place-items: center;
-  font-size: 1.4rem;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
 }
 
 .eyebrow {
-  font-size: 0.68rem;
+  font-size: clamp(0.56rem, 0.8vw, 0.66rem);
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #f59e0b;
   text-transform: uppercase;
   display: block;
 }
 
 .title {
-  margin: 2px 0 0;
-  font-size: 1.35rem;
+  margin: 1px 0 0;
+  font-size: clamp(0.98rem, 1.5vw, 1.25rem);
   font-weight: 900;
   color: #f8fafc;
   letter-spacing: 0.02em;
 }
 
 .closeBtn {
-  width: 38px;
-  height: 38px;
+  width: clamp(28px, 3.2vw, 34px);
+  height: clamp(28px, 3.2vw, 34px);
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.08);
   color: #94a3b8;
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -388,5 +390,31 @@
     width: 100%;
     justify-content: center;
     padding: 10px;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .modalCard {
+    width: min(86vw, 660px);
+    height: min(86vh, 440px);
+    padding: 8px 12px;
+  }
+  .title {
+    font-size: 1rem;
+  }
+  .statsBar {
+    padding: 4px 10px;
+    margin: 4px 0 8px;
+  }
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .modalCard {
+    width: min(92vw, 580px);
+    height: min(94vh, 310px);
+    padding: 6px 10px;
+  }
+  .title {
+    font-size: 0.92rem;
   }
 }

@@ -19,15 +19,16 @@
 }
 
 .modalCard {
-  width: min(94vw, 840px);
-  max-height: 94vh;
+  width: clamp(320px, 66vw, 780px);
+  max-height: clamp(320px, 80vh, 580px);
+  max-width: calc(100vw - 32px);
   overflow: hidden;
   background: linear-gradient(160deg, #131e36 0%, #0a1120 100%);
   border: 2px solid rgba(245, 158, 11, 0.6);
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 36px rgba(245, 158, 11, 0.22);
   position: relative;
-  padding: clamp(8px, 1.4vh, 14px) clamp(10px, 1.5vw, 16px);
+  padding: clamp(6px, 1.2vh, 12px) clamp(8px, 1.4vw, 14px);
   box-sizing: border-box;
   color: #fff;
   font-family: inherit;
@@ -600,9 +601,25 @@
   }
 }
 
-/* Pantallas bajas: la ficha técnica se oculta para ganar altura */
+/* Pantallas bajas: la ficha técnica se oculta para ganar altura y modalCard se compacta */
 @media (max-height: 680px) {
   .circuitStatsGrid {
     display: none;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .modalCard {
+    width: min(86vw, 680px);
+    max-height: min(88vh, 460px);
+    padding: 6px 10px;
+  }
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .modalCard {
+    width: min(92vw, 580px);
+    max-height: min(94vh, 310px);
+    padding: 4px 8px;
   }
 }

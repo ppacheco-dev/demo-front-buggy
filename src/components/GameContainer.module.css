@@ -270,7 +270,9 @@
 }
 
 .soundConsentCard {
-  width: min(92vw, 520px);
+  width: clamp(280px, 46vw, 460px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
   border-radius: 14px;
   border: 1px solid #30363d;
   box-shadow:
@@ -280,7 +282,7 @@
   background:
     linear-gradient(180deg, rgba(240, 246, 252, 0.04) 0%, rgba(240, 246, 252, 0) 24%),
     linear-gradient(150deg, #1b222c 0%, #161b22 58%, #121820 100%);
-  padding: 22px;
+  padding: clamp(12px, 2vh, 20px);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -430,8 +432,10 @@
 }
 
 .infoModalCard {
-  width: min(95vw, 920px);
-  height: min(92vh, 680px);
+  width: clamp(320px, 64vw, 800px);
+  height: clamp(320px, 78vh, 600px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 14px;
@@ -444,10 +448,10 @@
     linear-gradient(180deg, rgba(88, 166, 255, 0.07) 0%, rgba(88, 166, 255, 0) 24%),
     linear-gradient(152deg, #1b222c 0%, #161b22 56%, #121820 100%);
   color: #c9d1d9;
-  padding: clamp(10px, 1.6vh, 22px);
+  padding: clamp(8px, 1.5vh, 18px) clamp(10px, 1.8vw, 20px);
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.2vh, 16px);
+  gap: clamp(5px, 1vh, 12px);
   font-family: 'Manrope', 'Segoe UI', sans-serif;
   animation: infoModalEnter 220ms ease-out;
 }
@@ -457,8 +461,8 @@
   background: rgba(13, 17, 23, 0.75);
   border: 1px solid #30363d;
   border-radius: 999px;
-  padding: 4px;
-  gap: 6px;
+  padding: 3px;
+  gap: 4px;
   width: 100%;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -497,14 +501,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: clamp(4px, 0.8vw, 8px);
+  padding: clamp(5px, 0.9vh, 8px) clamp(8px, 1.2vw, 14px);
   border-radius: 999px;
   border: 1px solid transparent;
   background: transparent;
   color: #8b949e;
   font-family: 'Manrope', 'Segoe UI', sans-serif;
-  font-size: 0.92rem;
+  font-size: clamp(0.72rem, 1vw, 0.84rem);
   font-weight: 700;
   cursor: pointer;
   transition: all 150ms ease;
@@ -608,36 +612,38 @@
 .infoModalHeader {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .infoModalEyebrow {
   margin: 0;
   color: #58a6ff;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
+  font-size: clamp(0.58rem, 0.85vw, 0.68rem);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
 }
 
 .infoModalTitle {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
   line-height: 1.15;
   color: #f0f6fc;
+  font-weight: 800;
 }
 
 .infoModalSubtitle {
   margin: 0;
   color: #8b949e;
-  font-size: 0.95rem;
-  line-height: 1.35;
+  font-size: clamp(0.7rem, 1vw, 0.82rem);
+  line-height: 1.25;
 }
 
 .infoModalBody {
   display: grid;
-  gap: 16px;
-  grid-template-columns: 1.35fr 1fr;
+  gap: clamp(8px, 1.2vw, 14px);
+  grid-template-columns: 1.25fr 1fr;
   align-items: stretch;
 }
 
@@ -647,17 +653,17 @@
     #0d1117;
   border: 1px solid #30363d;
   border-radius: 10px;
-  padding: 12px;
+  padding: clamp(6px, 1.1vh, 10px) clamp(8px, 1.2vw, 12px);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: clamp(5px, 0.8vh, 8px);
 }
 
 .infoRuleItem {
   margin: 0;
   color: #c9d1d9;
-  line-height: 1.35;
-  font-size: 0.92rem;
+  line-height: 1.25;
+  font-size: clamp(0.7rem, 0.95vw, 0.8rem);
 }
 
 .infoAssetBlock {
@@ -666,51 +672,51 @@
     #0d1117;
   border: 1px solid #30363d;
   border-radius: 10px;
-  padding: 14px;
+  padding: clamp(8px, 1.2vh, 12px);
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
   box-sizing: border-box;
-  min-height: 160px;
+  min-height: 120px;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .infoAssetSymbol {
-  width: 82px;
-  height: 82px;
+  width: 58px;
+  height: 58px;
   display: grid;
   place-items: center;
   border: 2px solid #58a6ff;
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(88, 166, 255, 0.14);
   color: #f0f6fc;
-  font-size: 3rem;
+  font-size: 2rem;
   line-height: 1;
   font-weight: 900;
 }
 
 .infoAssetText {
   color: #8b949e;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
 }
 
 .infoModalButton {
   align-self: center;
-  min-width: 180px;
+  min-width: clamp(120px, 15vw, 150px);
   flex-shrink: 0;
   margin-top: auto;
   border: 1px solid #388bfd;
   border-radius: 999px;
-  padding: 12px 24px;
+  padding: clamp(6px, 1vh, 9px) clamp(16px, 2vw, 24px);
   background:
     linear-gradient(180deg, rgba(240, 246, 252, 0.2) 0%, rgba(240, 246, 252, 0) 45%),
     linear-gradient(135deg, #388bfd 0%, #1f6feb 58%, #1158c7 100%);
   color: #f0f6fc;
-  font-size: 0.9rem;
+  font-size: clamp(0.74rem, 1vw, 0.84rem);
   font-weight: 700;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -785,10 +791,11 @@
   }
 
   .infoModalCard {
-    width: min(96vw, 780px);
-    height: min(92vh, 680px);
-    padding: 16px;
-    gap: 12px;
+    width: min(92vw, 380px);
+    height: auto;
+    max-height: min(88vh, 620px);
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .infoModalBody {
@@ -796,7 +803,49 @@
   }
 
   .infoModalTitle {
-    font-size: 1.35rem;
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .infoModalCard {
+    width: min(86vw, 660px);
+    height: min(86vh, 440px);
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .infoModalTitle {
+    font-size: 1.05rem;
+  }
+  .infoModalSubtitle {
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+  .infoModalBody {
+    gap: 8px;
+  }
+  .modalTabButton {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+  .resultModalCard {
+    width: min(70vw, 420px);
+    min-height: 180px;
+  }
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  .infoModalCard {
+    width: min(92vw, 580px);
+    height: min(94vh, 310px);
+    padding: 6px 10px;
+    gap: 4px;
+  }
+  .infoModalTitle {
+    font-size: 0.95rem;
+  }
+  .infoModalSubtitle {
+    display: none;
   }
 }
 
@@ -820,8 +869,10 @@
 }
 
 .resultModalCard {
-  width: min(90vw, 510px);
-  min-height: 235px;
+  width: clamp(280px, 44vw, 460px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  min-height: 200px;
   border-radius: 16px;
   padding: 0;
   display: flex;
@@ -1041,14 +1092,16 @@
 }
 
 .errorModalCard {
-  width: min(92vw, 470px);
-  border-radius: 20px;
+  width: clamp(280px, 46vw, 460px);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  border-radius: 18px;
   border: 1px solid rgba(255, 120, 120, 0.35);
   box-shadow:
     0 18px 48px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(255, 75, 75, 0.22) inset;
   background: linear-gradient(155deg, #491921 0%, #2b1828 58%, #1d1620 100%);
-  padding: 24px 22px 20px;
+  padding: clamp(14px, 2vh, 22px);
   display: flex;
   flex-direction: column;
   align-items: center;

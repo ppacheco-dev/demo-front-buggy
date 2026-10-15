@@ -299,18 +299,18 @@ export default function InfoModal({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '16px',
+                    padding: 'clamp(8px, 1.2vh, 14px)',
                     borderRadius: '12px',
                     background: 'rgba(245, 158, 11, 0.08)',
                     border: '1px solid rgba(245, 158, 11, 0.25)',
-                    marginTop: '12px',
+                    marginTop: 'clamp(6px, 1vh, 10px)',
                   }}
                 >
-                  <i className="ph ph-flag-checkered" style={{ fontSize: '38px', color: '#f59e0b', marginBottom: '6px' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#facc15', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  <i className="ph ph-flag-checkered" style={{ fontSize: 'clamp(24px, 3vh, 32px)', color: '#f59e0b', marginBottom: '4px' }} />
+                  <span style={{ fontSize: 'clamp(0.76rem, 1vw, 0.86rem)', fontWeight: 900, color: '#facc15', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                     PRECIO POR JUGADA: $2.000
                   </span>
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '4px', textAlign: 'center', lineHeight: 1.35 }}>
+                  <span style={{ fontSize: 'clamp(0.64rem, 0.85vw, 0.72rem)', color: '#94a3b8', marginTop: '3px', textAlign: 'center', lineHeight: 1.3 }}>
                     El premio final se calcula multiplicando tu apuesta por el factor del participante y mercado correspondiente.
                   </span>
                 </div>
