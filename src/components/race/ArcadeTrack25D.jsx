@@ -119,19 +119,41 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
-  // Pórtico de META: sube desde el horizonte (24%) hasta su posición final (60%) en el último 20%
+  // Pórtico de META en 2.5D: aparece suavemente en el horizonte durante el tramo final
+  // y avanza por la calzada en perspectiva acelerada, cubriendo el ancho exacto de la pista.
   const finishGantry = useMemo(() => {
-    const t = Math.min(1, Math.max(0, (progress - 0.8) / 0.2));
+    // Inicia en el 75% de la carrera (sprint final hacia la meta)
+    const startProgress = 0.75;
+    if (progress < startProgress) {
+      return { visible: false, top: 26, width: 24, scale: 0.32, opacity: 0 };
+    }
+
+    // Progreso normalizado del sprint final (0 a 1)
+    const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
+
+    // Curva de perspectiva 3D acelerada (los objetos distantes avanzan despacio y aceleran visualmente al acercarse)
+    const p = Math.pow(t, 1.85);
+
+    // Posición Y en pantalla: desde el horizonte (26%) hasta el primer plano cruzado (88%)
+    const top = 26 + p * 62;
+
+    // Ancho proporcional al trapecio de la carretera en esa altura Y (de 24% en el horizonte a 94% en primer plano)
+    const width = 24 + p * 70;
+
+    // Escala del pórtico para perspectiva 2.5D realista
+    const scale = 0.32 + p * 0.96;
+
+    // Fade-in suave al inicio para que aparezca con total naturalidad
+    const opacity = Math.min(1, t * 5);
+
     return {
-      visible: progress > 0.8,
-      top: 24 + t * 36,
-      scale: 0.3 + t * 0.7,
-      opacity: Math.min(1, t * 5),
+      visible: true,
+      top,
+      width,
+      scale,
+      opacity,
     };
   }, [progress]);
-
-  // En los últimos metros los autos que siguen en carrera se adelantan para cruzar bajo el pórtico
-  const finishCrossBonus = Math.min(1, Math.max(0, (progress - 0.9) / 0.1)) * 26;
 
   return (
     <div className={styles.arcadeContainer}>
@@ -236,24 +258,21 @@ export default function ArcadeTrack25D({
 
         </div>
 
-        {/* Pórtico de META: aparece en el horizonte en el tramo final y los autos lo cruzan */}
+        {/* Línea de meta a cuadros en el asfalto (por debajo de los buggies) */}
         {finishGantry.visible && (
           <div
-            className={styles.finishGantry}
+            className={styles.groundFinishLine}
             style={{
+              left: `calc(50% + ${trackCurve}px)`,
               top: `${finishGantry.top}%`,
+              width: `${finishGantry.width}%`,
               opacity: finishGantry.opacity,
-              transform: `translate3d(-50%, -100%, 0) scale(${finishGantry.scale})`,
+              transform: `translate3d(-50%, -50%, 0) rotateZ(${-trackCurve * 0.12}deg) scale(${finishGantry.scale})`,
             }}
           >
-            <div className={styles.gantryPostLeft} />
-            <div className={styles.gantryPostRight} />
-            <div className={styles.gantryBanner}>
-              <span className={styles.gantryChecker} />
-              <span className={styles.gantryBannerText}>META</span>
-              <span className={styles.gantryChecker} />
-            </div>
-            <div className={styles.gantryFinishLine} />
+            <div className={styles.finishLineCheckers} />
+            <div className={styles.finishLineBorderTop} />
+            <div className={styles.finishLineBorderBottom} />
           </div>
         )}
 
@@ -294,7 +313,7 @@ export default function ArcadeTrack25D({
             const distRatio = (car.x - minX) / (maxX - minX || 1); // 0 (atrás) a 1 (líder)
 
             // Y position base en el plano de asfalto (36% horizonte a 78% primer plano)
-            const topPct = 78 - distRatio * 38 - finishCrossBonus;
+            const topPct = 78 - distRatio * 38;
             const scale = (1.18 - distRatio * 0.38) * 1.5;
             const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 
@@ -401,6 +420,52 @@ export default function ArcadeTrack25D({
             );
           })}
         </div>
+
+        {/* Pórtico superior de META: pilares anclados en los bordillos y arco elevado sobre los autos */}
+        {finishGantry.visible && (
+          <div
+            className={styles.overheadGantryArch}
+            style={{
+              left: `calc(50% + ${trackCurve}px)`,
+              top: `${finishGantry.top}%`,
+              width: `${finishGantry.width}%`,
+              opacity: finishGantry.opacity,
+              transform: `translate3d(-50%, -100%, 0) rotateZ(${-trackCurve * 0.12}deg) scale(${finishGantry.scale})`,
+            }}
+          >
+            {/* Pilar izquierdo anclado en el bordillo izquierdo */}
+            <div className={styles.gantryPillarLeft}>
+              <div className={styles.gantryPillarBody} />
+              <div className={styles.gantryPillarBase} />
+            </div>
+
+            {/* Pilar derecho anclado en el bordillo derecho */}
+            <div className={styles.gantryPillarRight}>
+              <div className={styles.gantryPillarBody} />
+              <div className={styles.gantryPillarBase} />
+            </div>
+
+            {/* Arco transversal superior elevado que cruza la pista */}
+            <div className={styles.gantryTrussArch}>
+              {/* Luces de carrera estilo semáforo */}
+              <div className={styles.finishGantryLights}>
+                <span className={styles.gantryLightGreen} />
+                <span className={styles.gantryLightAmber} />
+                <span className={styles.gantryLightRed} />
+              </div>
+
+              {/* Banner central con META y cuadros */}
+              <div className={styles.gantryBannerFrame}>
+                <div className={styles.gantryFlagWingLeft} />
+                <div className={styles.gantryCenterBoard}>
+                  <span className={styles.gantryTitleText}>META</span>
+                  <span className={styles.gantrySubtitleText}>DUNAS DEL PACÍFICO • 1.140 M</span>
+                </div>
+                <div className={styles.gantryFlagWingRight} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
