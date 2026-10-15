@@ -343,6 +343,77 @@
   to { transform: translate3d(0, 74px, 0); }
 }
 
+/* Pórtico de META (en espacio de pantalla, sobre la carretera): banner con cuadros, postes y línea de llegada */
+.finishGantry {
+  position: absolute;
+  left: 50%;
+  width: 80%;
+  height: 46%;
+  transform-origin: 50% 100%;
+  z-index: 25;
+  pointer-events: none;
+  will-change: transform, top, opacity;
+}
+
+.gantryBanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(180deg, #111827 0%, #05070d 100%);
+  border: 3px solid #facc15;
+  border-radius: 6px;
+  box-shadow: 0 0 26px rgba(250, 204, 21, 0.55), 0 8px 18px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.gantryChecker {
+  flex: 0 0 20%;
+  background: repeating-conic-gradient(#ffffff 0% 25%, #05070d 0% 50%) 0 0 / 22px 22px;
+}
+
+.gantryBannerText {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: clamp(1.2rem, 3.4vw, 2.4rem);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.9), 0 3px 0 rgba(0, 0, 0, 0.6);
+}
+
+.gantryPostLeft,
+.gantryPostRight {
+  position: absolute;
+  top: 24%;
+  bottom: 0;
+  width: 3.4%;
+  background: repeating-linear-gradient(180deg, #facc15 0 12px, #0b0f1a 12px 24px);
+  border-radius: 3px;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.gantryPostLeft { left: 2%; }
+.gantryPostRight { right: 2%; }
+
+.gantryFinishLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2%;
+  height: 7%;
+  background: repeating-conic-gradient(#ffffff 0% 25%, #05070d 0% 50%) 0 0 / 18px 18px;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.55);
+  opacity: 0.95;
+}
+
+
 /* Arco de meta en perspectiva cuando nos acercamos al 100% */
 .finishArch25D {
   position: absolute;

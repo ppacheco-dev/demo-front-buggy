@@ -119,6 +119,20 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
+  // Pórtico de META: sube desde el horizonte (24%) hasta su posición final (60%) en el último 20%
+  const finishGantry = useMemo(() => {
+    const t = Math.min(1, Math.max(0, (progress - 0.8) / 0.2));
+    return {
+      visible: progress > 0.8,
+      top: 24 + t * 36,
+      scale: 0.3 + t * 0.7,
+      opacity: Math.min(1, t * 5),
+    };
+  }, [progress]);
+
+  // En los últimos metros los autos que siguen en carrera se adelantan para cruzar bajo el pórtico
+  const finishCrossBonus = Math.min(1, Math.max(0, (progress - 0.9) / 0.1)) * 26;
+
   return (
     <div className={styles.arcadeContainer}>
       {/* 1. HUD SUPERIOR ARCADE (HORIZON CHASE STYLE) */}
@@ -220,29 +234,28 @@ export default function ArcadeTrack25D({
             <div className={styles.roadLaneMarker} />
           </div>
 
-          {/* Arco pórtico de meta 3D en los últimos metros con semáforo y banderas */}
-          {progress > 0.82 && (
-            <div
-              className={styles.finishArch25D}
-              style={{
-                top: `${Math.min(85, 18 + (progress - 0.82) * 330)}%`,
-                transform: `translateX(-50%) scale(${0.65 + (progress - 0.82) * 2.4})`,
-                opacity: Math.min(1, (progress - 0.82) * 6),
-              }}
-            >
-              <div className={styles.finishGantryLights}>
-                <span className={styles.gantryLightGreen} />
-                <span className={styles.gantryLightAmber} />
-                <span className={styles.gantryLightRed} />
-              </div>
-              <div className={styles.finishArchTruss}>
-                <span className={styles.finishFlagEmoji}>🏁</span>
-                <span className={styles.finishArchBanner}>META FINAL • 1.140 METROS</span>
-                <span className={styles.finishFlagEmoji}>🏁</span>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Pórtico de META: aparece en el horizonte en el tramo final y los autos lo cruzan */}
+        {finishGantry.visible && (
+          <div
+            className={styles.finishGantry}
+            style={{
+              top: `${finishGantry.top}%`,
+              opacity: finishGantry.opacity,
+              transform: `translate3d(-50%, -100%, 0) scale(${finishGantry.scale})`,
+            }}
+          >
+            <div className={styles.gantryPostLeft} />
+            <div className={styles.gantryPostRight} />
+            <div className={styles.gantryBanner}>
+              <span className={styles.gantryChecker} />
+              <span className={styles.gantryBannerText}>META</span>
+              <span className={styles.gantryChecker} />
+            </div>
+            <div className={styles.gantryFinishLine} />
+          </div>
+        )}
 
         {/* 4. OBSTÁCULO TRANSVERSAL DEL ANCHO COMPLETO DE LA PISTA (PASA POR DEBAJO DE LOS BUGGIES) */}
         {isHazardVisible && (
@@ -281,7 +294,7 @@ export default function ArcadeTrack25D({
             const distRatio = (car.x - minX) / (maxX - minX || 1); // 0 (atrás) a 1 (líder)
 
             // Y position base en el plano de asfalto (36% horizonte a 78% primer plano)
-            const topPct = 78 - distRatio * 38;
+            const topPct = 78 - distRatio * 38 - finishCrossBonus;
             const scale = (1.18 - distRatio * 0.38) * 1.5;
             const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 

@@ -68,6 +68,7 @@ export default function LiveRaceScreen({
   // Estados de animación continua (por defecto: vista ARCADE 2.5D)
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
   const [isFinished, setIsFinished] = useState(false);
+  const [resultsReady, setResultsReady] = useState(false); // retraso para ver el cruce de la meta
   const [countdown, setCountdown] = useState(null); // 3, 2, 1, 0 (GO) o null
   const countdownTimersRef = useRef([]);
   const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' (por defecto) | 'broadcast2d' | 'cockpitFpv'
@@ -201,6 +202,12 @@ export default function LiveRaceScreen({
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, [race.numero, race.hora]);
+
+  useEffect(() => {
+    if (!isFinished) { setResultsReady(false); return undefined; }
+    const id = setTimeout(() => setResultsReady(true), 1800);
+    return () => clearTimeout(id);
+  }, [isFinished]);
 
   // Mapeo determinista del obstáculo fatal para cada auto que queda eliminado
   const fatalEliminationByCar = useMemo(() => {
@@ -932,7 +939,7 @@ export default function LiveRaceScreen({
       </div>
 
       {/* 4. Podio o Pantalla de Catástrofe (si ningún auto llegó a la meta) */}
-      {isFinished && (
+      {isFinished && resultsReady && (
         <div className={styles.resultsOverlay}>
           <div className={`${styles.resultsCard} ${ningunAutoLlego ? styles.resultsCardCatastrophe : ''}`}>
             {/* Ícono de Trofeo o Calavera/Fuego si ningún auto llegó */}
