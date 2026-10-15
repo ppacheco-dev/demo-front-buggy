@@ -206,7 +206,7 @@
   text-shadow: 0 0 18px rgba(245, 158, 11, 0.6);
 }
 
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .raceHeroNumber {
     font-size: 1.25rem;
   }
@@ -1707,7 +1707,7 @@
 /* ==========================================================================
    RESPONSIVE DESIGN (Móvil y Pantallas Angostas)
    ========================================================================== */
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .topBar {
     flex-wrap: wrap;
     padding: 6px 10px;
@@ -2334,7 +2334,7 @@
 /* ==========================================================================
    AJUSTES FINOS MÓVIL: barra superior compacta sin desbordes
    ========================================================================== */
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .topBarLeft {
     min-width: 0;
     max-width: 100%;
@@ -2366,25 +2366,5 @@
     font-size: 0.6rem;
     white-space: nowrap;
     flex-shrink: 0;
-  }
-}
-
-/* Móvil horizontal: una sola fila en la barra superior para ganar alto de pista */
-@media (max-height: 480px) and (orientation: landscape) and (max-width: 950px) {
-  .topBar {
-    flex-wrap: nowrap;
-    padding: 4px 10px;
-  }
-
-  .topBarCenter {
-    display: none;
-  }
-
-  .raceProgressBarContainer {
-    height: 14px;
-  }
-
-  .mainStage {
-    height: calc(100dvh - 62px);
   }
 }

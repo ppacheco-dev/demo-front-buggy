@@ -170,7 +170,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                   </span>
                 </div>
                 <div className={`${styles.betTile} ${styles.betTilePrize}`}>
-                  <span className={styles.detailLabel}>Premio</span>
+                  <span className={styles.detailLabel}>Premio si ganas</span>
                   <span className={`${styles.betValue} ${styles.betPrize}`}>
                     ${estimatedPrize.toLocaleString('es-CL')}
                   </span>

@@ -9,6 +9,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), inset 0 0 20px rgba(245, 158, 11, 0.04);
   overflow: hidden;
   user-select: none;
+  flex-shrink: 0;
 }
 
 /* Header del Radar */
@@ -94,7 +95,8 @@
 .mapSvgWrapper {
   position: relative;
   width: 100%;
-  height: 140px;
+  height: auto;
+  aspect-ratio: 310 / 170;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -294,13 +296,16 @@
   font-weight: 800;
 }
 
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .minimapCard {
     padding: 8px 10px 6px;
     border-radius: 10px;
+    width: 100%;
+    max-width: 420px;
+    align-self: center;
   }
   .mapSvgWrapper {
-    height: 110px;
+    height: auto;
   }
   .radarTitle {
     font-size: 0.62rem;
@@ -309,4 +314,3 @@
     font-size: 0.58rem;
   }
 }
-

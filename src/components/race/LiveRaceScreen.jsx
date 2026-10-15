@@ -16,7 +16,7 @@ const RACE_DURATION_MS = 22000;
 // Dimensiones de diseño de la vista de escritorio. Si el viewport es más pequeño, toda la
 // pantalla se escala proporcionalmente (igual que la selección de mercado) para que quepa completa.
 const DESIGN_WIDTH = 1240;
-const DESIGN_HEIGHT = 620;
+const DESIGN_HEIGHT = 700;
 const MIN_FIT_ZOOM = 0.4;
 
 export default function LiveRaceScreen({
@@ -85,7 +85,7 @@ export default function LiveRaceScreen({
     if (!W || !H) return;
 
     const isMobileMode =
-      window.matchMedia('(max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px)').matches ||
+      window.matchMedia('(max-width: 900px) and (orientation: portrait), (max-width: 640px)').matches ||
       W <= 640 ||
       (H > W && W <= 900);
 

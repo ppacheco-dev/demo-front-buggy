@@ -193,7 +193,7 @@
   100% { transform: translate(-14px, -18px); opacity: 0; }
 }
 
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .buggyContainer {
     width: 66px;
     height: 35px;

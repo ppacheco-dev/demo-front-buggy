@@ -626,7 +626,7 @@
 /* =========================================================================
    RESPONSIVE DESIGN ARCADE 2.5D
    ========================================================================= */
-@media (max-width: 900px) and (orientation: portrait), (max-width: 640px), (max-height: 480px) and (max-width: 950px) {
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
   .arcadeContainer {
     min-height: 220px;
     height: clamp(230px, 40vh, 320px);
