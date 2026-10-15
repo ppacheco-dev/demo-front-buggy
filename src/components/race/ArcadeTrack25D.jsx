@@ -21,6 +21,7 @@ export default function ArcadeTrack25D({
   userBuggyName = null,
   isUserRace = false,
   isFinished = false,
+  ningunAutoLlego = false,
 }) {
   // Encontrar auto líder de la carrera
   const leaderCar = rankedCars.find((c) => !c.isEliminated) || rankedCars[0] || null;
@@ -119,11 +120,15 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
-  // Pórtico de META en 2.5D: aparece únicamente en la recta final (después de superar los obstáculos)
-  // en el mismo plano y ancho exacto de la pista de carreras, completo y visible desde el inicio.
+  // Pórtico de META en 2.5D: aparece en la recta final hacia la meta y se detiene exactamente
+  // enmarcando al auto líder cuando este llega al pórtico (o se oculta si ningún auto llega)
   const finishGantry = useMemo(() => {
-    // Inicia estrictamente al 93% (llegada a meta tras superar el último foso)
-    const startProgress = 0.93;
+    if (ningunAutoLlego) {
+      return { visible: false, roadY: 0, opacity: 0 };
+    }
+
+    // Inicia en la recta final hacia la meta
+    const startProgress = 0.88;
     if (progress < startProgress) {
       return { visible: false, roadY: 0, opacity: 0 };
     }
@@ -131,8 +136,9 @@ export default function ArcadeTrack25D({
     // Progreso del sprint de llegada (0 a 1)
     const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
 
-    // Posición a lo largo de la calzada (desde 16% en la lejanía hasta 82% en primer plano)
-    const roadY = 16 + Math.pow(t, 1.45) * 66;
+    // Posición a lo largo de la calzada:
+    // Empieza en 16% en la lejanía y desciende hasta 45% (la altura exacta donde el líder cruza bajo el pórtico)
+    const roadY = 16 + Math.pow(t, 1.35) * 29;
 
     // Aparece completo desde el inicio con fade-in rápido y firme
     const opacity = Math.min(1, 0.45 + t * 4);
@@ -142,7 +148,7 @@ export default function ArcadeTrack25D({
       roadY,
       opacity,
     };
-  }, [progress]);
+  }, [progress, ningunAutoLlego]);
 
   return (
     <div className={styles.arcadeContainer}>
@@ -343,6 +349,9 @@ export default function ArcadeTrack25D({
                 dynamicTilt = Math.cos(t * Math.PI * 2) * 0.75 * swerveDir; // Inclinación fuerte
                 jumpY = -sinArc * 8; // Bote de suspensión
               }
+            } else if (isFinished) {
+              // Al cruzar la meta y detenerse la carrera, los autos reposan nivelados sobre el asfalto
+              dynamicTilt = 0;
             } else {
               // Inclinación normal de balanceo de motor y curva
               dynamicTilt = isLeader
@@ -372,7 +381,7 @@ export default function ArcadeTrack25D({
                 />
 
                 {/* Estela de arena todoterreno viva detrás de los neumáticos traseros */}
-                {!isJumping && car.speedKmh > 35 && (
+                {!isFinished && !isJumping && car.speedKmh > 35 && (
                   <div className={styles.arcadeTireDustWrapper}>
                     <div className={styles.sandDustPlumeLeft} />
                     <div className={styles.sandDustPlumeRight} />
@@ -393,7 +402,7 @@ export default function ArcadeTrack25D({
                 <div className={styles.arcadeCarBadgeGroup}>
                   {progress > 0.04 && isLeader && (
                     <span className={styles.arcadeRankPill} style={{ background: '#facc15' }}>
-                      👑 P1 LÍDER
+                      {isFinished ? '🏆 1º GANADOR' : '👑 P1 LÍDER'}
                     </span>
                   )}
                   {progress > 0.04 && !isLeader && (

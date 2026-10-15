@@ -154,6 +154,7 @@ export default function ArcadeFirstPersonCockpit({
   isUserRace = true,
   isFinished = false,
   fatalEliminationByCar = {},
+  ningunAutoLlego = false,
 }) {
   // Normalizar nombres de buggies elegidos por el usuario en esta carrera
   const normalizedChosenNames = useMemo(() => {
@@ -434,7 +435,7 @@ export default function ArcadeFirstPersonCockpit({
             </div>
           )}
 
-          {progress > 0.82 && (
+          {progress > 0.82 && !ningunAutoLlego && (
             <div
               className={styles.finishBanner}
               style={{

@@ -152,6 +152,64 @@ export default function LiveRaceScreen({
     };
   }, [progress, tramos]);
 
+  // Mapeo determinista del obstáculo fatal para cada auto que queda eliminado
+  const fatalEliminationByCar = useMemo(() => {
+    const map = {};
+
+    carNames.forEach((name) => {
+      // Buscar el primer tramo donde el auto pasa a estado ELIMINADO
+      for (let sIdx = 0; sIdx < tramos.length; sIdx++) {
+        const carState = tramos[sIdx]?.EstadosAutos?.find((c) => c.Nombre === name);
+        if (carState?.Estado === 'ELIMINADO') {
+          // El tramo donde ocurrió el choque fatal
+          const tramoObj = tramos[sIdx] || tramos[Math.max(0, sIdx - 1)] || tramos[0];
+          map[name] = {
+            fatalTramoIndex: sIdx,
+            fatalSegmentIndex: Math.max(0, sIdx - 1),
+            tipo: tramoObj.TipoObstaculo || 'ROCAS',
+            nombre: carState.ObstaculoFallo || tramoObj.NombreObstaculo || 'Obstáculo',
+            icono: tramoObj.IconoObstaculo || '🪨',
+            crashX: carState.X || 800,
+          };
+          return;
+        }
+      }
+
+      map[name] = null;
+    });
+
+    return map;
+  }, [tramos, carNames]);
+
+  // Evaluar deterministamente si algún auto logrará llegar a la meta
+  const willAnyCarFinish = useMemo(() => {
+    if (race.ningunAutoLlego) return false;
+    const finalEstados = tramos[tramos.length - 1]?.EstadosAutos || [];
+    return finalEstados.some((c) => c.Estado === 'EN_CARRERA' && c.PasoTramo === true && c.X >= 1100);
+  }, [race.ningunAutoLlego, tramos]);
+
+  const ningunAutoLlego = !willAnyCarFinish;
+
+  // Si ningún auto llega a la meta, calcular el progreso exacto donde ocurre el último choque fatal
+  const crashFinishProgress = useMemo(() => {
+    if (willAnyCarFinish) return 1.0;
+    const numSegments = tramos.length - 1;
+    let maxFatalSeg = -1;
+
+    carNames.forEach((name) => {
+      const f = fatalEliminationByCar[name];
+      if (f && f.fatalSegmentIndex > maxFatalSeg) {
+        maxFatalSeg = f.fatalSegmentIndex;
+      }
+    });
+
+    if (maxFatalSeg < 0) return 0.85;
+
+    // En el tramo fatal, el choque ocurre a fraction = 0.44.
+    // Damos margen hasta fraction = 0.76 para apreciar el impacto, fuego y humo antes de finalizar
+    return Math.min(0.95, (maxFatalSeg + 0.76) / numSegments);
+  }, [willAnyCarFinish, tramos, carNames, fatalEliminationByCar]);
+
   // Motor de animación continua vía requestAnimationFrame
   const beginRaceLoop = () => {
     startTimeRef.current = performance.now();
@@ -159,13 +217,27 @@ export default function LiveRaceScreen({
     const loop = (currentTime) => {
       const elapsed = currentTime - startTimeRef.current;
       const currentProgress = Math.min(1, elapsed / RACE_DURATION_MS);
-      setProgress(currentProgress);
 
-      if (currentProgress < 1) {
-        animFrameRef.current = requestAnimationFrame(loop);
-      } else {
+      // CASO B: Ningún auto llega a la meta (todos eliminados por obstáculos)
+      // La carrera se detiene automáticamente una vez consumado el último choque fatal
+      if (!willAnyCarFinish && currentProgress >= crashFinishProgress) {
+        setProgress(crashFinishProgress);
         setIsFinished(true);
+        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        return;
       }
+
+      // CASO A: Llega al menos un auto a la meta
+      // La carrera se detiene exactamente cuando el PRIMER auto llega al pórtico de META
+      if (willAnyCarFinish && currentProgress >= 1.0) {
+        setProgress(1.0);
+        setIsFinished(true);
+        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        return;
+      }
+
+      setProgress(currentProgress);
+      animFrameRef.current = requestAnimationFrame(loop);
     };
 
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -208,35 +280,6 @@ export default function LiveRaceScreen({
     const id = setTimeout(() => setResultsReady(true), 1800);
     return () => clearTimeout(id);
   }, [isFinished]);
-
-  // Mapeo determinista del obstáculo fatal para cada auto que queda eliminado
-  const fatalEliminationByCar = useMemo(() => {
-    const map = {};
-
-    carNames.forEach((name) => {
-      // Buscar el primer tramo donde el auto pasa a estado ELIMINADO
-      for (let sIdx = 0; sIdx < tramos.length; sIdx++) {
-        const carState = tramos[sIdx]?.EstadosAutos?.find((c) => c.Nombre === name);
-        if (carState?.Estado === 'ELIMINADO') {
-          // El tramo donde ocurrió el choque fatal
-          const tramoObj = tramos[sIdx] || tramos[Math.max(0, sIdx - 1)] || tramos[0];
-          map[name] = {
-            fatalTramoIndex: sIdx,
-            fatalSegmentIndex: Math.max(0, sIdx - 1),
-            tipo: tramoObj.TipoObstaculo || 'ROCAS',
-            nombre: carState.ObstaculoFallo || tramoObj.NombreObstaculo || 'Obstáculo',
-            icono: tramoObj.IconoObstaculo || '🪨',
-            crashX: carState.X || 800,
-          };
-          return;
-        }
-      }
-
-      map[name] = null;
-    });
-
-    return map;
-  }, [tramos, carNames]);
 
   // Calcular la posición X interpolada suavemente de cada auto para el `progress` actual,
   // con aparición de obstáculos en el momento y fijación permanente del obstáculo fatal que mató al auto
@@ -302,8 +345,10 @@ export default function LiveRaceScreen({
         speedKmh = 0;
       } else {
         currentX = startX + deltaX * smoothT;
-        speedKmh = Math.max(0, Math.round(152 + (deltaX / 130) * 36 + Math.sin(progress * 45 + index * 2) * 8));
-        isBoosting = pasoObstaculo && fraction > 0.52 && fraction < 0.95;
+        speedKmh = isFinished
+          ? 0
+          : Math.max(0, Math.round(152 + (deltaX / 130) * 36 + Math.sin(progress * 45 + index * 2) * 8));
+        isBoosting = !isFinished && pasoObstaculo && fraction > 0.52 && fraction < 0.95;
       }
 
       // Obstáculo dinámico activo en pista para autos que aún están corriendo
@@ -396,9 +441,8 @@ export default function LiveRaceScreen({
   const currentLeader = rankedCars.find((c) => !c.isEliminated) || rankedCars[0];
   const allCarsEliminated = activeCars.length === 0;
 
-  // Evaluar si ningún auto llegó a la meta
+  // Estados finales de los autos en el tramo de meta
   const finalCars = tramos[tramos.length - 1]?.EstadosAutos || [];
-  const ningunAutoLlego = race.ningunAutoLlego || (isFinished && finalCars.every((c) => c.Estado === 'ELIMINADO' || !c.PasoTramo || c.X < 1100));
 
   const handleReplay = () => {
     startRaceAnimation();
@@ -635,6 +679,7 @@ export default function LiveRaceScreen({
             isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
+            ningunAutoLlego={ningunAutoLlego}
           />
         ) : cameraMode === 'arcade25d' ? (
           <ArcadeTrack25D
@@ -647,6 +692,7 @@ export default function LiveRaceScreen({
             isUserRace={isUserParticipatingInThisRace}
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
+            ningunAutoLlego={ningunAutoLlego}
           />
         ) : (
           /* Pista de Carreras Tipo Videojuego Arcade (Lateral) */
