@@ -119,66 +119,30 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
-  // Pórtico de META en 2.5D: aparece en el horizonte completo pero en tamaño pequeño (menor tamaño),
-  // y avanza creciendo de forma fluida y continua hasta primer plano (mayor tamaño)
-  // en una capa superior que nunca es cortada por el cielo ni por el suelo.
+  // Pórtico de META en 2.5D: aparece únicamente en la recta final (después de superar los obstáculos)
+  // en el mismo plano y ancho exacto de la pista de carreras, completo y visible desde el inicio.
   const finishGantry = useMemo(() => {
-    // Inicia al 90% de la carrera (sprint final tras superar los fosos del tramo 8)
-    const startProgress = 0.90;
+    // Inicia estrictamente al 93% (llegada a meta tras superar el último foso)
+    const startProgress = 0.93;
     if (progress < startProgress) {
-      return {
-        visible: false,
-        top: 48,
-        width: 22,
-        height: 44,
-        scale: 0.35,
-        roadY: 2,
-        curveX: 0,
-        tilt: 0,
-        opacity: 0,
-      };
+      return { visible: false, roadY: 0, opacity: 0 };
     }
 
-    // Progreso del sprint (0 a 1)
+    // Progreso del sprint de llegada (0 a 1)
     const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
 
-    // Aceleración visual de perspectiva (crece y se acerca progresivamente)
-    const p = Math.pow(t, 1.45);
+    // Posición a lo largo de la calzada (desde 16% en la lejanía hasta 82% en primer plano)
+    const roadY = 16 + Math.pow(t, 1.45) * 66;
 
-    // Posición Y en la pantalla: desde el horizonte (48%) hasta el primer plano (86%)
-    const top = 48 + p * 38;
-
-    // Ancho proporcional que encaja exactamente con los bordillos de la calzada reducida
-    const width = 22 + p * 42;
-
-    // Altura del pórtico para permitir el paso de los buggies por debajo
-    const height = 44 + p * 86;
-
-    // Escala general que viaja de menor a mayor tamaño (0.35 -> 1.0)
-    const scale = 0.35 + p * 0.65;
-
-    // Coordenada Y en el plano de la carretera para la franja de cuadros en el suelo
-    const roadY = 2 + p * 80;
-
-    // Desplazamiento lateral y ladeo coordinado con las curvas
-    const curveX = trackCurve * (0.2 + p * 0.8);
-    const tilt = -trackCurve * 0.12 * p;
-
-    // Fade-in suave al inicio para que no aparezca de golpe
-    const opacity = Math.min(1, t * 6);
+    // Aparece completo desde el inicio con fade-in rápido y firme
+    const opacity = Math.min(1, 0.45 + t * 4);
 
     return {
       visible: true,
-      top,
-      width,
-      height,
-      scale,
       roadY,
-      curveX,
-      tilt,
       opacity,
     };
-  }, [progress, trackCurve]);
+  }, [progress]);
 
   return (
     <div className={styles.arcadeContainer}>
@@ -333,11 +297,16 @@ export default function ArcadeTrack25D({
             const lanePct = laneOffsets[idx % laneOffsets.length];
 
             // Posición Z/Y: autos más adelantados están más cerca de la meta
-            const distRatio = (car.x - minX) / (maxX - minX || 1); // 0 (atrás) a 1 (líder)
+            const rawDistRatio = maxX > minX ? (car.x - minX) / (maxX - minX) : 0;
 
-            // Y position base en el plano de asfalto (36% horizonte a 78% primer plano)
-            const topPct = 78 - distRatio * 38;
-            const scale = (1.18 - distRatio * 0.38) * 1.5;
+            // Factor de separación: en la salida (progress = 0), arranca estrictamente en 0 para que
+            // TODOS los autos estén alineados exactamente en la misma posición sin verse uno más adelante ni atrás
+            const spreadFactor = Math.min(1, Math.max(0, (progress - 0.02) * 5));
+            const distRatio = rawDistRatio * spreadFactor;
+
+            // Y position base en el plano de asfalto (al inicio todos alineados a 72% con escala idéntica)
+            const topPct = 72 - distRatio * 34;
+            const scale = (1.10 - distRatio * 0.34) * 1.45;
             const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 
             // Ventana en la que este auto en particular esquiva o salta el obstáculo
@@ -420,14 +389,14 @@ export default function ArcadeTrack25D({
                   steering={dynamicTilt}
                 />
 
-                {/* Etiquetas superiores flotantes */}
+                {/* Etiquetas superiores flotantes (P1 LÍDER / P2 aparecen cuando la carrera toma ritmo) */}
                 <div className={styles.arcadeCarBadgeGroup}>
-                  {isLeader && (
+                  {progress > 0.04 && isLeader && (
                     <span className={styles.arcadeRankPill} style={{ background: '#facc15' }}>
                       👑 P1 LÍDER
                     </span>
                   )}
-                  {!isLeader && (
+                  {progress > 0.04 && !isLeader && (
                     <span
                       className={styles.arcadeRankPill}
                       style={{ background: car.buggy.color, color: '#000' }}
@@ -443,53 +412,52 @@ export default function ArcadeTrack25D({
             );
           })}
         </div>
-      </div>
 
-      {/* 4. PÓRTICO SUPERIOR DE META EN PERSPECTIVA 2.5D (CAPA GLOBAL: NUNCA CORTADO POR EL CIELO) */}
-      {finishGantry.visible && (
-        <div className={styles.gantryOverheadLayer}>
+        {/* Pórtico superior de META (mismo plano 3D que la carretera, elevado sobre los autos) */}
+        {finishGantry.visible && (
           <div
-            className={styles.gantryStructure}
+            className={styles.overheadFinishTrackPlane}
             style={{
-              left: `calc(50% + ${finishGantry.curveX}px)`,
-              top: `${finishGantry.top}%`,
-              width: `${finishGantry.width}%`,
-              height: `${finishGantry.height}px`,
+              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
               opacity: finishGantry.opacity,
-              transform: `translate3d(-50%, -100%, 0) rotateZ(${finishGantry.tilt}deg) scale(${finishGantry.scale})`,
             }}
           >
-            {/* Pilares anclados exactamente sobre los bordillos exteriores */}
-            <div className={styles.gantryPillarsRow}>
-              <div className={styles.gantryPillar}>
-                <div className={styles.gantryPillarBody} />
-                <div className={styles.gantryPillarBase} />
+            <div
+              className={styles.gantry3DArch}
+              style={{ top: `${finishGantry.roadY}%` }}
+            >
+              {/* Pilar izquierdo anclado directamente en el bordillo izquierdo */}
+              <div className={styles.gantry3DPillarLeft}>
+                <div className={styles.gantry3DPillarBody} />
+                <div className={styles.gantry3DPillarBase} />
               </div>
-              <div className={styles.gantryPillar}>
-                <div className={styles.gantryPillarBody} />
-                <div className={styles.gantryPillarBase} />
-              </div>
-            </div>
 
-            {/* Banner transversal superior de META elevado sobre los autos */}
-            <div className={styles.gantryBanner}>
-              <div className={styles.gantryLights}>
-                <span className={styles.gantryLightGreen} />
-                <span className={styles.gantryLightAmber} />
-                <span className={styles.gantryLightRed} />
+              {/* Pilar derecho anclado directamente en el bordillo derecho */}
+              <div className={styles.gantry3DPillarRight}>
+                <div className={styles.gantry3DPillarBody} />
+                <div className={styles.gantry3DPillarBase} />
               </div>
-              <div className={styles.gantryBannerFrame}>
-                <div className={styles.gantryFlagWing} />
-                <div className={styles.gantryCenterBoard}>
-                  <span className={styles.gantryTitle}>META</span>
-                  <span className={styles.gantrySub}>DUNAS DEL PACÍFICO • 1.140 M</span>
+
+              {/* Banner superior con semáforo y cartel de META */}
+              <div className={styles.gantry3DBanner}>
+                <div className={styles.gantry3DLights}>
+                  <span className={styles.gantryLightGreen} />
+                  <span className={styles.gantryLightAmber} />
+                  <span className={styles.gantryLightRed} />
                 </div>
-                <div className={styles.gantryFlagWing} />
+                <div className={styles.gantry3DBannerFrame}>
+                  <div className={styles.gantry3DFlagWing} />
+                  <div className={styles.gantry3DCenterBoard}>
+                    <span className={styles.gantry3DTitle}>META</span>
+                    <span className={styles.gantry3DSub}>DUNAS DEL PACÍFICO • 1.140 M</span>
+                  </div>
+                  <div className={styles.gantry3DFlagWing} />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

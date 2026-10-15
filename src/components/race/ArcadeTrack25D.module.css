@@ -346,10 +346,10 @@
 }
 
 /* =========================================================================
-   PÓRTICO DE META EN PERSPECTIVA 2.5D (CAPA SUPERIOR LIBRE DE CORTES)
+   PÓRTICO DE META INTEGRADO (EN EL MISMO PLANO 3D Y ANCHO DE LA PISTA)
    ========================================================================= */
 
-/* 1. Capa de suelo de la meta (en el asfalto, debajo de los autos, z-index 8) */
+/* Capa de suelo de la meta (mismo plano 3D que la carretera, debajo de autos, z-index 8) */
 .groundFinishTrackPlane {
   position: absolute;
   top: 0;
@@ -375,45 +375,52 @@
   transform: translate3d(0, -50%, 0);
 }
 
-/* 2. Capa aérea del pórtico: overlay global sobre todo el viewport (nunca cortado por el cielo, z-index 60) */
-.gantryOverheadLayer {
+/* Capa aérea del pórtico (mismo plano 3D que la carretera, sobre los autos, z-index 60) */
+.overheadFinishTrackPlane {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 50%;
+  transform-origin: 50% 0%;
+  width: 58%;
+  height: 135%;
   pointer-events: none;
   z-index: 60;
-  overflow: visible;
+  will-change: transform;
+  transform-style: preserve-3d;
 }
 
-/* Estructura del pórtico: anclada por su base inferior en la posición de la pista */
-.gantryStructure {
+/* Estructura del pórtico levantada perpendicular a la carretera */
+.gantry3DArch {
   position: absolute;
-  transform-origin: 50% 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  will-change: transform, top, left, width, height, opacity;
-}
-
-/* Fila de pilares que se extienden desde el suelo hasta el travesaño */
-.gantryPillarsRow {
-  position: absolute;
-  bottom: 0;
   left: 0;
   right: 0;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-.gantryPillar {
-  width: 22px;
-  height: 100%;
+  height: 0;
+  transform-origin: bottom center;
+  transform: rotateX(-46deg);
   display: flex;
   flex-direction: column;
 }
 
-.gantryPillarBody {
+/* Pilares laterales: torres ancladas directamente sobre los bordillos */
+.gantry3DPillarLeft,
+.gantry3DPillarRight {
+  position: absolute;
+  bottom: 0;
+  width: 24px;
+  height: 125px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gantry3DPillarLeft {
+  left: -12px;
+}
+
+.gantry3DPillarRight {
+  right: -12px;
+}
+
+.gantry3DPillarBody {
   flex: 1;
   background: repeating-linear-gradient(180deg, #facc15 0 14px, #0b0f1a 14px 28px);
   border: 2px solid #000;
@@ -421,33 +428,34 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.9), inset 0 0 5px rgba(255, 255, 255, 0.4);
 }
 
-.gantryPillarBase {
-  height: 12px;
-  margin: 0 -3px;
-  background: repeating-linear-gradient(45deg, #facc15 0 5px, #18181b 5px 10px);
+.gantry3DPillarBase {
+  height: 14px;
+  margin: 0 -4px;
+  background: repeating-linear-gradient(45deg, #facc15 0 6px, #18181b 6px 12px);
   border: 1.5px solid #000;
   border-radius: 3px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.95);
 }
 
-/* Banner superior elevado con luces de carrera y letrero META */
-.gantryBanner {
-  width: 100%;
+/* Banner superior elevado con vano libre para el paso de los buggies */
+.gantry3DBanner {
+  position: absolute;
+  bottom: 112px;
+  left: -14px;
+  right: -14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: auto;
-  pointer-events: none;
 }
 
 /* Semáforo de meta / luces de carrera */
-.gantryLights {
+.gantry3DLights {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   background: #020617;
   border: 2px solid #334155;
   border-radius: 999px;
-  padding: 3px 12px;
+  padding: 3px 14px;
   margin-bottom: 3px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
 }
@@ -455,35 +463,35 @@
 .gantryLightGreen,
 .gantryLightAmber,
 .gantryLightRed {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  box-shadow: 0 0 6px currentColor;
 }
 
 .gantryLightGreen {
   background: #22c55e;
-  color: #22c55e;
-  animation: gantryBlink 0.3s infinite alternate;
+  box-shadow: 0 0 8px #22c55e;
+  animation: gantryBlink 0.6s infinite alternate;
 }
 
 .gantryLightAmber {
-  background: #f59e0b;
-  color: #f59e0b;
+  background: #facc15;
+  box-shadow: 0 0 8px #facc15;
+  animation: gantryBlink 0.6s infinite alternate 0.2s;
 }
 
 .gantryLightRed {
   background: #ef4444;
-  color: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: gantryBlink 0.6s infinite alternate 0.4s;
 }
 
 @keyframes gantryBlink {
-  from { opacity: 0.35; }
+  from { opacity: 0.3; }
   to { opacity: 1; }
 }
 
-/* Marco del Banner Central de META */
-.gantryBannerFrame {
+.gantry3DBannerFrame {
   width: 100%;
   height: 42px;
   display: flex;
@@ -495,12 +503,12 @@
   overflow: hidden;
 }
 
-.gantryFlagWing {
+.gantry3DFlagWing {
   flex: 0 0 16%;
   background: repeating-conic-gradient(#ffffff 0% 25%, #05070d 0% 50%) 0 0 / 18px 18px;
 }
 
-.gantryCenterBoard {
+.gantry3DCenterBoard {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -509,7 +517,7 @@
   padding: 0 6px;
 }
 
-.gantryTitle {
+.gantry3DTitle {
   font-weight: 950;
   font-size: clamp(1.2rem, 3.2vw, 2.2rem);
   letter-spacing: 0.35em;
@@ -519,7 +527,7 @@
   text-shadow: 0 0 16px rgba(250, 204, 21, 1), 0 3px 0 rgba(0, 0, 0, 0.9);
 }
 
-.gantrySub {
+.gantry3DSub {
   font-weight: 800;
   font-size: clamp(0.44rem, 1vw, 0.68rem);
   letter-spacing: 0.18em;

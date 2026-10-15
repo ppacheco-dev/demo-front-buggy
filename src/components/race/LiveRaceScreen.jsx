@@ -281,8 +281,10 @@ export default function LiveRaceScreen({
         }
       }
 
-      // Si no es un choque fatal pero el auto falló temporalmente un obstáculo
-      const deltaX = toCar.X - fromCar.X;
+      // En la largada (segIndex === 0), todos los autos parten exactamente desde la misma línea de salida (minTrackX = 150)
+      const startX = segIndex === 0 ? minTrackX : fromCar.X;
+      const targetX = segIndex === 0 ? fromCar.X : toCar.X;
+      const deltaX = targetX - startX;
       const pasoObstaculo = toCar.PasoTramo === true || toCar.ResultadoObstaculo === 'EXITO';
 
       if (!isEliminated && !pasoObstaculo && fraction >= 0.40 && fraction <= 0.72) {
@@ -299,7 +301,7 @@ export default function LiveRaceScreen({
         currentX = fatal ? fatal.crashX : fromCar.X;
         speedKmh = 0;
       } else {
-        currentX = fromCar.X + deltaX * smoothT;
+        currentX = startX + deltaX * smoothT;
         speedKmh = Math.max(0, Math.round(152 + (deltaX / 130) * 36 + Math.sin(progress * 45 + index * 2) * 8));
         isBoosting = pasoObstaculo && fraction > 0.52 && fraction < 0.95;
       }
