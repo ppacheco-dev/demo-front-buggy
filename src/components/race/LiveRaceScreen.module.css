@@ -472,6 +472,13 @@
   grid-template-columns: 1fr 330px;
   overflow: hidden;
   height: calc(100vh - 68px);
+  position: relative;
+}
+
+/* Congela cualquier animación de la pista hasta el GO */
+.stagePaused > :not(.countdownOverlay),
+.stagePaused > :not(.countdownOverlay) * {
+  animation-play-state: paused !important;
 }
 
 /* Pista de Carreras de Videojuego */
@@ -2393,7 +2400,10 @@
    ========================================================================== */
 .countdownOverlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 330px; /* excluye el panel lateral: centrado sobre la zona de carrera */
   z-index: 1400;
   display: flex;
   align-items: center;
@@ -2431,6 +2441,7 @@
 }
 
 @media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
+  .countdownOverlay { right: 0; bottom: auto; height: 46vh; }
   .countdownNumber { font-size: 8rem; }
   .countdownGo { font-size: 5.5rem; }
 }

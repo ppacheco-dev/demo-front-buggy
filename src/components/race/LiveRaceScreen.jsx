@@ -7,7 +7,6 @@ import ObstacleSprite from './ObstacleSprite';
 import CircuitMinimap from './CircuitMinimap';
 import ArcadeTrack25D from './ArcadeTrack25D';
 import ArcadeFirstPersonCockpit from './ArcadeFirstPersonCockpit';
-import FinishLineCinematic from './FinishLineCinematic';
 import { TICKET_PRICE } from '../../game/config/raceTimeService';
 import styles from './LiveRaceScreen.module.css';
 
@@ -70,7 +69,6 @@ export default function LiveRaceScreen({
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
   const [isFinished, setIsFinished] = useState(false);
   const [countdown, setCountdown] = useState(null); // 3, 2, 1, 0 (GO) o null
-  const [cinematicDone, setCinematicDone] = useState(false);
   const countdownTimersRef = useRef([]);
   const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' (por defecto) | 'broadcast2d' | 'cockpitFpv'
   const animFrameRef = useRef(null);
@@ -184,7 +182,6 @@ export default function LiveRaceScreen({
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     setProgress(0);
     setIsFinished(false);
-    setCinematicDone(false);
     setCountdown(3);
 
     const schedule = (fn, ms) => countdownTimersRef.current.push(setTimeout(fn, ms));
@@ -501,21 +498,9 @@ export default function LiveRaceScreen({
     });
   }, [isFinished, ningunAutoLlego, winnerCar, rankedCars]);
 
-  // Vista diagonal de la llegada a meta (solo si algún auto cruzó la meta)
-  const showCinematic = isFinished && !cinematicDone && !ningunAutoLlego && rankedCars.some((c) => !c.isEliminated);
-  const handleCinematicDone = useCallback(() => setCinematicDone(true), []);
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {/* Cuenta regresiva de largada */}
-      {countdown !== null && (
-        <div className={styles.countdownOverlay} aria-live="assertive">
-          <span key={countdown} className={countdown === 0 ? styles.countdownGo : styles.countdownNumber}>
-            {countdown === 0 ? '¡GO!' : countdown}
-          </span>
-        </div>
-      )}
-
       {/* 1. Barra Superior Oficial: Limpia, Equilibrada y Sin Ruido Visual */}
       <header className={styles.topBar}>
         {/* Columna Izquierda: Identificación única de la carrera */}
@@ -621,7 +606,15 @@ export default function LiveRaceScreen({
       </div>
 
       {/* 3. Escenario Principal: Pista de Carreras de Videojuego */}
-      <div className={styles.mainStage}>
+      <div className={`${styles.mainStage} ${countdown !== null && countdown > 0 ? styles.stagePaused : ''}`}>
+      {/* Cuenta regresiva de largada */}
+      {countdown !== null && (
+        <div className={styles.countdownOverlay} aria-live="assertive">
+          <span key={countdown} className={countdown === 0 ? styles.countdownGo : styles.countdownNumber}>
+            {countdown === 0 ? '¡GO!' : countdown}
+          </span>
+        </div>
+      )}
         {cameraMode === 'cockpitFpv' ? (
           <ArcadeFirstPersonCockpit
             cars={liveCars}
@@ -939,15 +932,7 @@ export default function LiveRaceScreen({
       </div>
 
       {/* 4. Podio o Pantalla de Catástrofe (si ningún auto llegó a la meta) */}
-      {showCinematic && (
-        <FinishLineCinematic
-          rankedCars={rankedCars.filter((c) => !c.isEliminated)}
-          winnerName={winnerCar?.buggy?.name}
-          onDone={handleCinematicDone}
-        />
-      )}
-
-      {isFinished && !showCinematic && (
+      {isFinished && (
         <div className={styles.resultsOverlay}>
           <div className={`${styles.resultsCard} ${ningunAutoLlego ? styles.resultsCardCatastrophe : ''}`}>
             {/* Ícono de Trofeo o Calavera/Fuego si ningún auto llegó */}
