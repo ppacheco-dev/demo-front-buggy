@@ -119,30 +119,66 @@ export default function ArcadeTrack25D({
     return targetCurve * Math.sin(t * Math.PI);
   }, [progress, currentSectorObstacle]);
 
-  // Pórtico de META en 2.5D: aparece únicamente en la recta final (después de superar los obstáculos)
-  // en el mismo plano y ancho exacto de la pista de carreras, completo y visible desde el inicio.
+  // Pórtico de META en 2.5D: aparece en el horizonte completo pero en tamaño pequeño (menor tamaño),
+  // y avanza creciendo de forma fluida y continua hasta primer plano (mayor tamaño)
+  // en una capa superior que nunca es cortada por el cielo ni por el suelo.
   const finishGantry = useMemo(() => {
-    // Inicia estrictamente al 93% (llegada a meta tras superar el último foso)
-    const startProgress = 0.93;
+    // Inicia al 90% de la carrera (sprint final tras superar los fosos del tramo 8)
+    const startProgress = 0.90;
     if (progress < startProgress) {
-      return { visible: false, roadY: 0, opacity: 0 };
+      return {
+        visible: false,
+        top: 48,
+        width: 22,
+        height: 44,
+        scale: 0.35,
+        roadY: 2,
+        curveX: 0,
+        tilt: 0,
+        opacity: 0,
+      };
     }
 
-    // Progreso del sprint de llegada (0 a 1)
+    // Progreso del sprint (0 a 1)
     const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
 
-    // Posición a lo largo de la calzada (desde 16% en la lejanía hasta 82% en primer plano)
-    const roadY = 16 + Math.pow(t, 1.45) * 66;
+    // Aceleración visual de perspectiva (crece y se acerca progresivamente)
+    const p = Math.pow(t, 1.45);
 
-    // Aparece completo desde el inicio con fade-in rápido y firme
-    const opacity = Math.min(1, 0.45 + t * 4);
+    // Posición Y en la pantalla: desde el horizonte (48%) hasta el primer plano (86%)
+    const top = 48 + p * 38;
+
+    // Ancho proporcional que encaja exactamente con los bordillos de la calzada reducida
+    const width = 22 + p * 42;
+
+    // Altura del pórtico para permitir el paso de los buggies por debajo
+    const height = 44 + p * 86;
+
+    // Escala general que viaja de menor a mayor tamaño (0.35 -> 1.0)
+    const scale = 0.35 + p * 0.65;
+
+    // Coordenada Y en el plano de la carretera para la franja de cuadros en el suelo
+    const roadY = 2 + p * 80;
+
+    // Desplazamiento lateral y ladeo coordinado con las curvas
+    const curveX = trackCurve * (0.2 + p * 0.8);
+    const tilt = -trackCurve * 0.12 * p;
+
+    // Fade-in suave al inicio para que no aparezca de golpe
+    const opacity = Math.min(1, t * 6);
 
     return {
       visible: true,
+      top,
+      width,
+      height,
+      scale,
       roadY,
+      curveX,
+      tilt,
       opacity,
     };
-  }, [progress]);
+  }, [progress, trackCurve]);
 
   return (
     <div className={styles.arcadeContainer}>
@@ -407,52 +443,53 @@ export default function ArcadeTrack25D({
             );
           })}
         </div>
+      </div>
 
-        {/* Pórtico superior de META (mismo plano 3D que la carretera, elevado sobre los autos) */}
-        {finishGantry.visible && (
+      {/* 4. PÓRTICO SUPERIOR DE META EN PERSPECTIVA 2.5D (CAPA GLOBAL: NUNCA CORTADO POR EL CIELO) */}
+      {finishGantry.visible && (
+        <div className={styles.gantryOverheadLayer}>
           <div
-            className={styles.overheadFinishTrackPlane}
+            className={styles.gantryStructure}
             style={{
-              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
+              left: `calc(50% + ${finishGantry.curveX}px)`,
+              top: `${finishGantry.top}%`,
+              width: `${finishGantry.width}%`,
+              height: `${finishGantry.height}px`,
               opacity: finishGantry.opacity,
+              transform: `translate3d(-50%, -100%, 0) rotateZ(${finishGantry.tilt}deg) scale(${finishGantry.scale})`,
             }}
           >
-            <div
-              className={styles.gantry3DArch}
-              style={{ top: `${finishGantry.roadY}%` }}
-            >
-              {/* Pilar izquierdo anclado directamente en el bordillo izquierdo */}
-              <div className={styles.gantry3DPillarLeft}>
-                <div className={styles.gantry3DPillarBody} />
-                <div className={styles.gantry3DPillarBase} />
+            {/* Pilares anclados exactamente sobre los bordillos exteriores */}
+            <div className={styles.gantryPillarsRow}>
+              <div className={styles.gantryPillar}>
+                <div className={styles.gantryPillarBody} />
+                <div className={styles.gantryPillarBase} />
               </div>
-
-              {/* Pilar derecho anclado directamente en el bordillo derecho */}
-              <div className={styles.gantry3DPillarRight}>
-                <div className={styles.gantry3DPillarBody} />
-                <div className={styles.gantry3DPillarBase} />
+              <div className={styles.gantryPillar}>
+                <div className={styles.gantryPillarBody} />
+                <div className={styles.gantryPillarBase} />
               </div>
+            </div>
 
-              {/* Banner superior con semáforo y cartel de META */}
-              <div className={styles.gantry3DBanner}>
-                <div className={styles.gantry3DLights}>
-                  <span className={styles.gantryLightGreen} />
-                  <span className={styles.gantryLightAmber} />
-                  <span className={styles.gantryLightRed} />
+            {/* Banner transversal superior de META elevado sobre los autos */}
+            <div className={styles.gantryBanner}>
+              <div className={styles.gantryLights}>
+                <span className={styles.gantryLightGreen} />
+                <span className={styles.gantryLightAmber} />
+                <span className={styles.gantryLightRed} />
+              </div>
+              <div className={styles.gantryBannerFrame}>
+                <div className={styles.gantryFlagWing} />
+                <div className={styles.gantryCenterBoard}>
+                  <span className={styles.gantryTitle}>META</span>
+                  <span className={styles.gantrySub}>DUNAS DEL PACÍFICO • 1.140 M</span>
                 </div>
-                <div className={styles.gantry3DBannerFrame}>
-                  <div className={styles.gantry3DFlagWing} />
-                  <div className={styles.gantry3DCenterBoard}>
-                    <span className={styles.gantry3DTitle}>META</span>
-                    <span className={styles.gantry3DSub}>DUNAS DEL PACÍFICO • 1.140 M</span>
-                  </div>
-                  <div className={styles.gantry3DFlagWing} />
-                </div>
+                <div className={styles.gantryFlagWing} />
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
