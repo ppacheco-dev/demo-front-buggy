@@ -503,14 +503,19 @@ export default function LiveRaceScreen({
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
 
-    // Choque / Explosión fatal de autos
-    if (fraction >= 0.44 && fraction <= 0.62) {
+    // Choque / Impacto con obstáculos (choque.mp3 para todos los obstáculos que no sean meteoritos)
+    if (fraction >= 0.40 && fraction <= 0.65) {
       liveCars.forEach((c) => {
         if (c.isCrashing) {
           const crashKey = `${c.name}-${segIndex}`;
           if (!playedCrashSegmentsRef.current.has(crashKey)) {
             playedCrashSegmentsRef.current.add(crashKey);
-            playCrash();
+            const obsType = (c.fatalObstacle?.tipo || c.activeObstacle?.tipo || currentSectorObstacle?.tipo || '').toUpperCase();
+            if (obsType === 'METEORITOS') {
+              playMeteor();
+            } else {
+              playCrash(obsType);
+            }
           }
         }
       });

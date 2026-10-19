@@ -42,8 +42,8 @@ export function useArcadeAudio() {
     arcadeAudio.setRaceProgress(progress);
   }, []);
 
-  const playCrash = useCallback(() => {
-    arcadeAudio.playCrashSound();
+  const playCrash = useCallback((obstacleType) => {
+    arcadeAudio.playCrashSound(obstacleType);
   }, []);
 
   const playJump = useCallback(() => {

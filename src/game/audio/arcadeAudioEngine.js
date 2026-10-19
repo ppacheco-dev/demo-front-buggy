@@ -26,6 +26,7 @@ class ArcadeAudioEngine {
     this.motorAudio = null;
     this.musicAudio = null;
     this.meteorAudio = null;
+    this.crashAudio = null;
     this.isEngineRunning = false;
     this.isMusicPlaying = false;
     this.raceProgress = 0;
@@ -47,7 +48,7 @@ class ArcadeAudioEngine {
     }
   }
 
-  /** Inicializa los reproductores de audio para motor.mp3, musica.mp3 y meteorito.mp3 */
+  /** Inicializa los reproductores de audio para motor.mp3, musica.mp3, meteorito.mp3 y choque.mp3 */
   initAudioFiles() {
     if (typeof window === 'undefined') return;
 
@@ -92,6 +93,20 @@ class ArcadeAudioEngine {
           }
         });
         this.meteorAudio = audio;
+      } catch (e) {}
+    }
+
+    if (!this.crashAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/choque.mp3');
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/')) {
+            audio.src = '/sounds/choque.mp3';
+          }
+        });
+        this.crashAudio = audio;
       } catch (e) {}
     }
   }
@@ -166,6 +181,10 @@ class ArcadeAudioEngine {
       this.meteorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
     }
 
+    if (this.crashAudio) {
+      this.crashAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+    }
+
     try {
       localStorage.setItem(STORAGE_MUTE_KEY, String(this.isMuted));
     } catch (e) {}
@@ -187,6 +206,9 @@ class ArcadeAudioEngine {
     }
     if (this.meteorAudio) {
       this.meteorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+    }
+    if (this.crashAudio) {
+      this.crashAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
     }
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(this.volume));
@@ -378,7 +400,36 @@ class ArcadeAudioEngine {
   // =========================================================================
   // 4. EFECTOS ESPECIALES DE ACCIÓN (CHOQUES, SALTOS, DERRAPES, METEORITOS)
   // =========================================================================
-  playCrashSound() {
+  playCrashSound(obstacleType = '') {
+    const norm = String(obstacleType || '').toUpperCase();
+    if (norm === 'METEORITOS') {
+      this.playMeteorImpact();
+      return;
+    }
+
+    this.initContext();
+    this.initAudioFiles();
+
+    // 1. Reproducción de audio real choque.mp3 optimizado (para todos los obstáculos que no sean meteoritos)
+    if (this.crashAudio) {
+      try {
+        this.crashAudio.currentTime = 0;
+        this.crashAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+        const p = this.crashAudio.play();
+        if (p !== undefined) {
+          p.catch(() => {
+            this.playSyntheticCrash();
+          });
+        }
+        return;
+      } catch (e) {}
+    }
+
+    // 2. Fallback sintético en Web Audio si el elemento no está listo
+    this.playSyntheticCrash();
+  }
+
+  playSyntheticCrash() {
     const ctx = this.initContext();
     if (!ctx) return;
     const t = ctx.currentTime;
@@ -607,6 +658,12 @@ class ArcadeAudioEngine {
       try {
         this.meteorAudio.pause();
         this.meteorAudio.currentTime = 0;
+      } catch (e) {}
+    }
+    if (this.crashAudio) {
+      try {
+        this.crashAudio.pause();
+        this.crashAudio.currentTime = 0;
       } catch (e) {}
     }
   }
