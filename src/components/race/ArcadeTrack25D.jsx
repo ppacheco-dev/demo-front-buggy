@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
+import useArcadeAudio from '../../hooks/useArcadeAudio';
 import styles from './ArcadeTrack25D.module.css';
 
 /**
@@ -24,6 +25,8 @@ export default function ArcadeTrack25D({
   ningunAutoLlego = false,
   fatalEliminationByCar = {},
 }) {
+  const { isMuted: isAudioMuted, toggleMute: toggleAudio } = useArcadeAudio();
+
   // Encontrar auto líder de la carrera
   const leaderCar = rankedCars.find((c) => !c.isEliminated) || rankedCars[0] || null;
 
@@ -234,6 +237,18 @@ export default function ArcadeTrack25D({
             TRAMO {currentSectorObstacle?.tramo || 1}/8 • {currentSectorObstacle?.nombre || 'Circuito'}
           </span>
         </div>
+
+        {/* Botón de control de sonido arcade integrado en el HUD */}
+        <button
+          type="button"
+          className={`${styles.hudSoundBtn} ${isAudioMuted ? styles.hudSoundBtnMuted : ''}`}
+          onClick={toggleAudio}
+          title={isAudioMuted ? 'Activar Sonido y Música' : 'Silenciar Sonido'}
+          aria-label={isAudioMuted ? 'Activar Sonido' : 'Silenciar Sonido'}
+        >
+          <span className={styles.hudSoundIcon}>{isAudioMuted ? '🔇' : '🔊'}</span>
+          <span className={styles.hudSoundText}>{isAudioMuted ? 'MUDO' : 'AUDIO'}</span>
+        </button>
       </div>
 
       {/* Alerta oficial de incidente en pista cuando un auto es destruido */}

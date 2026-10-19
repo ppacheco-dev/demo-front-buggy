@@ -8,6 +8,7 @@ import CircuitMinimap from './CircuitMinimap';
 import ArcadeTrack25D from './ArcadeTrack25D';
 import ArcadeFirstPersonCockpit from './ArcadeFirstPersonCockpit';
 import { TICKET_PRICE } from '../../game/config/raceTimeService';
+import useArcadeAudio from '../../hooks/useArcadeAudio';
 import styles from './LiveRaceScreen.module.css';
 
 // Duración total de la carrera en milisegundos (22s de acción pura estilo videojuego)
@@ -74,6 +75,21 @@ export default function LiveRaceScreen({
   const [cameraMode, setCameraMode] = useState('arcade25d'); // 'arcade25d' (por defecto) | 'broadcast2d' | 'cockpitFpv'
   const animFrameRef = useRef(null);
   const startTimeRef = useRef(null);
+
+  // Motor de audio procedural arcade (música synthwave, motor, fx y celebración)
+  const {
+    isMuted,
+    toggleMute,
+    playCountdown,
+    startRaceAmbience,
+    updateTelemetry,
+    playCrash,
+    playJump,
+    playCelebration,
+    stopAll,
+  } = useArcadeAudio();
+  const playedCrashSegmentsRef = useRef(new Set());
+  const playedJumpSegmentsRef = useRef(new Set());
 
   // Ajuste al viewport: usa `zoom` (no `transform`) para no alterar elementos `position: fixed`.
   // En móvil / portrait se conserva el layout responsivo nativo.
@@ -253,15 +269,27 @@ export default function LiveRaceScreen({
   const startRaceAnimation = () => {
     clearCountdownTimers();
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    playedCrashSegmentsRef.current.clear();
+    playedJumpSegmentsRef.current.clear();
+    stopAll();
     setProgress(0);
     setIsFinished(false);
     setCountdown(3);
+    playCountdown(3);
 
     const schedule = (fn, ms) => countdownTimersRef.current.push(setTimeout(fn, ms));
-    schedule(() => setCountdown(2), 900);
-    schedule(() => setCountdown(1), 1800);
+    schedule(() => {
+      setCountdown(2);
+      playCountdown(2);
+    }, 900);
+    schedule(() => {
+      setCountdown(1);
+      playCountdown(1);
+    }, 1800);
     schedule(() => {
       setCountdown(0);
+      playCountdown(0);
+      startRaceAmbience();
       beginRaceLoop();
     }, 2700);
     schedule(() => setCountdown(null), 3500);
@@ -272,6 +300,7 @@ export default function LiveRaceScreen({
     return () => {
       clearCountdownTimers();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      stopAll();
     };
   }, [race.numero, race.hora]);
 
@@ -280,6 +309,17 @@ export default function LiveRaceScreen({
     const id = setTimeout(() => setResultsReady(true), 1800);
     return () => clearTimeout(id);
   }, [isFinished]);
+
+  // Celebración apoteósica con fanfarria y público al cruzar la meta
+  useEffect(() => {
+    if (isFinished) {
+      if (willAnyCarFinish) {
+        playCelebration();
+      } else {
+        stopAll();
+      }
+    }
+  }, [isFinished, willAnyCarFinish, playCelebration, stopAll]);
 
   // Calcular la posición X interpolada suavemente de cada auto para el `progress` actual,
   // con aparición de obstáculos en el momento y fijación permanente del obstáculo fatal que mató al auto
@@ -440,6 +480,51 @@ export default function LiveRaceScreen({
   const activeCars = liveCars.filter((c) => !c.isEliminated);
   const currentLeader = rankedCars.find((c) => !c.isEliminated) || rankedCars[0];
   const allCarsEliminated = activeCars.length === 0;
+
+  // Telemetría de audio en tiempo real (velocidad del líder y progreso de carrera)
+  useEffect(() => {
+    if (!isFinished && countdown === null && currentLeader) {
+      updateTelemetry({
+        speedKmh: currentLeader.speedKmh || 160,
+        progress,
+        isBoosting: currentLeader.isBoosting,
+      });
+    }
+  }, [progress, currentLeader, isFinished, countdown, updateTelemetry]);
+
+  // Efectos de sonido en carrera: choques fatales y saltos
+  useEffect(() => {
+    if (isFinished || countdown !== null) return;
+    const numSegments = tramos.length - 1;
+    const rawIndex = progress * numSegments;
+    const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
+    const fraction = rawIndex - segIndex;
+
+    // Choque / Explosión fatal de autos
+    if (fraction >= 0.44 && fraction <= 0.62) {
+      liveCars.forEach((c) => {
+        if (c.isCrashing) {
+          const crashKey = `${c.name}-${segIndex}`;
+          if (!playedCrashSegmentsRef.current.has(crashKey)) {
+            playedCrashSegmentsRef.current.add(crashKey);
+            playCrash();
+          }
+        }
+      });
+    }
+
+    // Salto de buggies sobre dunas / grietas
+    if (fraction >= 0.36 && fraction <= 0.48) {
+      const anyJumping = liveCars.some((c) => c.isJumping);
+      if (anyJumping) {
+        const jumpKey = `jump-${segIndex}`;
+        if (!playedJumpSegmentsRef.current.has(jumpKey)) {
+          playedJumpSegmentsRef.current.add(jumpKey);
+          playJump();
+        }
+      }
+    }
+  }, [progress, liveCars, isFinished, countdown, tramos.length, playCrash, playJump]);
 
   // Estados finales de los autos en el tramo de meta
   const finalCars = tramos[tramos.length - 1]?.EstadosAutos || [];
@@ -633,6 +718,18 @@ export default function LiveRaceScreen({
               </button>
             )}
           </div>
+
+          {/* Botón de Sonido (Música de Carreras y Motor) */}
+          <button
+            type="button"
+            className={`${styles.soundBtn} ${isMuted ? styles.soundBtnMuted : ''}`}
+            onClick={toggleMute}
+            title={isMuted ? 'Activar sonido de carreras y motor' : 'Silenciar sonido'}
+            aria-label={isMuted ? 'Activar sonido' : 'Silenciar sonido'}
+          >
+            <i className={`ph ${isMuted ? 'ph-speaker-slash' : 'ph-speaker-high'}`} aria-hidden="true" />
+            <span>{isMuted ? 'Mudo' : 'Audio'}</span>
+          </button>
 
           <button
             type="button"

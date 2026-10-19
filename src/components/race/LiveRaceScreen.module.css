@@ -388,6 +388,42 @@
   to { opacity: 1; transform: scale(1.05); }
 }
 
+.soundBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  color: #facc15;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 140ms ease;
+  white-space: nowrap;
+}
+
+.soundBtn:hover {
+  background: rgba(250, 204, 21, 0.25);
+  border-color: #facc15;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.soundBtnMuted {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #94a3b8;
+}
+
+.soundBtnMuted:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #f1f5f9;
+}
+
 .closeBtn {
   display: inline-flex;
   align-items: center;
