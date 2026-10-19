@@ -57,7 +57,7 @@ class ArcadeAudioEngine {
         const audio = new Audio('/assets/sounds/musica.mp3');
         audio.loop = true;
         audio.preload = 'auto';
-        audio.volume = this.isMuted ? 0 : this.volume * 0.58;
+        audio.volume = this.isMuted ? 0 : this.volume * 0.45;
         audio.addEventListener('error', () => {
           if (audio.src.includes('/assets/sounds/')) {
             audio.src = '/sounds/musica.mp3';
@@ -164,7 +164,7 @@ class ArcadeAudioEngine {
     }
 
     if (this.musicAudio) {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.45;
       if (!this.isMuted && this.isMusicPlaying && this.musicAudio.paused) {
         this.musicAudio.play().catch(() => {});
       }
@@ -199,7 +199,7 @@ class ArcadeAudioEngine {
       this.masterGain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 0.05);
     }
     if (this.musicAudio) {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.45;
     }
     if (this.motorAudio) {
       this.motorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 1.0);
@@ -372,7 +372,7 @@ class ArcadeAudioEngine {
 
     this.isMusicPlaying = true;
     try {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.45;
       this.musicAudio.currentTime = 0;
       const playPromise = this.musicAudio.play();
       if (playPromise !== undefined) {
