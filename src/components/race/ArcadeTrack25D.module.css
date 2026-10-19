@@ -134,7 +134,7 @@
     transparent 2px,
     transparent 24px
   );
-  animation: arcadeWindRush 0.16s linear infinite;
+  animation: arcadeWindRush 0.08s linear infinite;
   mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
   -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 100%);
 }
@@ -179,7 +179,7 @@
   color: #facc15;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  animation: roadsideParallax 2.2s linear infinite;
+  animation: roadsideParallax 0.85s linear infinite;
 }
 
 .roadsidePropBillboardLeft { left: 16%; }
@@ -191,7 +191,7 @@
   top: 36%;
   font-size: 2rem;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.7));
-  animation: roadsideParallax 1.3s linear infinite;
+  animation: roadsideParallax 0.52s linear infinite;
 }
 
 .roadsidePropPalmLeft { left: 32%; }
@@ -238,7 +238,7 @@
     rgba(31, 41, 55, 0.85) 60px
   );
   will-change: transform;
-  animation: moveAsphaltBands 0.115s linear infinite;
+  animation: moveAsphaltBands 0.058s linear infinite;
 }
 
 @keyframes moveAsphaltBands {
@@ -272,7 +272,7 @@
   );
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
   will-change: transform;
-  animation: moveCurbs 0.1s linear infinite;
+  animation: moveCurbs 0.05s linear infinite;
   pointer-events: none;
   z-index: 2;
 }
@@ -301,7 +301,7 @@
     transparent 110px
   );
   will-change: transform;
-  animation: moveMarkers 0.212s linear infinite;
+  animation: moveMarkers 0.096s linear infinite;
   z-index: 3;
 }
 
@@ -337,7 +337,7 @@
     transparent 74px
   );
   will-change: transform;
-  animation: moveLanes 0.142s linear infinite;
+  animation: moveLanes 0.068s linear infinite;
 }
 
 @keyframes moveLanes {

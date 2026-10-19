@@ -122,25 +122,26 @@ export default function ArcadeTrack25D({
     // Hay 7 transiciones entre tramos
     const sectorFraction = (progress * 7) % 1;
     const isMeteor = currentSectorObstacle?.tipo === 'METEORITOS';
-    // Para meteoritos, el cráter en el suelo se manifiesta en el momento del impacto (a partir de 0.32)
-    const minFraction = isMeteor ? 0.32 : 0.06;
+    // Para meteoritos, el cráter en el suelo se manifiesta en el momento del impacto (a partir de 0.22)
+    const minFraction = isMeteor ? 0.22 : 0.16;
+    const maxFraction = 0.66;
 
     // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos
-    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= minFraction && sectorFraction <= 0.82;
+    const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= minFraction && sectorFraction <= maxFraction;
 
     if (!isVisible) {
       return { isHazardVisible: false, hazardTop: 0, hazardScale: 1, hazardOpacity: 0 };
     }
 
     // Normalizado de 0 (horizonte lejano / impacto) a 1 (primer plano cruzado)
-    const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (0.82 - minFraction)));
-    const curve = norm * norm; // aceleración cuadrática en perspectiva 3D
+    const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (maxFraction - minFraction)));
+    const curve = Math.pow(norm, 2.2); // aceleración en perspectiva 3D veloz
 
     const startTop = isMeteor ? 38 : 30; // Los meteoritos impactan en la carretera (38%)
-    const top = startTop + curve * (84 - startTop);
-    const startScale = isMeteor ? 0.55 : 0.40;
-    const scale = startScale + curve * (1.25 - startScale);
-    const opacity = norm < 0.08 ? norm / 0.08 : (norm > 0.88 ? (1 - norm) / 0.12 : 1);
+    const top = startTop + curve * (88 - startTop);
+    const startScale = isMeteor ? 0.55 : 0.38;
+    const scale = startScale + curve * (1.28 - startScale);
+    const opacity = norm < 0.10 ? norm / 0.10 : (norm > 0.86 ? (1 - norm) / 0.14 : 1);
 
     return {
       isHazardVisible: true,
@@ -176,8 +177,8 @@ export default function ArcadeTrack25D({
   const sectorFraction = (progress * 7) % 1;
   const isMeteorImpactShake =
     currentSectorObstacle?.tipo === 'METEORITOS' &&
-    sectorFraction >= 0.32 &&
-    sectorFraction <= 0.44;
+    sectorFraction >= 0.20 &&
+    sectorFraction <= 0.36;
 
   // Curvatura dinámica de la carretera según el tramo (efecto Horizon Chase / OutRun)
   const trackCurve = useMemo(() => {
@@ -416,9 +417,9 @@ export default function ArcadeTrack25D({
               baseZIndex = Math.round((1 - distRatio) * 100) + 15;
 
               // Ventana en la que este auto en particular esquiva o salta el obstáculo
-              const carReactionOffset = (1 - distRatio) * 0.08;
-              const encounterStart = 0.36 + carReactionOffset;
-              const encounterEnd = 0.64 + carReactionOffset;
+              const carReactionOffset = (1 - distRatio) * 0.06;
+              const encounterStart = 0.38 + carReactionOffset;
+              const encounterEnd = 0.58 + carReactionOffset;
 
               if (sectorFraction >= encounterStart && sectorFraction <= encounterEnd) {
                 isEvasionActive = true;
@@ -431,21 +432,21 @@ export default function ArcadeTrack25D({
                   currentSectorObstacle?.tipo === 'GRIETAS'
                 ) {
                   isJumping = true;
-                  jumpY = -sinArc * 36;
-                  jumpScaleBonus = sinArc * 0.16;
-                  dynamicTilt = (t < 0.5 ? -0.15 : 0.22) * sinArc;
+                  jumpY = -sinArc * 44;
+                  jumpScaleBonus = sinArc * 0.18;
+                  dynamicTilt = (t < 0.5 ? -0.18 : 0.26) * sinArc;
                 } else {
                   const swerveDir = idx % 2 === 0 ? 1 : -1;
-                  evasionX = Math.sin(t * Math.PI * 2) * 18 * swerveDir;
-                  dynamicTilt = Math.cos(t * Math.PI * 2) * 0.75 * swerveDir;
-                  jumpY = -sinArc * 8;
+                  evasionX = Math.sin(t * Math.PI * 2) * 22 * swerveDir;
+                  dynamicTilt = Math.cos(t * Math.PI * 2) * 0.85 * swerveDir;
+                  jumpY = -sinArc * 10;
                 }
               } else if (isFinished) {
                 dynamicTilt = 0;
               } else {
                 dynamicTilt = isLeader
-                  ? Math.sin(progress * 28 + idx) * 0.35
-                  : Math.sin(progress * 18 + idx) * 0.2;
+                  ? Math.sin(progress * 38 + idx) * 0.38
+                  : Math.sin(progress * 26 + idx) * 0.24;
               }
             }
 

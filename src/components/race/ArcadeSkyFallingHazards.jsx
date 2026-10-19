@@ -21,10 +21,10 @@ export default function ArcadeSkyFallingHazards({
     return null;
   }
 
-  // Ventana activa de meteoritos en este sector: 0.04 a 0.54
-  const isMeteorActive = isMeteor && sectorFraction >= 0.04 && sectorFraction <= 0.54;
-  // Ventana activa de avalancha: 0.05 a 0.44
-  const isAvalanchaActive = isAvalancha && sectorFraction >= 0.05 && sectorFraction <= 0.44;
+  // Ventana activa de meteoritos en este sector: 0.04 a 0.44
+  const isMeteorActive = isMeteor && sectorFraction >= 0.04 && sectorFraction <= 0.44;
+  // Ventana activa de avalancha: 0.05 a 0.38
+  const isAvalanchaActive = isAvalancha && sectorFraction >= 0.05 && sectorFraction <= 0.38;
 
   if (!isMeteorActive && !isAvalanchaActive) {
     return null;
@@ -34,7 +34,7 @@ export default function ArcadeSkyFallingHazards({
   // METEORITOS: 3 Bólidos con Trayectoria Balística Realista desde el Espacio
   // =========================================================================
   // 1. Meteorito Izquierdo
-  const tFall1 = Math.min(1, Math.max(0, (sectorFraction - 0.05) / 0.27));
+  const tFall1 = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.14));
   const ease1 = tFall1 * tFall1;
   const m1X = 22 + (30 - 22) * ease1; // %
   const m1Y = -14 + (46 - (-14)) * ease1; // %
@@ -42,11 +42,11 @@ export default function ArcadeSkyFallingHazards({
   const m1Visible = tFall1 > 0 && tFall1 < 1;
 
   // Impacto 1
-  const tImpact1 = Math.min(1, Math.max(0, (sectorFraction - 0.32) / 0.16));
+  const tImpact1 = Math.min(1, Math.max(0, (sectorFraction - 0.20) / 0.14));
   const showImpact1 = tFall1 >= 1 && tImpact1 < 1;
 
   // 2. Meteorito Central GIGANTE (Protagonista principal del cielo)
-  const tFall2 = Math.min(1, Math.max(0, (sectorFraction - 0.07) / 0.26));
+  const tFall2 = Math.min(1, Math.max(0, (sectorFraction - 0.08) / 0.14));
   const ease2 = tFall2 * tFall2;
   const m2X = 50; // %
   const m2Y = -24 + (51 - (-24)) * ease2; // %
@@ -54,11 +54,11 @@ export default function ArcadeSkyFallingHazards({
   const m2Visible = tFall2 > 0 && tFall2 < 1;
 
   // Impacto 2 (El más masivo)
-  const tImpact2 = Math.min(1, Math.max(0, (sectorFraction - 0.33) / 0.18));
+  const tImpact2 = Math.min(1, Math.max(0, (sectorFraction - 0.22) / 0.15));
   const showImpact2 = tFall2 >= 1 && tImpact2 < 1;
 
   // 3. Meteorito Derecho
-  const tFall3 = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.27));
+  const tFall3 = Math.min(1, Math.max(0, (sectorFraction - 0.07) / 0.14));
   const ease3 = tFall3 * tFall3;
   const m3X = 78 + (70 - 78) * ease3; // %
   const m3Y = -16 + (48 - (-16)) * ease3; // %
@@ -66,24 +66,24 @@ export default function ArcadeSkyFallingHazards({
   const m3Visible = tFall3 > 0 && tFall3 < 1;
 
   // Impacto 3
-  const tImpact3 = Math.min(1, Math.max(0, (sectorFraction - 0.33) / 0.16));
+  const tImpact3 = Math.min(1, Math.max(0, (sectorFraction - 0.21) / 0.14));
   const showImpact3 = tFall3 >= 1 && tImpact3 < 1;
 
   // =========================================================================
   // AVALANCHA DE PIEDRAS: Boulders rodando colina abajo
   // =========================================================================
-  const tRock1 = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.28));
+  const tRock1 = Math.min(1, Math.max(0, (sectorFraction - 0.06) / 0.16));
   const easeRock1 = tRock1 * tRock1;
   const r1X = 10 + (24 - 10) * easeRock1;
   const r1Y = 22 + (48 - 22) * easeRock1 + Math.abs(Math.sin(tRock1 * Math.PI * 3)) * -6;
-  const r1Rot = tRock1 * 720;
+  const r1Rot = tRock1 * 960;
   const r1Scale = 0.45 + easeRock1 * 0.65;
 
-  const tRock2 = Math.min(1, Math.max(0, (sectorFraction - 0.08) / 0.28));
+  const tRock2 = Math.min(1, Math.max(0, (sectorFraction - 0.08) / 0.16));
   const easeRock2 = tRock2 * tRock2;
   const r2X = 90 + (74 - 90) * easeRock2;
   const r2Y = 20 + (49 - 20) * easeRock2 + Math.abs(Math.sin(tRock2 * Math.PI * 3.5)) * -7;
-  const r2Rot = -tRock2 * 840;
+  const r2Rot = -tRock2 * 1080;
   const r2Scale = 0.40 + easeRock2 * 0.70;
 
   return (

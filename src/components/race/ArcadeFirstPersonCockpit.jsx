@@ -254,37 +254,39 @@ export default function ArcadeFirstPersonCockpit({
     return idx >= 0 ? idx + 1 : 1;
   }, [rankedCars, playerCar]);
 
-  // --- Obstáculo que se acerca ---
+  // --- Obstáculo que se acerca a gran velocidad hacia el parabrisas/capó ---
   const sectorFraction = (progress * 7) % 1;
   const isMeteor = currentSectorObstacle?.tipo === 'METEORITOS';
-  const minFraction = isMeteor ? 0.28 : 0.08;
+  const minFraction = isMeteor ? 0.22 : 0.16;
+  const maxFraction = 0.66;
   const hazard = useMemo(() => {
     const visible =
       !isFinished &&
       currentSectorObstacle?.tipo &&
       sectorFraction >= minFraction &&
-      sectorFraction <= 0.82;
+      sectorFraction <= maxFraction;
     if (!visible) return null;
-    const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (0.82 - minFraction)));
-    const curve = norm * norm;
+    const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (maxFraction - minFraction)));
+    const curve = Math.pow(norm, 2.3);
     return {
-      y: 226 + curve * 190,
-      scale: 0.22 + curve * 0.85,
-      opacity: norm < 0.08 ? norm / 0.08 : norm > 0.88 ? (1 - norm) / 0.12 : 1,
+      y: 218 + curve * 240,
+      scale: 0.25 + curve * 1.35,
+      opacity: norm < 0.10 ? norm / 0.10 : norm > 0.85 ? (1 - norm) / 0.15 : 1,
     };
-  }, [isFinished, currentSectorObstacle, sectorFraction, minFraction]);
+  }, [isFinished, currentSectorObstacle, sectorFraction, minFraction, maxFraction]);
 
-  // --- Telemetría / animación ---
+  // --- Telemetría / animación de alta velocidad ---
   const speed = playerCar?.speedKmh || 164;
   const buggyColor = playerCar?.buggy?.color || '#f26a1b';
   const steer = playerCar?.isDodging
     ? Math.max(-10, Math.min(10, (playerCar.dodgeRotateDeg || -8) * 0.8))
-    : Math.sin(progress * 22) * 3.2;
-  const bump = playerCar?.isJumping ? -10 : Math.sin(progress * 160) * 0.9;
+    : Math.sin(progress * 38) * 3.4;
+  const bump = playerCar?.isJumping ? -14 : Math.sin(progress * 280) * 1.1;
 
-  const scroll = progress * 170;
+  // Asfalto y ráfagas a velocidad arcade auténtica
+  const scroll = progress * 520;
   const road = useMemo(() => buildRoad(scroll), [scroll]);
-  const rainOffset = progress * 2600;
+  const rainOffset = progress * 6800;
   const needle = 190 + 160 * Math.min(1, speed / 240);
 
   // Carriles donde viaja cada rival (centros entre las líneas blancas)
@@ -374,7 +376,7 @@ export default function ArcadeFirstPersonCockpit({
             const width = 56 + (y - 245) * 0.42;
             const lane =
               laneCenters[(car.index ?? idx) % laneCenters.length] +
-              Math.sin(progress * 14 + (car.index ?? idx) * 1.7) * 0.07;
+              Math.sin(progress * 28 + (car.index ?? idx) * 1.7) * 0.09;
             const x = lx(lane, y);
             return (
               <div
