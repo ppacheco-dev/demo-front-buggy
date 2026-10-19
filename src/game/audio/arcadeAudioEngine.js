@@ -1,17 +1,13 @@
 /**
  * arcadeAudioEngine.js
  * 
- * Motor de audio procedural y de baja latencia basado 100% en Web Audio API.
- * No requiere descargar archivos de audio externos (0 KB de dependencias),
- * funciona 100% offline, sin latencia, y cumple estrictamente con las políticas
- * de autoplay de los navegadores modernos (Chrome, Safari, Edge, Firefox).
- * 
- * Incluye:
- *  1. Sonidos de cuenta regresiva (Beeps de largada 3, 2, 1, ¡GO!).
- *  2. Sonido continuo de motor de carreras modulado en tiempo real por la velocidad (KM/H) y nitro.
- *  3. Música de carreras arcade (Retro Synthwave a 132 BPM con bajo rolling, batería cuatro-en-el-piso y leads).
- *  4. Efectos de acción (derrape, turbo, salto sobre dunas, choque/explosión).
- *  5. Celebración de victoria (fanfarria triunfal, vítores del público / estadio y bocina de aire / air horn).
+ * Motor de audio de carreras híbrido (Archivos MP3 reales + Web Audio API):
+ *  1. Motor de autos: Reproduce `/assets/sounds/motor.mp3` con modulación dinámica de
+ *     velocidad/revoluciones (playbackRate entre 0.85x y 1.35x según los KM/H en tiempo real).
+ *  2. Música de carreras: Reproduce en bucle `/assets/sounds/musica.mp3` durante la competencia.
+ *  3. Cuenta regresiva 3, 2, 1, ¡GO!: Chimes de largada arcade de alta fidelidad y acorde triunfal.
+ *  4. Efectos de acción: Saltos, choques y explosiones fatales.
+ *  5. Celebración de victoria: Fanfarria de podio, vítores de la multitud y bocina de aire (air horn).
  *  6. Control de mute y volumen con persistencia en localStorage.
  */
 
@@ -26,19 +22,12 @@ class ArcadeAudioEngine {
     this.volume = 0.85;
     this.listeners = new Set();
 
-    // Estado del motor
-    this.engineNodes = null;
-    this.currentEngineSpeed = 0;
-
-    // Estado de la música
+    // Archivos de audio MP3 provistos por el usuario
+    this.motorAudio = null;
+    this.musicAudio = null;
+    this.isEngineRunning = false;
     this.isMusicPlaying = false;
-    this.musicTimer = null;
-    this.currentStep = 0;
-    this.nextNoteTime = 0;
     this.raceProgress = 0;
-
-    // Estado de la multitud / celebración
-    this.celebrationNodes = null;
 
     // Cargar preferencia guardada
     if (typeof window !== 'undefined') {
@@ -54,6 +43,41 @@ class ArcadeAudioEngine {
       } catch (e) {
         // Ignorar errores de storage privado
       }
+    }
+  }
+
+  /** Inicializa los reproductores de audio para motor.mp3 y musica.mp3 */
+  initAudioFiles() {
+    if (typeof window === 'undefined') return;
+
+    if (!this.musicAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/musica.mp3');
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : this.volume * 0.70;
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/')) {
+            audio.src = '/sounds/musica.mp3';
+          }
+        });
+        this.musicAudio = audio;
+      } catch (e) {}
+    }
+
+    if (!this.motorAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/motor.mp3');
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : this.volume * 0.75;
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/')) {
+            audio.src = '/sounds/motor.mp3';
+          }
+        });
+        this.motorAudio = audio;
+      } catch (e) {}
     }
   }
 
@@ -76,6 +100,7 @@ class ArcadeAudioEngine {
       this.ctx.resume().catch(() => {});
     }
 
+    this.initAudioFiles();
     return this.ctx;
   }
 
@@ -100,11 +125,26 @@ class ArcadeAudioEngine {
   setMuted(muted) {
     this.isMuted = Boolean(muted);
     this.initContext();
+    this.initAudioFiles();
 
     if (this.masterGain && this.ctx) {
       const targetGain = this.isMuted ? 0 : this.volume;
       this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
       this.masterGain.gain.linearRampToValueAtTime(targetGain, this.ctx.currentTime + 0.05);
+    }
+
+    if (this.musicAudio) {
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+      if (!this.isMuted && this.isMusicPlaying && this.musicAudio.paused) {
+        this.musicAudio.play().catch(() => {});
+      }
+    }
+
+    if (this.motorAudio) {
+      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+      if (!this.isMuted && this.isEngineRunning && this.motorAudio.paused) {
+        this.motorAudio.play().catch(() => {});
+      }
     }
 
     try {
@@ -120,13 +160,18 @@ class ArcadeAudioEngine {
       this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
       this.masterGain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 0.05);
     }
+    if (this.musicAudio) {
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+    }
+    if (this.motorAudio) {
+      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+    }
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(this.volume));
     } catch (e) {}
     this.notifyListeners();
   }
 
-  // =========================================================================
   // =========================================================================
   // 1. BEES DE CUENTA REGRESIVA ARCADE (3, 2, 1, ¡GO!)
   // =========================================================================
@@ -229,328 +274,69 @@ class ArcadeAudioEngine {
   }
 
   // =========================================================================
-  // 2. MOTOR DE CARRERAS DE RALLY (RUGIDO MECÁNICO PROFUNDO Y PISTONES EN V)
+  // 2. MOTOR DE CARRERAS (REPRODUCCIÓN DINÁMICA DE motor.mp3)
   // =========================================================================
   startEngine() {
-    const ctx = this.initContext();
-    if (!ctx || this.engineNodes) return;
+    this.initContext();
+    this.initAudioFiles();
+    if (!this.motorAudio) return;
 
-    const t = ctx.currentTime;
-
-    // 1. Oscilador Primario: Diente de sierra suave para pulsos de combustión
-    const osc1 = ctx.createOscillator();
-    osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(36, t);
-
-    // 2. Oscilador Secundario: Sub-grave triangular profundo (cuerpo del bloque motor)
-    const osc2 = ctx.createOscillator();
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(18, t);
-
-    // 3. Modulador de impulsos de pistones (LFO a 16-28 Hz para la vibración física de combustión)
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(18, t);
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(0.15, t);
-    lfo.connect(lfoGain);
-
-    // 4. Silenciador acústico (Filtro pasa-bajos cálido para quitar asperezas electrónicas)
-    const lowpass = ctx.createBiquadFilter();
-    lowpass.type = 'lowpass';
-    lowpass.frequency.setValueAtTime(240, t);
-    lowpass.Q.setValueAtTime(1.8, t);
-
-    // 5. Formante de resonancia del tubo de escape (Peak en medios para el rugido gutural de rally)
-    const exhaustPeak = ctx.createBiquadFilter();
-    exhaustPeak.type = 'peaking';
-    exhaustPeak.frequency.setValueAtTime(460, t);
-    exhaustPeak.gain.setValueAtTime(6.0, t);
-    exhaustPeak.Q.setValueAtTime(2.2, t);
-
-    // 6. Silbido sutil del turbo en altas velocidades
-    const turboOsc = ctx.createOscillator();
-    turboOsc.type = 'sine';
-    turboOsc.frequency.setValueAtTime(1900, t);
-    const turboGain = ctx.createGain();
-    turboGain.gain.setValueAtTime(0.001, t);
-
-    // 7. Ganancia principal del motor
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.linearRampToValueAtTime(0.13, t + 0.35);
-
-    // Cadena de ruteo
-    osc1.connect(lowpass);
-    osc2.connect(lowpass);
-    lowpass.connect(exhaustPeak);
-    exhaustPeak.connect(gain);
-
-    lfoGain.connect(gain.gain); // Modulación de pistones
-    turboOsc.connect(turboGain);
-    turboGain.connect(this.masterGain);
-
-    gain.connect(this.masterGain);
-
-    osc1.start(t);
-    osc2.start(t);
-    lfo.start(t);
-    turboOsc.start(t);
-
-    this.engineNodes = {
-      osc1,
-      osc2,
-      lfo,
-      turboOsc,
-      turboGain,
-      lowpass,
-      exhaustPeak,
-      gain,
-    };
-
-    this.setEngineSpeed(110);
+    this.isEngineRunning = true;
+    try {
+      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+      this.motorAudio.playbackRate = 1.0;
+      this.motorAudio.currentTime = 0;
+      const playPromise = this.motorAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay policy: reanudará con interacción
+        });
+      }
+    } catch (e) {}
   }
 
-  /** Modula el tono y el rugido según los KM/H en tiempo real */
+  /** Modula el playbackRate de motor.mp3 según los KM/H en tiempo real */
   setEngineSpeed(speedKmh, isBoosting = false) {
-    if (!this.engineNodes || !this.ctx) return;
-
-    const speed = Math.max(0, Math.min(240, Number(speedKmh) || 120));
-    const norm = speed / 240;
-    const t = this.ctx.currentTime;
-
-    // Frecuencia fundamental del motor (36 Hz a ralentí hasta 95 Hz a 240 km/h)
-    // Tono grave, mecánico y robusto (no un zumbido sintético plano)
-    const boostBonus = isBoosting ? 18 : 0;
-    const targetFreq = 36 + Math.pow(norm, 1.2) * 58 + boostBonus;
-
-    // Ritmo de disparo de los cilindros (LFO de 14 Hz a 32 Hz)
-    const targetLfo = 14 + norm * 18;
-
-    // Apertura del escape: de 240 Hz a 580 Hz
-    const targetCutoff = 240 + norm * 340 + (isBoosting ? 140 : 0);
-    const targetPeak = 420 + norm * 260;
-
-    // Silbido del turbo presente solo a alta velocidad (>130 km/h)
-    const targetTurboGain = norm > 0.55 ? (norm - 0.55) * 0.04 + (isBoosting ? 0.025 : 0) : 0.001;
-    const targetTurboFreq = 1800 + norm * 900;
+    if (!this.motorAudio || !this.isEngineRunning) return;
 
     try {
-      this.engineNodes.osc1.frequency.setTargetAtTime(targetFreq, t, 0.08);
-      this.engineNodes.osc2.frequency.setTargetAtTime(targetFreq * 0.5, t, 0.08);
-      this.engineNodes.lfo.frequency.setTargetAtTime(targetLfo, t, 0.08);
-      this.engineNodes.lowpass.frequency.setTargetAtTime(targetCutoff, t, 0.08);
-      this.engineNodes.exhaustPeak.frequency.setTargetAtTime(targetPeak, t, 0.08);
-      this.engineNodes.turboGain.gain.setTargetAtTime(targetTurboGain, t, 0.12);
-      this.engineNodes.turboOsc.frequency.setTargetAtTime(targetTurboFreq, t, 0.1);
+      const speed = Math.max(0, Math.min(240, Number(speedKmh) || 120));
+      const norm = speed / 240;
+      // Modula la velocidad de reproducción entre 0.85x (ralentí) y 1.30x (máxima velocidad / nitro)
+      const rate = 0.85 + norm * 0.36 + (isBoosting ? 0.12 : 0);
+      this.motorAudio.playbackRate = Math.max(0.75, Math.min(1.4, rate));
     } catch (e) {}
   }
 
   stopEngine() {
-    if (!this.engineNodes || !this.ctx) return;
-    const t = this.ctx.currentTime;
-    try {
-      this.engineNodes.gain.gain.linearRampToValueAtTime(0.0001, t + 0.2);
-      if (this.engineNodes.turboGain) {
-        this.engineNodes.turboGain.gain.linearRampToValueAtTime(0.0001, t + 0.15);
-      }
-      setTimeout(() => {
-        if (this.engineNodes) {
-          try {
-            this.engineNodes.osc1.stop();
-            this.engineNodes.osc2.stop();
-            this.engineNodes.lfo.stop();
-            this.engineNodes.turboOsc.stop();
-            this.engineNodes.osc1.disconnect();
-            this.engineNodes.osc2.disconnect();
-            this.engineNodes.lfo.disconnect();
-            this.engineNodes.turboOsc.disconnect();
-          } catch (e) {}
-          this.engineNodes = null;
-        }
-      }, 250);
-    } catch (e) {
-      this.engineNodes = null;
+    this.isEngineRunning = false;
+    if (this.motorAudio) {
+      try {
+        this.motorAudio.pause();
+        this.motorAudio.currentTime = 0;
+      } catch (e) {}
     }
   }
 
   // =========================================================================
-  // 3. MÚSICA DE CARRERAS ARCADE (RETRO SYNTHWAVE A 132 BPM)
+  // 3. MÚSICA DE CARRERAS (REPRODUCCIÓN EN BUCLE DE musica.mp3)
   // =========================================================================
   startRaceMusic() {
-    const ctx = this.initContext();
-    if (!ctx) return;
+    this.initContext();
+    this.initAudioFiles();
+    if (!this.musicAudio) return;
 
-    if (this.isMusicPlaying) return;
     this.isMusicPlaying = true;
-    this.currentStep = 0;
-    this.raceProgress = 0;
-
-    // 132 BPM: cada compás tiene 16 semicorcheas
-    // Duración de cada semicorchea = (60 / 132) / 4 ≈ 0.1136 seg
-    const stepDuration = 60 / 132 / 4;
-    this.nextNoteTime = ctx.currentTime + 0.05;
-
-    // Generar buffer de ruido reutilizable para batería (caja, hihats)
-    if (!this.noiseBuffer) {
-      const bufferSize = ctx.sampleRate * 1;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
+    try {
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+      this.musicAudio.currentTime = 0;
+      const playPromise = this.musicAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay policy: reanudará con interacción
+        });
       }
-      this.noiseBuffer = buffer;
-    }
-
-    const scheduleNote = (step, time) => {
-      if (!this.isMusicPlaying || !this.ctx) return;
-
-      const subStep = step % 16;
-      const bar = Math.floor(step / 16) % 4; // ciclo de 4 compases
-
-      // 1. BOMBO (Kick Drum): Cuatro-en-el-piso (steps 0, 4, 8, 12)
-      if (subStep % 4 === 0) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(140, time);
-        osc.frequency.exponentialRampToValueAtTime(38, time + 0.09);
-        gain.gain.setValueAtTime(0.38, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.11);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(time);
-        osc.stop(time + 0.12);
-      }
-
-      // 2. CAJA (Snare): En los tiempos 2 y 4 (steps 4 y 12)
-      if (subStep === 4 || subStep === 12) {
-        // Tono del snare
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(190, time);
-        oscGain.gain.setValueAtTime(0.18, time);
-        oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-        osc.connect(oscGain);
-        oscGain.connect(this.masterGain);
-        osc.start(time);
-        osc.stop(time + 0.13);
-
-        // Ruido del snare
-        if (this.noiseBuffer) {
-          const noise = ctx.createBufferSource();
-          noise.buffer = this.noiseBuffer;
-          const filter = ctx.createBiquadFilter();
-          filter.type = 'bandpass';
-          filter.frequency.setValueAtTime(1400, time);
-          const noiseGain = ctx.createGain();
-          noiseGain.gain.setValueAtTime(0.24, time);
-          noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-
-          noise.connect(filter);
-          filter.connect(noiseGain);
-          noiseGain.connect(this.masterGain);
-          noise.start(time);
-          noise.stop(time + 0.16);
-        }
-      }
-
-      // 3. HI-HAT: Semicorcheas rápidas estilo OutRun
-      if (this.noiseBuffer) {
-        const isUpbeat = subStep % 4 === 2;
-        const hatGainVal = isUpbeat ? 0.08 : 0.04;
-        const hatDecay = isUpbeat ? 0.06 : 0.035;
-
-        const hat = ctx.createBufferSource();
-        hat.buffer = this.noiseBuffer;
-        const hatFilter = ctx.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.setValueAtTime(7500, time);
-
-        const hatGain = ctx.createGain();
-        hatGain.gain.setValueAtTime(hatGainVal, time);
-        hatGain.gain.exponentialRampToValueAtTime(0.001, time + hatDecay);
-
-        hat.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(this.masterGain);
-        hat.start(time);
-        hat.stop(time + hatDecay + 0.01);
-      }
-
-      // 4. LÍNEA DE BAJO SYNTHWAVE (A1 -> F1 -> C2 -> G1)
-      const bassRoots = [55.0, 43.65, 65.41, 48.99]; // A1, F1, C2, G1
-      const root = bassRoots[bar];
-      // Notas de bajo en cada semicorchea con octava rítmica
-      const isOctave = subStep % 2 === 1;
-      const bassFreq = isOctave ? root * 2 : root;
-
-      const bassOsc = ctx.createOscillator();
-      bassOsc.type = 'sawtooth';
-      bassOsc.frequency.setValueAtTime(bassFreq, time);
-
-      const bassFilter = ctx.createBiquadFilter();
-      bassFilter.type = 'lowpass';
-      bassFilter.frequency.setValueAtTime(800, time);
-      bassFilter.frequency.exponentialRampToValueAtTime(180, time + 0.08);
-      bassFilter.Q.setValueAtTime(3, time);
-
-      const bassGain = ctx.createGain();
-      bassGain.gain.setValueAtTime(0.18, time);
-      bassGain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
-
-      bassOsc.connect(bassFilter);
-      bassFilter.connect(bassGain);
-      bassGain.connect(this.masterGain);
-      bassOsc.start(time);
-      bassOsc.stop(time + 0.1);
-
-      // 5. LEAD / ARPEGIO SINTETIZADOR (Sprints y emoción arcade)
-      // Escala pentatónica menor (A, C, D, E, G)
-      const leadNotes = [220, 261.63, 293.66, 329.63, 392, 440, 523.25, 659.25];
-      // Toca en semicorcheas alternadas
-      if (subStep % 2 === 0) {
-        const noteIdx = (subStep + bar * 2) % leadNotes.length;
-        const leadFreq = leadNotes[noteIdx];
-
-        const leadOsc = ctx.createOscillator();
-        leadOsc.type = 'square';
-        leadOsc.frequency.setValueAtTime(leadFreq, time);
-
-        const leadFilter = ctx.createBiquadFilter();
-        leadFilter.type = 'lowpass';
-        // Aumenta el brillo en el sprint final de la carrera
-        const cutoff = this.raceProgress > 0.75 ? 2400 : 1400;
-        leadFilter.frequency.setValueAtTime(cutoff, time);
-
-        const leadGain = ctx.createGain();
-        const baseLeadVol = this.raceProgress > 0.75 ? 0.09 : 0.06;
-        leadGain.gain.setValueAtTime(baseLeadVol, time);
-        leadGain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
-
-        leadOsc.connect(leadFilter);
-        leadFilter.connect(leadGain);
-        leadGain.connect(this.masterGain);
-        leadOsc.start(time);
-        leadOsc.stop(time + 0.15);
-      }
-    };
-
-    // Planificador de precisión Web Audio (Lookahead Clock)
-    const lookahead = 25.0; // ms
-    const scheduleAheadTime = 0.1; // seg
-
-    const scheduler = () => {
-      if (!this.isMusicPlaying || !this.ctx) return;
-      while (this.nextNoteTime < this.ctx.currentTime + scheduleAheadTime) {
-        scheduleNote(this.currentStep, this.nextNoteTime);
-        this.nextNoteTime += stepDuration;
-        this.currentStep += 1;
-      }
-    };
-
-    this.musicTimer = setInterval(scheduler, lookahead);
+    } catch (e) {}
   }
 
   setRaceProgress(p) {
@@ -559,9 +345,11 @@ class ArcadeAudioEngine {
 
   stopRaceMusic() {
     this.isMusicPlaying = false;
-    if (this.musicTimer) {
-      clearInterval(this.musicTimer);
-      this.musicTimer = null;
+    if (this.musicAudio) {
+      try {
+        this.musicAudio.pause();
+        this.musicAudio.currentTime = 0;
+      } catch (e) {}
     }
   }
 
@@ -588,6 +376,16 @@ class ArcadeAudioEngine {
     boom.stop(t + 0.48);
 
     // Explosión crujiente de metal y restos
+    if (!this.noiseBuffer && ctx) {
+      const bufferSize = ctx.sampleRate * 1;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      this.noiseBuffer = buffer;
+    }
+
     if (this.noiseBuffer) {
       const crunch = ctx.createBufferSource();
       crunch.buffer = this.noiseBuffer;
@@ -663,12 +461,12 @@ class ArcadeAudioEngine {
     const t = ctx.currentTime;
 
     // A. FANFARRIA TRIUNFAL (Acordes mayores de victoria en metal brillante)
-    // Notas: Do4 (261) -> Mi4 (329) -> Sol4 (392) -> Do5 (523) -> Sol5 (784)
+    // Notas: Do5 (523) -> Mi5 (659) -> Sol5 (784) -> Do6 (1046) apoteósico
     const fanfareNotes = [
       { time: 0.0, freq: 523.25, dur: 0.2 },
       { time: 0.18, freq: 659.25, dur: 0.2 },
       { time: 0.36, freq: 783.99, dur: 0.25 },
-      { time: 0.58, freq: 1046.50, dur: 0.9 }, // Do6 sostenido apoteósico
+      { time: 0.58, freq: 1046.50, dur: 0.9 },
     ];
 
     fanfareNotes.forEach((n) => {
@@ -717,6 +515,16 @@ class ArcadeAudioEngine {
     playAirHornBlast(1.2);
 
     // C. PÚBLICO ACLAMANDO / APLAUSOS (Estadio en éxtasis)
+    if (!this.noiseBuffer && ctx) {
+      const bufferSize = ctx.sampleRate * 1;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      this.noiseBuffer = buffer;
+    }
+
     if (this.noiseBuffer) {
       const crowd = ctx.createBufferSource();
       crowd.buffer = this.noiseBuffer;
