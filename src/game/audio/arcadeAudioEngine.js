@@ -25,6 +25,7 @@ class ArcadeAudioEngine {
     // Archivos de audio MP3 provistos por el usuario
     this.motorAudio = null;
     this.musicAudio = null;
+    this.meteorAudio = null;
     this.isEngineRunning = false;
     this.isMusicPlaying = false;
     this.raceProgress = 0;
@@ -46,7 +47,7 @@ class ArcadeAudioEngine {
     }
   }
 
-  /** Inicializa los reproductores de audio para motor.mp3 y musica.mp3 */
+  /** Inicializa los reproductores de audio para motor.mp3, musica.mp3 y meteorito.mp3 */
   initAudioFiles() {
     if (typeof window === 'undefined') return;
 
@@ -55,7 +56,7 @@ class ArcadeAudioEngine {
         const audio = new Audio('/assets/sounds/musica.mp3');
         audio.loop = true;
         audio.preload = 'auto';
-        audio.volume = this.isMuted ? 0 : this.volume * 0.70;
+        audio.volume = this.isMuted ? 0 : this.volume * 0.58;
         audio.addEventListener('error', () => {
           if (audio.src.includes('/assets/sounds/')) {
             audio.src = '/sounds/musica.mp3';
@@ -70,13 +71,27 @@ class ArcadeAudioEngine {
         const audio = new Audio('/assets/sounds/motor.mp3');
         audio.loop = true;
         audio.preload = 'auto';
-        audio.volume = this.isMuted ? 0 : this.volume * 0.75;
+        audio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 1.0);
         audio.addEventListener('error', () => {
           if (audio.src.includes('/assets/sounds/')) {
             audio.src = '/sounds/motor.mp3';
           }
         });
         this.motorAudio = audio;
+      } catch (e) {}
+    }
+
+    if (!this.meteorAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/meteorito.mp3');
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/meteorito.mp3')) {
+            audio.src = '/assets/sounds/meterorito.mp3';
+          }
+        });
+        this.meteorAudio = audio;
       } catch (e) {}
     }
   }
@@ -134,17 +149,21 @@ class ArcadeAudioEngine {
     }
 
     if (this.musicAudio) {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
       if (!this.isMuted && this.isMusicPlaying && this.musicAudio.paused) {
         this.musicAudio.play().catch(() => {});
       }
     }
 
     if (this.motorAudio) {
-      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+      this.motorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 1.0);
       if (!this.isMuted && this.isEngineRunning && this.motorAudio.paused) {
         this.motorAudio.play().catch(() => {});
       }
+    }
+
+    if (this.meteorAudio) {
+      this.meteorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
     }
 
     try {
@@ -161,10 +180,13 @@ class ArcadeAudioEngine {
       this.masterGain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 0.05);
     }
     if (this.musicAudio) {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
     }
     if (this.motorAudio) {
-      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+      this.motorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 1.0);
+    }
+    if (this.meteorAudio) {
+      this.meteorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
     }
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(this.volume));
@@ -283,7 +305,7 @@ class ArcadeAudioEngine {
 
     this.isEngineRunning = true;
     try {
-      this.motorAudio.volume = this.isMuted ? 0 : this.volume * 0.75;
+      this.motorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 1.0);
       this.motorAudio.playbackRate = 1.0;
       this.motorAudio.currentTime = 0;
       const playPromise = this.motorAudio.play();
@@ -328,7 +350,7 @@ class ArcadeAudioEngine {
 
     this.isMusicPlaying = true;
     try {
-      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.70;
+      this.musicAudio.volume = this.isMuted ? 0 : this.volume * 0.58;
       this.musicAudio.currentTime = 0;
       const playPromise = this.musicAudio.play();
       if (playPromise !== undefined) {
@@ -428,6 +450,30 @@ class ArcadeAudioEngine {
   }
 
   playMeteorImpact() {
+    this.initContext();
+    this.initAudioFiles();
+
+    // 1. Reproducción de audio real meteorito.mp3 optimizado
+    if (this.meteorAudio) {
+      try {
+        this.meteorAudio.currentTime = 0;
+        this.meteorAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+        const p = this.meteorAudio.play();
+        if (p !== undefined) {
+          p.catch(() => {
+            // Autoplay policy o error: fallback al sintetizador sub-graves
+            this.playSyntheticMeteor();
+          });
+        }
+        return;
+      } catch (e) {}
+    }
+
+    // 2. Fallback sintético en Web Audio si el elemento de audio no está listo
+    this.playSyntheticMeteor();
+  }
+
+  playSyntheticMeteor() {
     const ctx = this.initContext();
     if (!ctx) return;
     const t = ctx.currentTime;
@@ -557,6 +603,12 @@ class ArcadeAudioEngine {
   stopAll() {
     this.stopEngine();
     this.stopRaceMusic();
+    if (this.meteorAudio) {
+      try {
+        this.meteorAudio.pause();
+        this.meteorAudio.currentTime = 0;
+      } catch (e) {}
+    }
   }
 }
 

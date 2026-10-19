@@ -85,11 +85,13 @@ export default function LiveRaceScreen({
     updateTelemetry,
     playCrash,
     playJump,
+    playMeteor,
     playCelebration,
     stopAll,
   } = useArcadeAudio();
   const playedCrashSegmentsRef = useRef(new Set());
   const playedJumpSegmentsRef = useRef(new Set());
+  const playedMeteorSegmentsRef = useRef(new Set());
 
   // Ajuste al viewport: usa `zoom` (no `transform`) para no alterar elementos `position: fixed`.
   // En móvil / portrait se conserva el layout responsivo nativo.
@@ -271,6 +273,7 @@ export default function LiveRaceScreen({
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     playedCrashSegmentsRef.current.clear();
     playedJumpSegmentsRef.current.clear();
+    playedMeteorSegmentsRef.current.clear();
     stopAll();
     setProgress(0);
     setIsFinished(false);
@@ -513,6 +516,16 @@ export default function LiveRaceScreen({
       });
     }
 
+    // Caída e impacto masivo de meteoritos desde el cielo (meteorito.mp3)
+    const currentObstacleType = (currentSectorObstacle?.tipo || tramos[segIndex + 1]?.TipoObstaculo || '').toUpperCase();
+    if (currentObstacleType === 'METEORITOS' && fraction >= 0.18 && fraction <= 0.35) {
+      const meteorKey = `meteor-${segIndex}`;
+      if (!playedMeteorSegmentsRef.current.has(meteorKey)) {
+        playedMeteorSegmentsRef.current.add(meteorKey);
+        playMeteor();
+      }
+    }
+
     // Salto de buggies sobre dunas / grietas
     if (fraction >= 0.36 && fraction <= 0.48) {
       const anyJumping = liveCars.some((c) => c.isJumping);
@@ -524,7 +537,7 @@ export default function LiveRaceScreen({
         }
       }
     }
-  }, [progress, liveCars, isFinished, countdown, tramos.length, playCrash, playJump]);
+  }, [progress, liveCars, isFinished, countdown, tramos, currentSectorObstacle, playCrash, playJump, playMeteor]);
 
   // Estados finales de los autos en el tramo de meta
   const finalCars = tramos[tramos.length - 1]?.EstadosAutos || [];

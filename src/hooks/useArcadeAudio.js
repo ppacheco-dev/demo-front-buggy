@@ -50,6 +50,10 @@ export function useArcadeAudio() {
     arcadeAudio.playJumpSound();
   }, []);
 
+  const playMeteor = useCallback(() => {
+    arcadeAudio.playMeteorImpact();
+  }, []);
+
   const playCelebration = useCallback(() => {
     arcadeAudio.playCelebration();
   }, []);
@@ -69,6 +73,7 @@ export function useArcadeAudio() {
     updateTelemetry,
     playCrash,
     playJump,
+    playMeteor,
     playCelebration,
     stopAll,
   };
