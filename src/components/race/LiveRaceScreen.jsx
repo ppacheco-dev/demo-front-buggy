@@ -696,7 +696,7 @@ export default function LiveRaceScreen({
           />
         ) : (
           /* Pista de Carreras Tipo Videojuego Arcade (Lateral) */
-          <div className={styles.trackContainer}>
+          <div className={`${styles.trackContainer} ${isFinished ? styles.trackPaused : ''}`}>
             <div className={styles.curbTop} />
 
             <div className={styles.lanesWrapper}>
@@ -805,13 +805,18 @@ export default function LiveRaceScreen({
                         </div>
                       )}
 
-                      {/* Badge flotante de Impacto / No Esquivado */}
-                      {car.showCrashBadge && (
+                      {/* Badge flotante de Impacto / Auto Eliminado que no continúa más */}
+                      {car.isEliminated ? (
+                        <div className={styles.crashBanner} style={{ background: 'rgba(185, 28, 28, 0.95)', borderColor: '#ef4444' }}>
+                          <i className="ph ph-x-circle" aria-hidden="true" />
+                          <span>💥 ¡AUTO {car.name} DESTRUIDO • NO CONTINÚA!</span>
+                        </div>
+                      ) : car.showCrashBadge ? (
                         <div className={styles.crashBanner}>
                           <i className="ph ph-warning-octagon" aria-hidden="true" />
-                          <span>{car.isEliminated ? '¡IMPACTO CRÍTICO!' : '¡NO LO ESQUIVÓ!'}</span>
+                          <span>¡NO LO ESQUIVÓ!</span>
                         </div>
-                      )}
+                      ) : null}
 
                       {/* Haz de luz de faros proyectado hacia adelante */}
                       {!car.isEliminated && (

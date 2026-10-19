@@ -407,7 +407,7 @@
   position: absolute;
   bottom: 0;
   width: 24px;
-  height: 125px;
+  height: 142px;
   display: flex;
   flex-direction: column;
 }
@@ -440,7 +440,7 @@
 /* Banner superior elevado con vano libre para el paso de los buggies */
 .gantry3DBanner {
   position: absolute;
-  bottom: 112px;
+  bottom: 124px;
   left: -14px;
   right: -14px;
   display: flex;
@@ -456,7 +456,7 @@
   border: 2px solid #334155;
   border-radius: 999px;
   padding: 3px 14px;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
 }
 
@@ -493,14 +493,16 @@
 
 .gantry3DBannerFrame {
   width: 100%;
-  height: 42px;
+  min-height: 56px;
+  height: auto;
   display: flex;
   align-items: stretch;
   background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
   border: 3.5px solid #facc15;
   border-radius: 8px;
-  box-shadow: 0 0 28px rgba(250, 204, 21, 0.8), 0 8px 24px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 28px rgba(250, 204, 21, 0.85), 0 8px 24px rgba(0, 0, 0, 0.95);
   overflow: hidden;
+  padding: 3px 0;
 }
 
 .gantry3DFlagWing {
@@ -514,27 +516,194 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 2px 10px;
+  gap: 2px;
 }
 
 .gantry3DTitle {
   font-weight: 950;
-  font-size: clamp(1.2rem, 3.2vw, 2.2rem);
-  letter-spacing: 0.35em;
-  text-indent: 0.35em;
+  font-size: clamp(1.2rem, 2.7vw, 1.95rem);
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
   color: #ffffff;
-  line-height: 1;
-  text-shadow: 0 0 16px rgba(250, 204, 21, 1), 0 3px 0 rgba(0, 0, 0, 0.9);
+  line-height: 1.05;
+  text-shadow: 0 0 16px rgba(250, 204, 21, 1), 0 3px 0 rgba(0, 0, 0, 0.95);
 }
 
 .gantry3DSub {
   font-weight: 800;
-  font-size: clamp(0.44rem, 1vw, 0.68rem);
-  letter-spacing: 0.18em;
+  font-size: clamp(0.48rem, 0.92vw, 0.72rem);
+  letter-spacing: 0.2em;
   color: #facc15;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
   white-space: nowrap;
   line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* =========================================================================
+   DETENCIÓN EN SECO DE LA PISTA AL LLEGAR A LA META (PAUSED STATE)
+   ========================================================================= */
+.trackPaused .roadAsphaltStripes,
+.trackPaused .roadCurbLeft,
+.trackPaused .roadCurbRight,
+.trackPaused .roadsideMarkersLeft,
+.trackPaused .roadsideMarkersRight,
+.trackPaused .roadLaneMarker,
+.trackPaused .roadsidePropBillboardLeft,
+.trackPaused .roadsidePropBillboardRight,
+.trackPaused .roadsidePropPalmLeft,
+.trackPaused .roadsidePropPalmRight,
+.trackPaused .arcadeSpeedLines {
+  animation-play-state: paused !important;
+}
+
+/* =========================================================================
+   ANIMACIÓN DE DESTRUCCIÓN DE BUGGIES Y AVISO DE AUTO FUERA DE CARRERA
+   ========================================================================= */
+.wreckImpactShake {
+  animation: wreckShakeAnim 0.35s ease-out !important;
+}
+
+@keyframes wreckShakeAnim {
+  0% { transform: translate3d(-50%, -50%, 0) rotate(0deg); filter: brightness(2) contrast(1.5); }
+  20% { transform: translate3d(-54%, -46%, 0) rotate(-6deg); filter: brightness(1.8); }
+  40% { transform: translate3d(-46%, -54%, 0) rotate(6deg); filter: brightness(1.4); }
+  60% { transform: translate3d(-52%, -50%, 0) rotate(-3deg); filter: brightness(1.1); }
+  80% { transform: translate3d(-48%, -50%, 0) rotate(2deg); }
+  100% { transform: translate3d(-50%, -50%, 0) rotate(0deg); }
+}
+
+.wreckExplosionFlash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, #ffffff 0%, #f97316 45%, #ef4444 70%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 45;
+  animation: explosionPulse 0.5s ease-out forwards;
+}
+
+@keyframes explosionPulse {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+
+/* Badge flotante específico sobre el auto destruido */
+.carDestroyedBadge {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #7f1d1d 0%, #000000 100%);
+  border: 2px solid #ef4444;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.8), 0 0 10px rgba(0, 0, 0, 0.95);
+  pointer-events: none;
+  z-index: 50;
+  animation: destroyedBadgePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.carDestroyedIcon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.carDestroyedText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.carDestroyedTitle {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #fca5a5;
+  letter-spacing: 0.08em;
+}
+
+.carDestroyedStatus {
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: #fef08a;
+  letter-spacing: 0.05em;
+}
+
+@keyframes destroyedBadgePop {
+  0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+/* Banner de alerta oficial de incidente en pista */
+.raceIncidentAlert {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.96) 0%, rgba(127, 29, 29, 0.96) 50%, rgba(15, 23, 42, 0.96) 100%);
+  border: 2.5px solid #ef4444;
+  border-radius: 12px;
+  padding: 8px 20px;
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.7), 0 8px 24px rgba(0, 0, 0, 0.95);
+  z-index: 90;
+  animation: alertDropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.raceIncidentIcon {
+  font-size: 1.5rem;
+  animation: sirenFlash 0.5s infinite alternate;
+}
+
+@keyframes sirenFlash {
+  from { transform: scale(0.9); filter: drop-shadow(0 0 4px #ef4444); }
+  to { transform: scale(1.25); filter: drop-shadow(0 0 14px #facc15); }
+}
+
+.raceIncidentContent {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.raceIncidentHead {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #fca5a5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.raceIncidentMessage {
+  font-size: 0.88rem;
+  font-weight: 850;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.raceIncidentSub {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #facc15;
+}
+
+@keyframes alertDropIn {
+  from { transform: translate(-50%, -24px) scale(0.9); opacity: 0; }
+  to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 
 

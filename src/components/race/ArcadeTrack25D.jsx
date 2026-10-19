@@ -22,17 +22,17 @@ export default function ArcadeTrack25D({
   isUserRace = false,
   isFinished = false,
   ningunAutoLlego = false,
+  fatalEliminationByCar = {},
 }) {
   // Encontrar auto líder de la carrera
   const leaderCar = rankedCars.find((c) => !c.isEliminated) || rankedCars[0] || null;
 
-  // Filtrar exclusivamente los buggies que están EN CARRERA activa:
-  // Los buggies eliminados DESAPARECEN de la pista inmediatamente
+  // Filtrar buggies activos que siguen en competencia
   const activeCars = useMemo(() => {
     return cars.filter((c) => !c.isEliminated);
   }, [cars]);
 
-  // Rango relativo de distancia para ordenar a los buggies activos en perspectiva Z
+  // Rango relativo de distancia para ordenar a los buggies en perspectiva Z
   const { minX, maxX } = useMemo(() => {
     let min = 150;
     let max = 1140;
@@ -43,6 +43,74 @@ export default function ArcadeTrack25D({
     }
     return { minX: min, maxX: Math.max(min + 60, max) };
   }, [activeCars]);
+
+  // Autos visibles en pista: los que siguen en carrera + los que acaban de ser destruidos
+  // (para que se aprecie la animación de destrucción con fuego, humo y el aviso oficial de que no continúa más)
+  const renderedCars = useMemo(() => {
+    const numSegments = 7;
+    const rawIndex = progress * numSegments;
+    const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
+    const fraction = rawIndex - segIndex;
+
+    return cars
+      .map((car) => {
+        if (!car.isEliminated) {
+          return {
+            ...car,
+            isWreck: false,
+            isCrashingNow: false,
+            wreckOpacity: 1,
+            crashProgress: 0,
+          };
+        }
+
+        const fatal = fatalEliminationByCar[car.name];
+        if (!fatal) {
+          return null;
+        }
+
+        const isCrashSeg = segIndex === fatal.fatalSegmentIndex;
+        const isNextSeg = segIndex === fatal.fatalSegmentIndex + 1;
+
+        // Si estamos en el tramo donde ocurre el choque:
+        if (isCrashSeg) {
+          return {
+            ...car,
+            isWreck: fraction >= 0.44,
+            isCrashingNow: fraction >= 0.44 && fraction <= 0.72,
+            wreckOpacity: 1,
+            crashProgress: fraction >= 0.44 ? (fraction - 0.44) / 0.56 : 0,
+          };
+        } else if (isNextSeg && fraction < 0.45) {
+          // En el tramo posterior inmediato, el auto averiado se desvanece suavemente hacia el fondo
+          return {
+            ...car,
+            isWreck: true,
+            isCrashingNow: false,
+            wreckOpacity: Math.max(0, 1 - fraction / 0.45),
+            crashProgress: 1,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+  }, [cars, progress, fatalEliminationByCar]);
+
+  // Auto recién destruido en el tramo actual para mostrar alerta oficial en pantalla
+  const activeIncidentCar = useMemo(() => {
+    const numSegments = 7;
+    const rawIndex = progress * numSegments;
+    const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
+    const fraction = rawIndex - segIndex;
+
+    return cars.find((c) => {
+      if (!c.isEliminated) return false;
+      const fatal = fatalEliminationByCar[c.name];
+      if (!fatal) return false;
+      return segIndex === fatal.fatalSegmentIndex && fraction >= 0.44 && fraction <= 0.94;
+    });
+  }, [cars, progress, fatalEliminationByCar]);
 
   // Carriles horizontales centrados dentro de la calzada ajustada (ancho 58%)
   const laneOffsets = useMemo(() => {
@@ -151,7 +219,7 @@ export default function ArcadeTrack25D({
   }, [progress, ningunAutoLlego]);
 
   return (
-    <div className={styles.arcadeContainer}>
+    <div className={`${styles.arcadeContainer} ${isFinished ? styles.trackPaused : ''}`}>
       {/* 1. HUD SUPERIOR ARCADE (HORIZON CHASE STYLE) */}
       <div className={styles.arcadeHudTop}>
         <div className={styles.arcadeSpeedometer}>
@@ -166,6 +234,24 @@ export default function ArcadeTrack25D({
           </span>
         </div>
       </div>
+
+      {/* Alerta oficial de incidente en pista cuando un auto es destruido */}
+      {activeIncidentCar && (
+        <div className={styles.raceIncidentAlert}>
+          <div className={styles.raceIncidentIcon}>💥</div>
+          <div className={styles.raceIncidentContent}>
+            <span className={styles.raceIncidentHead}>
+              🚨 INCIDENTE EN PISTA • AUTO {activeIncidentCar.buggy.name.toUpperCase()}
+            </span>
+            <span className={styles.raceIncidentMessage}>
+              ¡DESTRUIDO POR {activeIncidentCar.causaEliminacion || activeIncidentCar.fatalObstacle?.nombre || 'OBSTÁCULO'}!
+            </span>
+            <span className={styles.raceIncidentSub}>
+              ⛔ EL AUTO QUEDA FUERA DE CARRERA • NO CONTINÚA MÁS
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* RÁFAGAS AERODINÁMICAS LATERALES A ALTA VELOCIDAD */}
       {(leaderCar?.speedKmh || 0) > 145 && (
@@ -288,38 +374,23 @@ export default function ArcadeTrack25D({
           </div>
         )}
 
-        {/* 5. Capa de los Buggies Activos en Perspectiva 2.5D (Saltan o esquivan al cruzar) */}
+        {/* 5. Capa de los Buggies en Perspectiva 2.5D (Activos y Destruidos en Obstáculo) */}
         <div className={styles.arcadeCarsLayer}>
-          {activeCars.map((car, idx) => {
+          {renderedCars.map((car, idx) => {
             const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
             const isUserChoice =
               isUserRace && (
                 (Array.isArray(userBuggyNames) && userBuggyNames.includes(car.buggy.name.toUpperCase())) ||
                 (userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase()))
               );
-            const isLeader = rank === 1;
+            const isLeader = rank === 1 && !car.isWreck;
 
             // Carril asignado
-            const lanePct = laneOffsets[idx % laneOffsets.length];
+            const lanePct = laneOffsets[car.index !== undefined ? car.index % laneOffsets.length : idx % laneOffsets.length];
 
-            // Posición Z/Y: autos más adelantados están más cerca de la meta
-            const rawDistRatio = maxX > minX ? (car.x - minX) / (maxX - minX) : 0;
-
-            // Factor de separación: en la salida (progress = 0), arranca estrictamente en 0 para que
-            // TODOS los autos estén alineados exactamente en la misma posición sin verse uno más adelante ni atrás
-            const spreadFactor = Math.min(1, Math.max(0, (progress - 0.02) * 5));
-            const distRatio = rawDistRatio * spreadFactor;
-
-            // Y position base en el plano de asfalto (al inicio todos alineados a 72% con escala idéntica)
-            const topPct = 72 - distRatio * 34;
-            const scale = (1.10 - distRatio * 0.34) * 1.45;
-            const baseZIndex = Math.round((1 - distRatio) * 100) + 15;
-
-            // Ventana en la que este auto en particular esquiva o salta el obstáculo
-            const carReactionOffset = (1 - distRatio) * 0.08;
-            const encounterStart = 0.36 + carReactionOffset;
-            const encounterEnd = 0.64 + carReactionOffset;
-
+            let topPct;
+            let scale;
+            let baseZIndex;
             let jumpY = 0;
             let jumpScaleBonus = 0;
             let evasionX = 0;
@@ -327,50 +398,74 @@ export default function ArcadeTrack25D({
             let isEvasionActive = false;
             let isJumping = false;
 
-            if (sectorFraction >= encounterStart && sectorFraction <= encounterEnd) {
-              isEvasionActive = true;
-              const t = (sectorFraction - encounterStart) / (encounterEnd - encounterStart);
-              const sinArc = Math.sin(t * Math.PI); // Parábola de salto 0 -> 1 -> 0
-
-              if (
-                currentSectorObstacle?.tipo === 'DUNAS' ||
-                currentSectorObstacle?.tipo === 'HOYOS' ||
-                currentSectorObstacle?.tipo === 'GRIETAS'
-              ) {
-                // SALTO EN EL AIRE: El buggy despega acrobáticamente sobre el obstáculo mientras este pasa por debajo
-                isJumping = true;
-                jumpY = -sinArc * 36; // Eleva el auto 36px en el aire
-                jumpScaleBonus = sinArc * 0.16; // Crece hacia la cámara
-                dynamicTilt = (t < 0.5 ? -0.15 : 0.22) * sinArc;
-              } else {
-                // ESQUIVA LATERAL / SLALOM ÁGIL: El buggy zigzaguea con inclinación de viraje cerrado
-                const swerveDir = idx % 2 === 0 ? 1 : -1;
-                evasionX = Math.sin(t * Math.PI * 2) * 18 * swerveDir; // Desplazamiento lateral ±18px
-                dynamicTilt = Math.cos(t * Math.PI * 2) * 0.75 * swerveDir; // Inclinación fuerte
-                jumpY = -sinArc * 8; // Bote de suspensión
-              }
-            } else if (isFinished) {
-              // Al cruzar la meta y detenerse la carrera, los autos reposan nivelados sobre el asfalto
-              dynamicTilt = 0;
+            if (car.isWreck) {
+              // Auto chocado/destruido: se queda en su carril humeando y retrocede con la calzada
+              const driftY = (car.crashProgress || 0) * 16;
+              topPct = Math.min(84, 64 + driftY);
+              scale = 1.10 + (topPct - 64) * 0.012;
+              baseZIndex = Math.round(topPct) + 5;
+              dynamicTilt = (car.index % 2 === 0 ? 0.35 : -0.35); // Ladeo por eje roto/colisión
             } else {
-              // Inclinación normal de balanceo de motor y curva
-              dynamicTilt = isLeader
-                ? Math.sin(progress * 28 + idx) * 0.35
-                : Math.sin(progress * 18 + idx) * 0.2;
+              // Autos activos en competencia
+              const rawDistRatio = maxX > minX ? (car.x - minX) / (maxX - minX) : 0;
+              const spreadFactor = Math.min(1, Math.max(0, (progress - 0.02) * 5));
+              const distRatio = rawDistRatio * spreadFactor;
+
+              topPct = 72 - distRatio * 34;
+              scale = (1.10 - distRatio * 0.34) * 1.45;
+              baseZIndex = Math.round((1 - distRatio) * 100) + 15;
+
+              // Ventana en la que este auto en particular esquiva o salta el obstáculo
+              const carReactionOffset = (1 - distRatio) * 0.08;
+              const encounterStart = 0.36 + carReactionOffset;
+              const encounterEnd = 0.64 + carReactionOffset;
+
+              if (sectorFraction >= encounterStart && sectorFraction <= encounterEnd) {
+                isEvasionActive = true;
+                const t = (sectorFraction - encounterStart) / (encounterEnd - encounterStart);
+                const sinArc = Math.sin(t * Math.PI);
+
+                if (
+                  currentSectorObstacle?.tipo === 'DUNAS' ||
+                  currentSectorObstacle?.tipo === 'HOYOS' ||
+                  currentSectorObstacle?.tipo === 'GRIETAS'
+                ) {
+                  isJumping = true;
+                  jumpY = -sinArc * 36;
+                  jumpScaleBonus = sinArc * 0.16;
+                  dynamicTilt = (t < 0.5 ? -0.15 : 0.22) * sinArc;
+                } else {
+                  const swerveDir = idx % 2 === 0 ? 1 : -1;
+                  evasionX = Math.sin(t * Math.PI * 2) * 18 * swerveDir;
+                  dynamicTilt = Math.cos(t * Math.PI * 2) * 0.75 * swerveDir;
+                  jumpY = -sinArc * 8;
+                }
+              } else if (isFinished) {
+                dynamicTilt = 0;
+              } else {
+                dynamicTilt = isLeader
+                  ? Math.sin(progress * 28 + idx) * 0.35
+                  : Math.sin(progress * 18 + idx) * 0.2;
+              }
             }
 
             return (
               <div
                 key={car.name}
-                className={styles.arcadeBuggySlot}
+                className={`${styles.arcadeBuggySlot} ${car.isCrashingNow ? styles.wreckImpactShake : ''}`}
                 style={{
                   left: `calc(${lanePct}% + ${evasionX}px)`,
                   top: `${topPct}%`,
                   transform: `translate3d(-50%, calc(-50% + ${jumpY}px), 0) scale(${scale + jumpScaleBonus})`,
                   zIndex: Math.round(baseZIndex + (isJumping ? 30 : 0)),
+                  opacity: car.wreckOpacity !== undefined ? car.wreckOpacity : 1,
+                  filter: car.isWreck ? 'saturate(0.7) brightness(0.9)' : 'none',
                 }}
               >
-                {/* Sombra proyectada en el asfalto (permanece en el suelo mientras el auto salta en el aire) */}
+                {/* Destello de explosión en el momento del impacto fatal */}
+                {car.isCrashingNow && <div className={styles.wreckExplosionFlash} />}
+
+                {/* Sombra proyectada en el asfalto */}
                 <div
                   className={styles.arcadeCarShadow}
                   style={{
@@ -381,7 +476,7 @@ export default function ArcadeTrack25D({
                 />
 
                 {/* Estela de arena todoterreno viva detrás de los neumáticos traseros */}
-                {!isFinished && !isJumping && car.speedKmh > 35 && (
+                {!isFinished && !car.isWreck && !isJumping && car.speedKmh > 35 && (
                   <div className={styles.arcadeTireDustWrapper}>
                     <div className={styles.sandDustPlumeLeft} />
                     <div className={styles.sandDustPlumeRight} />
@@ -391,32 +486,43 @@ export default function ArcadeTrack25D({
                 {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (60 FPS NATIVO) */}
                 <ArcadeBuggyRearSprite
                   buggy={car.buggy}
-                  isEliminated={false}
-                  isBoosting={car.isBoosting || isEvasionActive}
-                  carNumber={car.buggy.number || (idx + 1)}
-                  speedKmh={car.speedKmh}
+                  isEliminated={car.isWreck}
+                  isBoosting={!car.isWreck && (car.isBoosting || isEvasionActive)}
+                  carNumber={car.buggy.number || (car.index !== undefined ? car.index + 1 : idx + 1)}
+                  speedKmh={car.isWreck ? 0 : car.speedKmh}
                   steering={dynamicTilt}
                 />
 
-                {/* Etiquetas superiores flotantes (P1 LÍDER / P2 aparecen cuando la carrera toma ritmo) */}
-                <div className={styles.arcadeCarBadgeGroup}>
-                  {progress > 0.04 && isLeader && (
-                    <span className={styles.arcadeRankPill} style={{ background: '#facc15' }}>
-                      {isFinished ? '🏆 1º GANADOR' : '👑 P1 LÍDER'}
-                    </span>
-                  )}
-                  {progress > 0.04 && !isLeader && (
-                    <span
-                      className={styles.arcadeRankPill}
-                      style={{ background: car.buggy.color, color: '#000' }}
-                    >
-                      P{rank}
-                    </span>
-                  )}
-                  {isUserChoice && (
-                    <span className={styles.arcadeUserChoiceTag}>TU AUTO</span>
-                  )}
-                </div>
+                {/* Si el auto fue destruido: Aviso oficial flotante de que ya no continúa más */}
+                {car.isWreck ? (
+                  <div className={styles.carDestroyedBadge}>
+                    <span className={styles.carDestroyedIcon}>💥</span>
+                    <div className={styles.carDestroyedText}>
+                      <span className={styles.carDestroyedTitle}>¡{car.name} DESTRUIDO!</span>
+                      <span className={styles.carDestroyedStatus}>NO CONTINÚA MÁS</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* Etiquetas superiores flotantes para autos en carrera */
+                  <div className={styles.arcadeCarBadgeGroup}>
+                    {progress > 0.04 && isLeader && (
+                      <span className={styles.arcadeRankPill} style={{ background: '#facc15' }}>
+                        {isFinished ? '🏆 1º GANADOR' : '👑 P1 LÍDER'}
+                      </span>
+                    )}
+                    {progress > 0.04 && !isLeader && (
+                      <span
+                        className={styles.arcadeRankPill}
+                        style={{ background: car.buggy.color, color: '#000' }}
+                      >
+                        P{rank}
+                      </span>
+                    )}
+                    {isUserChoice && (
+                      <span className={styles.arcadeUserChoiceTag}>TU AUTO</span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

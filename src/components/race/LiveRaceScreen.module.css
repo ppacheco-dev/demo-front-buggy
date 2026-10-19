@@ -598,6 +598,11 @@
   to { background-position-x: -48px; }
 }
 
+.trackPaused .curbTop,
+.trackPaused .curbBottom {
+  animation-play-state: paused !important;
+}
+
 .lanesWrapper {
   display: flex;
   flex-direction: column;
