@@ -127,62 +127,109 @@ class ArcadeAudioEngine {
   }
 
   // =========================================================================
-  // 1. BEES DE CUENTA REGRESIVA (3, 2, 1, ¡GO!)
+  // =========================================================================
+  // 1. BEES DE CUENTA REGRESIVA ARCADE (3, 2, 1, ¡GO!)
   // =========================================================================
   playCountdown(count) {
     const ctx = this.initContext();
     if (!ctx) return;
 
     const t = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
 
     if (count === 0) {
-      // "¡GO!": Tono doble brillante y alegre de largada
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(880, t); // La5
-      osc.frequency.exponentialRampToValueAtTime(1760, t + 0.12);
+      // "¡GO!": Glorioso acorde triunfal de largada arcade (C6 + E6 + G6 + C7) con brillo y sweep ascendente
+      const goNotes = [1046.5, 1318.51, 1567.98, 2093.0]; // Tríada mayor brillante
+      goNotes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
 
-      // Armónico extra
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1320, t);
+        const vol = idx === 0 ? 0.28 : 0.16;
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.75);
 
-      gain.gain.setValueAtTime(0.35, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.78);
+      });
 
-      gain2.gain.setValueAtTime(0.25, t);
-      gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      // Sweep propulsor de largada hacia adelante (sensación de aceleración inmediata)
+      const sweepOsc = ctx.createOscillator();
+      const sweepGain = ctx.createGain();
+      sweepOsc.type = 'sine';
+      sweepOsc.frequency.setValueAtTime(320, t);
+      sweepOsc.frequency.exponentialRampToValueAtTime(1480, t + 0.35);
 
-      osc.connect(gain);
-      osc2.connect(gain2);
-      gain.connect(this.masterGain);
-      gain2.connect(this.masterGain);
+      sweepGain.gain.setValueAtTime(0.22, t);
+      sweepGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
 
-      osc.start(t);
-      osc2.start(t);
-      osc.stop(t + 0.45);
-      osc2.stop(t + 0.45);
+      sweepOsc.connect(sweepGain);
+      sweepGain.connect(this.masterGain);
+      sweepOsc.start(t);
+      sweepOsc.stop(t + 0.4);
+
+      // Campana armónica cristalina superior (Glockenspiel chime)
+      const bellOsc = ctx.createOscillator();
+      const bellGain = ctx.createGain();
+      bellOsc.type = 'sine';
+      bellOsc.frequency.setValueAtTime(3135.96, t); // Sol7 cristalino
+      bellGain.gain.setValueAtTime(0.12, t);
+      bellGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      bellOsc.connect(bellGain);
+      bellGain.connect(this.masterGain);
+      bellOsc.start(t);
+      bellOsc.stop(t + 0.62);
     } else {
-      // 3, 2, 1: Beep corto arcade de advertencia
-      const freq = count === 1 ? 523.25 : 440; // Do5 en el último, La4 en los previos
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t);
+      // 3, 2, 1: Chime arcade limpio, metálico y resonante (estilo Mario Kart / OutRun / Sega Rally)
+      // Nota base afinada: 3 y 2 son Sol5 (783.99 Hz), 1 es La5 (880 Hz) para mayor tensión previa a la largada
+      const baseFreq = count === 1 ? 880 : 783.99;
 
-      gain.gain.setValueAtTime(0.28, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      // 1. Cuerpo principal (triángulo cálido)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(baseFreq, t);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+
+      // 2. Sobretono de campana metálica (armónico 2x característico de campanas de bronce/arcade)
+      const chimeOsc = ctx.createOscillator();
+      const chimeGain = ctx.createGain();
+      chimeOsc.type = 'sine';
+      chimeOsc.frequency.setValueAtTime(baseFreq * 2.0, t);
+      chimeGain.gain.setValueAtTime(0.18, t);
+      chimeGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+      // 3. Transient de percusión metálica inicial (click de badajo/campana de largada)
+      const clickOsc = ctx.createOscillator();
+      const clickGain = ctx.createGain();
+      clickOsc.type = 'sine';
+      clickOsc.frequency.setValueAtTime(baseFreq * 3.5, t);
+      clickGain.gain.setValueAtTime(0.12, t);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
 
       osc.connect(gain);
+      chimeOsc.connect(chimeGain);
+      clickOsc.connect(clickGain);
+
       gain.connect(this.masterGain);
+      chimeGain.connect(this.masterGain);
+      clickGain.connect(this.masterGain);
 
       osc.start(t);
-      osc.stop(t + 0.15);
+      chimeOsc.start(t);
+      clickOsc.start(t);
+
+      osc.stop(t + 0.35);
+      chimeOsc.stop(t + 0.25);
+      clickOsc.stop(t + 0.05);
     }
   }
 
   // =========================================================================
-  // 2. MOTOR DE CARRERAS (RUMBLE DE MOTOR SINTETIZADO EN TIEMPO REAL)
+  // 2. MOTOR DE CARRERAS DE RALLY (RUGIDO MECÁNICO PROFUNDO Y PISTONES EN V)
   // =========================================================================
   startEngine() {
     const ctx = this.initContext();
@@ -190,40 +237,81 @@ class ArcadeAudioEngine {
 
     const t = ctx.currentTime;
 
-    // Oscilador primario: Diente de sierra para rugido mecánico
+    // 1. Oscilador Primario: Diente de sierra suave para pulsos de combustión
     const osc1 = ctx.createOscillator();
     osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(52, t);
+    osc1.frequency.setValueAtTime(36, t);
 
-    // Oscilador secundario: Subgrave triangular
+    // 2. Oscilador Secundario: Sub-grave triangular profundo (cuerpo del bloque motor)
     const osc2 = ctx.createOscillator();
     osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(26, t);
+    osc2.frequency.setValueAtTime(18, t);
 
-    // Filtro pasa-bajos resonante (imita el tubo de escape)
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(320, t);
-    filter.Q.setValueAtTime(3.2, t);
+    // 3. Modulador de impulsos de pistones (LFO a 16-28 Hz para la vibración física de combustión)
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(18, t);
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(0.15, t);
+    lfo.connect(lfoGain);
 
-    // Ganancia del motor
+    // 4. Silenciador acústico (Filtro pasa-bajos cálido para quitar asperezas electrónicas)
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(240, t);
+    lowpass.Q.setValueAtTime(1.8, t);
+
+    // 5. Formante de resonancia del tubo de escape (Peak en medios para el rugido gutural de rally)
+    const exhaustPeak = ctx.createBiquadFilter();
+    exhaustPeak.type = 'peaking';
+    exhaustPeak.frequency.setValueAtTime(460, t);
+    exhaustPeak.gain.setValueAtTime(6.0, t);
+    exhaustPeak.Q.setValueAtTime(2.2, t);
+
+    // 6. Silbido sutil del turbo en altas velocidades
+    const turboOsc = ctx.createOscillator();
+    turboOsc.type = 'sine';
+    turboOsc.frequency.setValueAtTime(1900, t);
+    const turboGain = ctx.createGain();
+    turboGain.gain.setValueAtTime(0.001, t);
+
+    // 7. Ganancia principal del motor
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.01, t);
-    gain.gain.linearRampToValueAtTime(0.18, t + 0.3); // volumen suave para no tapar la música
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(0.13, t + 0.35);
 
-    osc1.connect(filter);
-    osc2.connect(filter);
-    filter.connect(gain);
+    // Cadena de ruteo
+    osc1.connect(lowpass);
+    osc2.connect(lowpass);
+    lowpass.connect(exhaustPeak);
+    exhaustPeak.connect(gain);
+
+    lfoGain.connect(gain.gain); // Modulación de pistones
+    turboOsc.connect(turboGain);
+    turboGain.connect(this.masterGain);
+
     gain.connect(this.masterGain);
 
     osc1.start(t);
     osc2.start(t);
+    lfo.start(t);
+    turboOsc.start(t);
 
-    this.engineNodes = { osc1, osc2, filter, gain };
-    this.setEngineSpeed(100);
+    this.engineNodes = {
+      osc1,
+      osc2,
+      lfo,
+      turboOsc,
+      turboGain,
+      lowpass,
+      exhaustPeak,
+      gain,
+    };
+
+    this.setEngineSpeed(110);
   }
 
-  /** Modula el pitch y el rugido según los KM/H en tiempo real */
+  /** Modula el tono y el rugido según los KM/H en tiempo real */
   setEngineSpeed(speedKmh, isBoosting = false) {
     if (!this.engineNodes || !this.ctx) return;
 
@@ -231,15 +319,30 @@ class ArcadeAudioEngine {
     const norm = speed / 240;
     const t = this.ctx.currentTime;
 
-    // Frecuencia base de 48 Hz (ralentí) hasta 145 Hz (máxima velocidad)
-    const boostBonus = isBoosting ? 28 : 0;
-    const targetFreq = 48 + norm * 85 + boostBonus;
-    const targetCutoff = 280 + norm * 620 + (isBoosting ? 260 : 0);
+    // Frecuencia fundamental del motor (36 Hz a ralentí hasta 95 Hz a 240 km/h)
+    // Tono grave, mecánico y robusto (no un zumbido sintético plano)
+    const boostBonus = isBoosting ? 18 : 0;
+    const targetFreq = 36 + Math.pow(norm, 1.2) * 58 + boostBonus;
+
+    // Ritmo de disparo de los cilindros (LFO de 14 Hz a 32 Hz)
+    const targetLfo = 14 + norm * 18;
+
+    // Apertura del escape: de 240 Hz a 580 Hz
+    const targetCutoff = 240 + norm * 340 + (isBoosting ? 140 : 0);
+    const targetPeak = 420 + norm * 260;
+
+    // Silbido del turbo presente solo a alta velocidad (>130 km/h)
+    const targetTurboGain = norm > 0.55 ? (norm - 0.55) * 0.04 + (isBoosting ? 0.025 : 0) : 0.001;
+    const targetTurboFreq = 1800 + norm * 900;
 
     try {
       this.engineNodes.osc1.frequency.setTargetAtTime(targetFreq, t, 0.08);
       this.engineNodes.osc2.frequency.setTargetAtTime(targetFreq * 0.5, t, 0.08);
-      this.engineNodes.filter.frequency.setTargetAtTime(targetCutoff, t, 0.08);
+      this.engineNodes.lfo.frequency.setTargetAtTime(targetLfo, t, 0.08);
+      this.engineNodes.lowpass.frequency.setTargetAtTime(targetCutoff, t, 0.08);
+      this.engineNodes.exhaustPeak.frequency.setTargetAtTime(targetPeak, t, 0.08);
+      this.engineNodes.turboGain.gain.setTargetAtTime(targetTurboGain, t, 0.12);
+      this.engineNodes.turboOsc.frequency.setTargetAtTime(targetTurboFreq, t, 0.1);
     } catch (e) {}
   }
 
@@ -247,14 +350,21 @@ class ArcadeAudioEngine {
     if (!this.engineNodes || !this.ctx) return;
     const t = this.ctx.currentTime;
     try {
-      this.engineNodes.gain.gain.linearRampToValueAtTime(0.001, t + 0.2);
+      this.engineNodes.gain.gain.linearRampToValueAtTime(0.0001, t + 0.2);
+      if (this.engineNodes.turboGain) {
+        this.engineNodes.turboGain.gain.linearRampToValueAtTime(0.0001, t + 0.15);
+      }
       setTimeout(() => {
         if (this.engineNodes) {
           try {
             this.engineNodes.osc1.stop();
             this.engineNodes.osc2.stop();
+            this.engineNodes.lfo.stop();
+            this.engineNodes.turboOsc.stop();
             this.engineNodes.osc1.disconnect();
             this.engineNodes.osc2.disconnect();
+            this.engineNodes.lfo.disconnect();
+            this.engineNodes.turboOsc.disconnect();
           } catch (e) {}
           this.engineNodes = null;
         }
