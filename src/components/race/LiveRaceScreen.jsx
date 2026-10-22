@@ -7,12 +7,48 @@ import ObstacleSprite from './ObstacleSprite';
 import CircuitMinimap from './CircuitMinimap';
 import ArcadeTrack25D from './ArcadeTrack25D';
 import ArcadeFirstPersonCockpit from './ArcadeFirstPersonCockpit';
-import { TICKET_PRICE } from '../../game/config/raceTimeService';
+import { TICKET_PRICE, getRaceSchedule, formatSecondsToCountdown } from '../../game/config/raceTimeService';
 import useArcadeAudio from '../../hooks/useArcadeAudio';
+import PositionFlag from './PositionFlag';
 import styles from './LiveRaceScreen.module.css';
 
 // Duración total de la carrera en milisegundos (22s de acción pura estilo videojuego)
 const RACE_DURATION_MS = 22000;
+
+// Cuenta regresiva previa a la largada (10, 9, ... 1, ¡GO!)
+const COUNTDOWN_START = 10;
+const COUNTDOWN_STEP_MS = 1000;
+
+// Tiempo que el podio animado permanece sobre la pista antes de abrir el resumen de resultados
+const TRACK_PODIUM_MS = 9500;
+
+// Piezas de confeti (posiciones deterministas para evitar recalcular en cada render)
+const CONFETTI_COLORS = ['#facc15', '#f97316', '#38bdf8', '#4ade80', '#f472b6', '#a78bfa', '#ffffff'];
+const CONFETTI_PIECES = Array.from({ length: 56 }, (_, i) => ({
+  id: i,
+  left: (i * 37) % 100,
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  delay: 3.9 + ((i * 13) % 30) / 10,
+  duration: 2.6 + ((i * 7) % 18) / 10,
+  drift: ((i * 29) % 120) - 60,
+  rot: 360 + ((i * 53) % 540),
+}));
+
+// Amplitud máxima del desfase individual de cada auto dentro de un tramo.
+// Con 0.17 la interpolación sigue siendo monótona (ningún auto retrocede) porque la
+// derivada mínima del easing base es 0.65 y 0.17·π ≈ 0.53 < 0.65.
+const CAR_PACE_AMPLITUDE = 0.17;
+
+/** Hash determinista [-1, 1] para que cada auto tenga un ritmo propio y reproducible por tramo. */
+function carPaceFactor(name, segIndex, raceNumber) {
+  const str = `${name}|${segIndex}|${raceNumber}`;
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (((h >>> 0) % 20001) / 10000) - 1;
+}
 
 // Dimensiones de diseño de la vista de escritorio. Si el viewport es más pequeño, toda la
 // pantalla se escala proporcionalmente (igual que la selección de mercado) para que quepa completa.
@@ -27,20 +63,29 @@ export default function LiveRaceScreen({
   raceInfo,
   selectedRace = null,
 }) {
-  // Obtener o generar la carrera consistente (debe corresponder a la hora ACTUAL, no a la próxima)
-  const now = new Date();
-  const todayStr = raceInfo?.todayStr || `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-  const currentSlotMins = Math.floor(now.getMinutes() / 5) * 5;
-  const currentSlotHours = now.getHours();
-  const currentSlotHourStr = `${String(currentSlotHours).padStart(2, '0')}:${String(currentSlotMins).padStart(2, '0')}`;
-  const currentSlotNum = Math.floor((currentSlotHours * 60 + currentSlotMins) / 5) + 1;
+  // Reloj en tiempo real sincronizado cada segundo
+  const [liveNow, setLiveNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setLiveNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  const initialNumber = selectedRace?.numero || raceInfo?.currentRaceNumber || currentSlotNum;
-  const initialHour = selectedRace?.hora || raceInfo?.currentRaceTime || currentSlotHourStr;
+  const liveSchedule = useMemo(() => getRaceSchedule(new Date(liveNow)), [liveNow]);
+  const todayStr = raceInfo?.todayStr || liveSchedule.todayStr;
+
+  // Estados de control de la pantalla:
+  // - showPostRaceModal: modal cuando el usuario entra a una carrera ya finalizada
+  // - isWaiting: usuario eligió esperar en pista la próxima carrera
+  // - isExplicitPastRace: el usuario está viendo una repetición elegida explícitamente
+  const [showPostRaceModal, setShowPostRaceModal] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [isExplicitPastRace, setIsExplicitPastRace] = useState(() => Boolean(selectedRace));
+  const lastSlotNumberRef = useRef(liveSchedule.currentRaceNumber);
+
+  const initialNumber = selectedRace?.numero || liveSchedule.currentRaceNumber;
+  const initialHour = selectedRace?.hora || liveSchedule.currentRaceTime;
 
   // Estado que fija y bloquea la carrera que el usuario está viendo actualmente.
-  // CRÍTICO: Si el usuario está viendo una carrera anterior o la de un ticket/slot previo,
-  // NUNCA se sobreescribe ni se reemplaza automáticamente al iniciar una nueva carrera en vivo.
   const [viewedRace, setViewedRace] = useState(() => {
     return selectedRace || getOrCreateRace(initialNumber, todayStr, initialHour);
   });
@@ -49,22 +94,20 @@ export default function LiveRaceScreen({
   useEffect(() => {
     if (selectedRace && selectedRace.numero !== viewedRace.numero) {
       setViewedRace(selectedRace);
+      setIsExplicitPastRace(true);
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
     }
   }, [selectedRace]);
 
   const race = viewedRace;
   const tramos = race.tramos && race.tramos.length > 0 ? race.tramos : REFERENCE_RACE_TRAMOS;
 
-  const liveRaceNumber = raceInfo?.currentRaceNumber || currentSlotNum;
-  const liveRaceTime = raceInfo?.currentRaceTime || currentSlotHourStr;
-  const isViewingPastRace = Boolean(selectedRace || (race.numero < liveRaceNumber));
+  const liveRaceNumber = liveSchedule.currentRaceNumber;
+  const liveRaceTime = liveSchedule.currentRaceTime;
+  const isViewingPastRace = Boolean(isExplicitPastRace || (race.numero < liveRaceNumber));
   const isNewLiveRaceAvailable = liveRaceNumber > race.numero;
-  const isLive = !isViewingPastRace;
-
-  const handleSwitchToLiveRace = () => {
-    const liveRace = getOrCreateRace(liveRaceNumber, todayStr, liveRaceTime);
-    setViewedRace(liveRace);
-  };
+  const isLive = !isViewingPastRace && !isWaiting;
 
   // Estados de animación continua (por defecto: vista ARCADE 2.5D)
   const [progress, setProgress] = useState(0); // 0.0 a 1.0
@@ -87,6 +130,7 @@ export default function LiveRaceScreen({
     playJump,
     playMeteor,
     playCelebration,
+    playApplause,
     stopAll,
   } = useArcadeAudio();
   const playedCrashSegmentsRef = useRef(new Set());
@@ -156,10 +200,10 @@ export default function LiveRaceScreen({
 
   // Obstáculo activo en el tramo actual (aparece solo en el momento de la carrera)
   const currentSectorObstacle = useMemo(() => {
-    const numSegments = tramos.length - 1; // 7 segmentos entre los 8 tramos
+    const numSegments = tramos.length; // 8 segmentos correspondientes a los 8 tramos
     const rawIndex = progress * numSegments;
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
-    const currentTramo = tramos[segIndex + 1] || tramos[segIndex] || tramos[0];
+    const currentTramo = tramos[segIndex] || tramos[0];
 
     return {
       tramo: currentTramo.TramoActual,
@@ -179,11 +223,11 @@ export default function LiveRaceScreen({
       for (let sIdx = 0; sIdx < tramos.length; sIdx++) {
         const carState = tramos[sIdx]?.EstadosAutos?.find((c) => c.Nombre === name);
         if (carState?.Estado === 'ELIMINADO') {
-          // El tramo donde ocurrió el choque fatal
-          const tramoObj = tramos[sIdx] || tramos[Math.max(0, sIdx - 1)] || tramos[0];
+          // El tramo donde ocurrió el choque fatal (sIdx es el segmento donde se alcanza este tramo)
+          const tramoObj = tramos[sIdx] || tramos[0];
           map[name] = {
             fatalTramoIndex: sIdx,
-            fatalSegmentIndex: Math.max(0, sIdx - 1),
+            fatalSegmentIndex: sIdx,
             tipo: tramoObj.TipoObstaculo || 'ROCAS',
             nombre: carState.ObstaculoFallo || tramoObj.NombreObstaculo || 'Obstáculo',
             icono: tramoObj.IconoObstaculo || '🪨',
@@ -211,7 +255,7 @@ export default function LiveRaceScreen({
   // Si ningún auto llega a la meta, calcular el progreso exacto donde ocurre el último choque fatal
   const crashFinishProgress = useMemo(() => {
     if (willAnyCarFinish) return 1.0;
-    const numSegments = tramos.length - 1;
+    const numSegments = tramos.length;
     let maxFatalSeg = -1;
 
     carNames.forEach((name) => {
@@ -229,8 +273,8 @@ export default function LiveRaceScreen({
   }, [willAnyCarFinish, tramos, carNames, fatalEliminationByCar]);
 
   // Motor de animación continua vía requestAnimationFrame
-  const beginRaceLoop = () => {
-    startTimeRef.current = performance.now();
+  const beginRaceLoop = useCallback((initialElapsedMs = 0) => {
+    startTimeRef.current = performance.now() - initialElapsedMs;
 
     const loop = (currentTime) => {
       const elapsed = currentTime - startTimeRef.current;
@@ -260,60 +304,136 @@ export default function LiveRaceScreen({
 
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     animFrameRef.current = requestAnimationFrame(loop);
-  };
+  }, [willAnyCarFinish, crashFinishProgress]);
 
-  const clearCountdownTimers = () => {
+  const clearCountdownTimers = useCallback(() => {
     countdownTimersRef.current.forEach((id) => clearTimeout(id));
     countdownTimersRef.current = [];
-  };
+  }, []);
 
-  // Cuenta regresiva 3, 2, 1, GO antes de largar la carrera
-  const startRaceAnimation = () => {
-    clearCountdownTimers();
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-    playedCrashSegmentsRef.current.clear();
-    playedJumpSegmentsRef.current.clear();
-    playedMeteorSegmentsRef.current.clear();
-    stopAll();
-    setProgress(0);
-    setIsFinished(false);
-    setCountdown(3);
-    playCountdown(3);
+  // Lanzador principal de carreras: hora exacta (completa) o en curso (desde donde empezó)
+  const launchRace = useCallback(
+    ({ full = true, initialCountdown = COUNTDOWN_START, initialProgress = 0, initialElapsedMs = 0 } = {}) => {
+      clearCountdownTimers();
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      playedCrashSegmentsRef.current.clear();
+      playedJumpSegmentsRef.current.clear();
+      playedMeteorSegmentsRef.current.clear();
+      stopAll();
+      setIsFinished(false);
+      setResultsReady(false);
 
-    const schedule = (fn, ms) => countdownTimersRef.current.push(setTimeout(fn, ms));
-    schedule(() => {
-      setCountdown(2);
-      playCountdown(2);
-    }, 900);
-    schedule(() => {
-      setCountdown(1);
-      playCountdown(1);
-    }, 1800);
-    schedule(() => {
-      setCountdown(0);
-      playCountdown(0);
-      startRaceAmbience();
-      beginRaceLoop();
-    }, 2700);
-    schedule(() => setCountdown(null), 3500);
-  };
+      if (full) {
+        // 1. "si uno se mete en la hora exacta la vera completa" o Repetición completa
+        setProgress(0);
+        const countdownSecs = Math.max(1, Math.min(COUNTDOWN_START, initialCountdown));
+        setCountdown(countdownSecs);
+        playCountdown(countdownSecs);
 
+        const schedule = (fn, ms) => countdownTimersRef.current.push(setTimeout(fn, ms));
+        for (let n = countdownSecs - 1; n >= 1; n--) {
+          const value = n;
+          schedule(() => {
+            setCountdown(value);
+            playCountdown(value);
+          }, (countdownSecs - value) * COUNTDOWN_STEP_MS);
+        }
+
+        const goAt = countdownSecs * COUNTDOWN_STEP_MS;
+        schedule(() => {
+          setCountdown(0);
+          playCountdown(0);
+          startRaceAmbience();
+          beginRaceLoop(0);
+        }, goAt);
+        schedule(() => setCountdown(null), goAt + 800);
+      } else {
+        // 2. "sino la vera desde donde empezo" (unirse a carrera ya en curso)
+        setCountdown(null);
+        setProgress(initialProgress);
+        startRaceAmbience();
+        beginRaceLoop(initialElapsedMs);
+      }
+    },
+    [beginRaceLoop, clearCountdownTimers, playCountdown, startRaceAmbience, stopAll]
+  );
+
+  // Inicialización y sincronización de entrada según la hora exacta
   useEffect(() => {
-    startRaceAnimation();
+    if (selectedRace) {
+      // Repetición explícita desde historial
+      setIsExplicitPastRace(true);
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
+      launchRace({ full: true, initialCountdown: COUNTDOWN_START });
+      return () => {
+        clearCountdownTimers();
+        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        stopAll();
+      };
+    }
+
+    // Modo TRANSMISIÓN EN VIVO
+    setIsExplicitPastRace(false);
+    const sched = getRaceSchedule(new Date());
+    const elapsed = sched.elapsedInSlot;
+
+    if (elapsed <= 10) {
+      // Condición 1: "si uno se mete en la hora exacta la vera completa"
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
+      const remCountdown = elapsed <= 2 ? COUNTDOWN_START : Math.max(1, Math.ceil(10 - elapsed));
+      launchRace({ full: true, initialCountdown: remCountdown });
+    } else if (elapsed < 32.5) {
+      // Condición 2: "sino la vera desde donde empezo"
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
+      const raceElapsedMs = (elapsed - 10) * 1000;
+      const initialProgress = Math.min(0.98, (elapsed - 10) / 22);
+      launchRace({ full: false, initialProgress, initialElapsedMs: raceElapsedMs });
+    } else {
+      // Condición 3: Carrera ya pasó -> Modal interactivo con reloj y 2 opciones (esperar o ver carrera anterior)
+      setShowPostRaceModal(true);
+      setIsWaiting(false);
+      stopAll();
+      setProgress(0);
+    }
+
     return () => {
       clearCountdownTimers();
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       stopAll();
     };
-  }, [race.numero, race.hora]);
+  }, [selectedRace, viewedRace.numero, viewedRace.hora, launchRace, clearCountdownTimers, stopAll]);
 
+  // Transición automática al llegar el reloj a 00:00 (nueva carrera programada)
+  useEffect(() => {
+    if (liveSchedule.currentRaceNumber !== lastSlotNumberRef.current) {
+      lastSlotNumberRef.current = liveSchedule.currentRaceNumber;
+
+      // Si no estamos viendo una repetición congelada explícita de una carrera pasada:
+      if (!isExplicitPastRace) {
+        setShowPostRaceModal(false);
+        setIsWaiting(false);
+        const newRace = getOrCreateRace(
+          liveSchedule.currentRaceNumber,
+          liveSchedule.todayStr,
+          liveSchedule.currentRaceTime
+        );
+        setViewedRace(newRace);
+        launchRace({ full: true, initialCountdown: COUNTDOWN_START });
+      }
+    }
+  }, [liveSchedule.currentRaceNumber, isExplicitPastRace, launchRace, liveSchedule.todayStr, liveSchedule.currentRaceTime]);
+
+  // Tras cruzar la meta se muestra el podio animado sobre la pista; luego se abre el resumen de resultados
   useEffect(() => {
     if (!isFinished) { setResultsReady(false); return undefined; }
-    const id = setTimeout(() => setResultsReady(true), 1800);
+    const id = setTimeout(() => setResultsReady(true), TRACK_PODIUM_MS);
     return () => clearTimeout(id);
   }, [isFinished]);
 
-  // Celebración apoteósica con fanfarria y público al cruzar la meta
+  // Al término de la carrera: fanfarria + aplausos del público si hay ganador; si nadie llega, silencio (sin celebración)
   useEffect(() => {
     if (isFinished) {
       if (willAnyCarFinish) {
@@ -327,21 +447,24 @@ export default function LiveRaceScreen({
   // Calcular la posición X interpolada suavemente de cada auto para el `progress` actual,
   // con aparición de obstáculos en el momento y fijación permanente del obstáculo fatal que mató al auto
   const liveCars = useMemo(() => {
-    const numSegments = tramos.length - 1; // 7 segmentos entre los 8 tramos
+    const numSegments = tramos.length; // 8 segmentos entre largada y los 8 tramos
     const rawIndex = progress * numSegments;
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
 
     // Easing suave: mezcla lineal + smoothstep para que los autos no se detengan en cada tramo
     const smoothT = fraction * 0.65 + fraction * fraction * (3 - 2 * fraction) * 0.35;
+    const smoothTDeriv = 0.65 + 0.35 * 6 * fraction * (1 - fraction);
+    const segmentSeconds = RACE_DURATION_MS / 1000 / numSegments;
 
-    const fromTramo = tramos[segIndex]?.EstadosAutos || [];
-    const toTramo = tramos[segIndex + 1]?.EstadosAutos || fromTramo;
-    const currentObstacleData = tramos[segIndex + 1] || tramos[segIndex] || tramos[0];
+    // En segIndex === 0 parten de minTrackX (150). En segIndex > 0 parten de tramos[segIndex - 1]
+    const fromTramo = segIndex === 0 ? null : (tramos[segIndex - 1]?.EstadosAutos || []);
+    const toTramo = tramos[segIndex]?.EstadosAutos || [];
+    const currentObstacleData = tramos[segIndex] || tramos[0];
 
     return carNames.map((name, index) => {
-      const fromCar = fromTramo.find((c) => c.Nombre === name) || { X: 180, Estado: 'EN_CARRERA' };
-      const toCar = toTramo.find((c) => c.Nombre === name) || fromCar;
+      const fromCar = (fromTramo && fromTramo.find((c) => c.Nombre === name)) || { X: minTrackX, Estado: 'EN_CARRERA' };
+      const toCar = (toTramo && toTramo.find((c) => c.Nombre === name)) || { X: minTrackX, Estado: 'EN_CARRERA' };
 
       const fatal = fatalEliminationByCar[name];
 
@@ -367,9 +490,10 @@ export default function LiveRaceScreen({
         }
       }
 
-      // En la largada (segIndex === 0), todos los autos parten exactamente desde la misma línea de salida (minTrackX = 150)
-      const startX = segIndex === 0 ? minTrackX : fromCar.X;
-      const targetX = segIndex === 0 ? fromCar.X : toCar.X;
+      // En la largada (segIndex === 0), todos los autos parten exactamente desde minTrackX (150).
+      // En los tramos siguientes, parten exactamente desde donde quedaron en el tramo previo (fromCar.X).
+      const startX = segIndex === 0 ? minTrackX : (fromCar ? fromCar.X : minTrackX);
+      const targetX = toCar.X;
       const deltaX = targetX - startX;
       const pasoObstaculo = toCar.PasoTramo === true || toCar.ResultadoObstaculo === 'EXITO';
 
@@ -384,13 +508,23 @@ export default function LiveRaceScreen({
       let isBoosting = false;
 
       if (isEliminated) {
-        currentX = fatal ? fatal.crashX : fromCar.X;
+        if (segIndex > (fatal?.fatalSegmentIndex ?? -1)) {
+          currentX = fatal ? fatal.crashX : targetX;
+        } else {
+          // Frenada e impacto suave hasta el obstáculo fatal sin salto abrupto
+          const crashT = Math.min(1, smoothT / 0.50);
+          currentX = startX + deltaX * crashT;
+        }
         speedKmh = 0;
       } else {
-        currentX = startX + deltaX * smoothT;
-        speedKmh = isFinished
+        const paceFactor = carPaceFactor(name, segIndex, race.numero);
+        const paceOffset = CAR_PACE_AMPLITUDE * paceFactor * Math.sin(smoothT * Math.PI);
+        currentX = startX + deltaX * Math.max(0, Math.min(1, smoothT + paceOffset));
+        const metersPerSecond = (deltaX / segmentSeconds) * (smoothTDeriv + CAR_PACE_AMPLITUDE * paceFactor * Math.PI * Math.cos(smoothT * Math.PI));
+        const vibration = Math.sin(progress * 45 + index * 2) * 4;
+        speedKmh = isFinished || progress <= 0
           ? 0
-          : Math.max(0, Math.round(152 + (deltaX / 130) * 36 + Math.sin(progress * 45 + index * 2) * 8));
+          : Math.max(0, Math.min(260, Math.round(metersPerSecond * 3.6 + vibration)));
         isBoosting = !isFinished && pasoObstaculo && fraction > 0.52 && fraction < 0.95;
       }
 
@@ -398,7 +532,7 @@ export default function LiveRaceScreen({
       let activeObstacle = null;
       if (!isEliminated) {
         const obstacleDist = Math.max(60, deltaX * 0.60 + 50);
-        const obstacleX = Math.round(fromCar.X + obstacleDist);
+        const obstacleX = Math.round(startX + obstacleDist);
         const obstaclePct = getCarTrackPercent(obstacleX);
 
         let stage = 'hidden';
@@ -465,11 +599,11 @@ export default function LiveRaceScreen({
         pasoUltimoObstaculo: pasoObstaculo,
         activeObstacle,
         fatalObstacle,
-        causaEliminacion: fatal?.nombre || toCar.ObstaculoFallo || fromCar.ObstaculoFallo || currentObstacleData.NombreObstaculo,
+        causaEliminacion: fatal?.nombre || toCar?.ObstaculoFallo || fromCar?.ObstaculoFallo || currentObstacleData?.NombreObstaculo || 'Obstáculo',
         index,
       };
     });
-  }, [progress, tramos, carNames, fatalEliminationByCar]);
+  }, [progress, tramos, carNames, fatalEliminationByCar, isFinished, race.numero]);
 
   // Ordenar autos por posición actual (los que avanzaron más van primero, eliminados al final)
   const rankedCars = useMemo(() => {
@@ -483,6 +617,26 @@ export default function LiveRaceScreen({
   const activeCars = liveCars.filter((c) => !c.isEliminated);
   const currentLeader = rankedCars.find((c) => !c.isEliminated) || rankedCars[0];
   const allCarsEliminated = activeCars.length === 0;
+
+  // Las banderas de 1º/2º/3º se muestran una vez que los autos se separan de la grilla de largada
+  const showPositionFlags = progress > 0.03 && countdown === null;
+
+  // Posición en carrera (1, 2, 3...) solo para autos que siguen compitiendo
+  const racePositionByName = useMemo(() => {
+    const map = {};
+    rankedCars
+      .filter((c) => !c.isEliminated)
+      .forEach((c, i) => {
+        map[c.name] = i + 1;
+      });
+    return map;
+  }, [rankedCars]);
+
+  const getFlagPosition = (carName) => {
+    if (!showPositionFlags) return null;
+    const pos = racePositionByName[carName];
+    return pos && pos <= 3 ? pos : null;
+  };
 
   // Telemetría de audio en tiempo real (velocidad del líder y progreso de carrera)
   useEffect(() => {
@@ -498,7 +652,7 @@ export default function LiveRaceScreen({
   // Efectos de sonido en carrera: choques fatales y saltos
   useEffect(() => {
     if (isFinished || countdown !== null) return;
-    const numSegments = tramos.length - 1;
+    const numSegments = tramos.length;
     const rawIndex = progress * numSegments;
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
@@ -522,7 +676,7 @@ export default function LiveRaceScreen({
     }
 
     // Caída e impacto masivo de meteoritos desde el cielo (meteorito.mp3)
-    const currentObstacleType = (currentSectorObstacle?.tipo || tramos[segIndex + 1]?.TipoObstaculo || '').toUpperCase();
+    const currentObstacleType = (currentSectorObstacle?.tipo || tramos[segIndex]?.TipoObstaculo || '').toUpperCase();
     if (currentObstacleType === 'METEORITOS' && fraction >= 0.18 && fraction <= 0.35) {
       const meteorKey = `meteor-${segIndex}`;
       if (!playedMeteorSegmentsRef.current.has(meteorKey)) {
@@ -547,9 +701,60 @@ export default function LiveRaceScreen({
   // Estados finales de los autos en el tramo de meta
   const finalCars = tramos[tramos.length - 1]?.EstadosAutos || [];
 
-  const handleReplay = () => {
-    startRaceAnimation();
-  };
+  const handleWatchPastRace = useCallback(() => {
+    setShowPostRaceModal(false);
+    setIsWaiting(false);
+    setIsExplicitPastRace(true);
+    const pastNum = liveSchedule.elapsedInSlot >= 32.5
+      ? liveSchedule.currentRaceNumber
+      : Math.max(1, liveSchedule.currentRaceNumber - 1);
+    const pastTime = liveSchedule.elapsedInSlot >= 32.5
+      ? liveSchedule.currentRaceTime
+      : liveSchedule.currentRaceTime;
+    const pastRace = getOrCreateRace(pastNum, liveSchedule.todayStr, pastTime);
+    setViewedRace(pastRace);
+    launchRace({ full: true, initialCountdown: COUNTDOWN_START });
+  }, [liveSchedule, launchRace]);
+
+  const handleWaitNextRace = useCallback(() => {
+    setIsWaiting(true);
+    setIsExplicitPastRace(false);
+    setIsFinished(false);
+    setResultsReady(false);
+    stopAll();
+    setProgress(0);
+    setShowPostRaceModal(true);
+  }, [stopAll]);
+
+  const handleSwitchToLiveRace = useCallback(() => {
+    setIsExplicitPastRace(false);
+    const sched = getRaceSchedule(new Date());
+    const elapsed = sched.elapsedInSlot;
+    const liveRace = getOrCreateRace(sched.currentRaceNumber, sched.todayStr, sched.currentRaceTime);
+    setViewedRace(liveRace);
+
+    if (elapsed <= 10) {
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
+      const remCountdown = elapsed <= 2 ? COUNTDOWN_START : Math.max(1, Math.ceil(10 - elapsed));
+      launchRace({ full: true, initialCountdown: remCountdown });
+    } else if (elapsed < 32.5) {
+      setShowPostRaceModal(false);
+      setIsWaiting(false);
+      const raceElapsedMs = (elapsed - 10) * 1000;
+      const initialProgress = Math.min(0.98, (elapsed - 10) / 22);
+      launchRace({ full: false, initialProgress, initialElapsedMs: raceElapsedMs });
+    } else {
+      setShowPostRaceModal(true);
+      setIsWaiting(true);
+      stopAll();
+      setProgress(0);
+    }
+  }, [launchRace, stopAll]);
+
+  const handleReplay = useCallback(() => {
+    launchRace({ full: true, initialCountdown: COUNTDOWN_START });
+  }, [launchRace]);
 
   // Obtener todas las apuestas realizadas por el usuario para ESTA carrera en particular
   const userBetsForThisRace = useMemo(() => {
@@ -588,6 +793,33 @@ export default function LiveRaceScreen({
   }, [canUseFpv, cameraMode]);
   const winnerCar = rankedCars.find((c) => !c.isEliminated) || null;
 
+  // Podio oficial: solo autos que cruzaron la meta (no eliminados), máximo 3 lugares.
+  // Si ningún auto llegó, el podio queda vacío.
+  const podiumCars = useMemo(() => {
+    if (ningunAutoLlego) return [null, null, null];
+    const finishers = rankedCars.filter((c) => !c.isEliminated).slice(0, 3);
+    return [finishers[0] || null, finishers[1] || null, finishers[2] || null];
+  }, [rankedCars, ningunAutoLlego]);
+
+  // Datos de carrera para cada auto del podio (tiempo estimado, diferencia con el ganador y velocidad media)
+  const podiumStats = useMemo(() => {
+    const winner = podiumCars[0];
+    if (!winner || !winner.x) return [null, null, null];
+    const raceSecs = RACE_DURATION_MS / 1000;
+    const winnerMps = winner.x / raceSecs;
+    return podiumCars.map((car) => {
+      if (!car) return null;
+      const gapM = Math.max(0, winner.x - car.x);
+      const timeSecs = raceSecs + (winnerMps > 0 ? gapM / winnerMps : 0);
+      return {
+        gapM,
+        timeSecs,
+        gapSecs: timeSecs - raceSecs,
+        avgKmh: Math.round((car.x / timeSecs) * 3.6),
+      };
+    });
+  }, [podiumCars]);
+
   // Evaluación detallada de cada apuesta del usuario para esta carrera
   const evaluatedUserBets = useMemo(() => {
     if (!isFinished || !isUserParticipatingInThisRace) return [];
@@ -607,10 +839,9 @@ export default function LiveRaceScreen({
           wonPlace = 'Sin Ganador (Factor 14x)';
         }
       } else if (!ningunAutoLlego) {
-        const first = (rankedCars[0]?.buggy?.name || '').toUpperCase();
-        const second = (rankedCars[1]?.buggy?.name || '').toUpperCase();
-        const third = (rankedCars[2]?.buggy?.name || '').toUpperCase();
-
+        const first = (podiumCars[0]?.buggy?.name || '').toUpperCase();
+        const second = (podiumCars[1]?.buggy?.name || '').toUpperCase();
+        const third = (podiumCars[2]?.buggy?.name || '').toUpperCase();
         if (marketId === 'primer_lugar') {
           won = Boolean(bName && first === bName);
           wonPlace = '1º lugar (Ganador)';
@@ -661,14 +892,24 @@ export default function LiveRaceScreen({
       <header className={styles.topBar}>
         {/* Columna Izquierda: Identificación única de la carrera */}
         <div className={styles.topBarLeft}>
-          {isLive ? (
+          {isWaiting ? (
+            <div className={`${styles.raceHeroBadge} ${styles.raceHeroLive}`}>
+              <div className={styles.raceHeroTag}>
+                <span className={styles.liveDot} style={{ background: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }} />
+                <span>EN ESPERA</span>
+              </div>
+              <span className={styles.raceHeroLabel}>PRÓXIMA</span>
+              <span className={styles.raceHeroNumber}>{`Nº ${liveSchedule.nextRaceNumber}`}</span>
+              <span className={styles.raceHeroTime}>{formatSecondsToCountdown(liveSchedule.remainingSeconds)}</span>
+            </div>
+          ) : isLive ? (
             <div className={`${styles.raceHeroBadge} ${styles.raceHeroLive}`}>
               <div className={styles.raceHeroTag}>
                 <span className={styles.liveDot} />
                 <span>EN VIVO</span>
               </div>
               <span className={styles.raceHeroLabel}>CARRERA</span>
-              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
+              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
               <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           ) : (
@@ -678,7 +919,7 @@ export default function LiveRaceScreen({
                 <span>REPETICIÓN</span>
               </div>
               <span className={styles.raceHeroLabel}>CARRERA</span>
-              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
+              <span className={styles.raceHeroNumber}>{`Nº ${race.numero}`}</span>
               <span className={styles.raceHeroTime}>{race.hora} hrs</span>
             </div>
           )}
@@ -773,14 +1014,268 @@ export default function LiveRaceScreen({
         </div>
       </div>
 
+      {/* Modal Interactivo si el usuario entra cuando la carrera ya finalizó */}
+      {showPostRaceModal && (
+        <div className={styles.postRaceOverlay} role="dialog" aria-modal="true" aria-labelledby="postRaceHeading">
+          <div className={styles.postRaceCard}>
+            {/* Header del Modal */}
+            <div className={styles.postRaceHeader}>
+              <div className={styles.postRaceBadgeTag}>
+                <span className={styles.postRaceDot} />
+                <span>CARRERA Nº {liveSchedule.currentRaceNumber} FINALIZADA</span>
+              </div>
+              <h2 id="postRaceHeading" className={styles.postRaceTitle}>
+                La carrera de las {liveSchedule.currentRaceTime} hrs ya concluyó
+              </h2>
+              <p className={styles.postRaceSub}>
+                Puedes revivir la carrera que acaba de pasar o sintonizar la pista y esperar la largada de la siguiente.
+              </p>
+            </div>
+
+            {/* Reloj y Cuenta Regresiva Oficial en Vivo */}
+            <div className={styles.postRaceClockCard}>
+              <div className={styles.postRaceClockHeader}>
+                <span className={styles.postRaceClockEyebrow}>TIEMPO PARA LA PRÓXIMA CARRERA</span>
+                <span className={styles.postRaceClockRaceTarget}>
+                  CARRERA Nº {liveSchedule.nextRaceNumber} • {liveSchedule.nextRaceTime} HRS
+                </span>
+              </div>
+
+              <div className={styles.postRaceDigitalClock}>
+                <i className="ph ph-hourglass-high" aria-hidden="true" />
+                <span className={styles.postRaceClockValue}>
+                  {formatSecondsToCountdown(liveSchedule.remainingSeconds)}
+                </span>
+              </div>
+
+              <div className={styles.postRaceClockBar}>
+                <div
+                  className={styles.postRaceClockBarFill}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, ((300 - liveSchedule.remainingSeconds) / 300) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Resumen de apuesta activa si el usuario apostó */}
+            {userSelection && (
+              <div className={styles.postRaceUserTicketCard}>
+                <i className="ph ph-ticket" aria-hidden="true" />
+                <span>
+                  Tu jugada para la Carrera Nº {userSelection.targetRaceNumber} ({userSelection.targetRaceTime} hrs) está confirmada (Ticket #{userSelection.ticketId} - Buggy {userSelection.buggy?.name || 'Amarillo'}). Se transmitirá aquí en directo.
+                </span>
+              </div>
+            )}
+
+            {/* Las 2 opciones principales en pantalla */}
+            <div className={styles.postRaceOptionsGrid}>
+              {/* Opción 1: Ver la carrera anterior */}
+              <button
+                type="button"
+                className={styles.postRaceOptionCard}
+                onClick={handleWatchPastRace}
+              >
+                <div className={styles.postRaceOptionIconWrap}>
+                  <i className="ph ph-clock-counter-clockwise" aria-hidden="true" />
+                </div>
+                <div className={styles.postRaceOptionContent}>
+                  <span className={styles.postRaceOptionBadge}>OPCIÓN 1</span>
+                  <h3 className={styles.postRaceOptionTitle}>Ver la Carrera Anterior</h3>
+                  <p className={styles.postRaceOptionDesc}>
+                    Revive la Carrera Nº {liveSchedule.currentRaceNumber} ({liveSchedule.currentRaceTime} hrs) completa con repetición oficial, obstáculos y podio.
+                  </p>
+                </div>
+                <span className={styles.postRaceOptionActionText}>
+                  Ver repetición completa <i className="ph ph-arrow-right" aria-hidden="true" />
+                </span>
+              </button>
+
+              {/* Opción 2: Esperar a la próxima */}
+              <button
+                type="button"
+                className={`${styles.postRaceOptionCard} ${styles.postRaceOptionCardLive} ${isWaiting ? styles.postRaceOptionActive : ''}`}
+                onClick={handleWaitNextRace}
+              >
+                <div className={`${styles.postRaceOptionIconWrap} ${styles.postRaceIconLive}`}>
+                  <i className={`ph ${isWaiting ? 'ph-hourglass-high' : 'ph-broadcast'}`} aria-hidden="true" />
+                </div>
+                <div className={styles.postRaceOptionContent}>
+                  <span className={`${styles.postRaceOptionBadge} ${styles.postRaceOptionBadgeLive}`}>
+                    {isWaiting ? '✓ ESPERA ACTIVA • EN VIVO' : 'OPCIÓN 2 • EN DIRECTO'}
+                  </span>
+                  <h3 className={styles.postRaceOptionTitle}>Esperar a la Próxima Carrera</h3>
+                  <p className={styles.postRaceOptionDesc}>
+                    {isWaiting
+                      ? `Modo espera activado. La Carrera Nº ${liveSchedule.nextRaceNumber} comenzará en vivo automáticamente a las ${liveSchedule.nextRaceTime} hrs.`
+                      : `Sintoniza la pista y espera la largada. La Carrera Nº ${liveSchedule.nextRaceNumber} comenzará en vivo automáticamente a las ${liveSchedule.nextRaceTime} hrs.`}
+                  </p>
+                </div>
+                <span className={styles.postRaceOptionActionText}>
+                  {isWaiting ? 'Esperando inicio en vivo...' : 'Esperar en pista'} <i className="ph ph-arrow-right" aria-hidden="true" />
+                </span>
+              </button>
+            </div>
+
+            {/* Enlaces de pie de página */}
+            <div className={styles.postRaceFooterRow}>
+              {onGoToBet && (
+                <button
+                  type="button"
+                  className={styles.postRaceBetBtn}
+                  onClick={onGoToBet}
+                >
+                  <i className="ph ph-plus-circle" aria-hidden="true" />
+                  <span>Participar en la Próxima Carrera ({TICKET_PRICE})</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className={styles.postRaceHomeBtn}
+                onClick={onBackToMenu}
+              >
+                <i className="ph ph-house" aria-hidden="true" />
+                <span>Volver al Inicio</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 3. Escenario Principal: Pista de Carreras de Videojuego */}
       <div className={`${styles.mainStage} ${countdown !== null && countdown > 0 ? styles.stagePaused : ''}`}>
-      {/* Cuenta regresiva de largada */}
+      {/* Cuenta regresiva de largada centrada como la del GO */}
       {countdown !== null && (
         <div className={styles.countdownOverlay} aria-live="assertive">
-          <span key={countdown} className={countdown === 0 ? styles.countdownGo : styles.countdownNumber}>
+          <span
+            key={countdown}
+            className={`${countdown === 0 ? styles.countdownGo : styles.countdownNumber} ${
+              countdown > 0 && countdown <= 3 ? styles.countdownFinal : ''
+            }`}
+          >
             {countdown === 0 ? '¡GO!' : countdown}
           </span>
+        </div>
+      )}
+
+      {/* Podio animado sobre la pista al finalizar la carrera */}
+      {isFinished && !resultsReady && (
+        <div
+          className={`${styles.trackPodiumOverlay} ${ningunAutoLlego ? styles.trackPodiumEmpty : ''}`}
+          aria-live="polite"
+        >
+          {!ningunAutoLlego && (
+            <div className={styles.confettiLayer} aria-hidden="true">
+              {CONFETTI_PIECES.map((p) => (
+                <span
+                  key={p.id}
+                  className={styles.confettiPiece}
+                  style={{
+                    left: `${p.left}%`,
+                    background: p.color,
+                    animationDelay: `${p.delay}s`,
+                    animationDuration: `${p.duration}s`,
+                    '--confetti-drift': `${p.drift}px`,
+                    '--confetti-rot': `${p.rot}deg`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className={styles.trackPodiumTitle}>
+            {ningunAutoLlego ? (
+              <>
+                <i className="ph ph-warning-octagon" aria-hidden="true" />
+                <span>PODIO VACÍO • NINGÚN AUTO LLEGÓ</span>
+              </>
+            ) : (
+              <>
+                <i className="ph ph-trophy" aria-hidden="true" />
+                <span>PODIO • CARRERA Nº {race.numero}</span>
+              </>
+            )}
+          </div>
+
+          <div className={styles.trackPodiumRow}>
+            {[2, 1, 3].map((place) => {
+              const car = podiumCars[place - 1];
+              const stats = podiumStats[place - 1];
+              const isUserCar =
+                car && isUserParticipatingInThisRace && chosenBuggyNames.includes(car.buggy.name.toUpperCase());
+              return (
+                <div
+                  key={place}
+                  className={`${styles.trackPodiumCol} ${styles[`trackPodiumPlace${place}`]} ${!car ? styles.trackPodiumColEmpty : ''}`}
+                >
+                  <div className={styles.trackPodiumCar}>
+                    {car ? (
+                      <>
+                        {place === 1 && <span className={styles.trackPodiumCrown}>👑</span>}
+                        {isUserCar && <span className={styles.trackPodiumUserTag}>★ TU AUTO</span>}
+                        <img src={car.buggy.image} alt={`${place}º lugar: ${car.buggy.name}`} />
+                        <span className={styles.trackPodiumName} style={{ color: car.buggy.color }}>
+                          {car.buggy.symbol} BUGGY {car.buggy.name}
+                        </span>
+                        {car.buggy.tagline && (
+                          <span className={styles.trackPodiumTagline}>{car.buggy.tagline}</span>
+                        )}
+                        <div className={styles.trackPodiumStats} style={{ '--accent': car.buggy.color }}>
+                          <div className={styles.trackPodiumStat}>
+                            <span>Tiempo</span>
+                            <strong>{stats ? `${stats.timeSecs.toFixed(2)}s` : '—'}</strong>
+                          </div>
+                          <div className={styles.trackPodiumStat}>
+                            <span>{place === 1 ? 'Ventaja' : 'Diferencia'}</span>
+                            <strong>
+                              {place === 1
+                                ? podiumStats[1]
+                                  ? `+${podiumStats[1].gapSecs.toFixed(2)}s`
+                                  : '—'
+                                : stats
+                                  ? `+${stats.gapSecs.toFixed(2)}s`
+                                  : '—'}
+                            </strong>
+                          </div>
+                          <div className={styles.trackPodiumStat}>
+                            <span>Vel. media</span>
+                            <strong>{stats ? `${stats.avgKmh} km/h` : '—'}</strong>
+                          </div>
+                          <div className={styles.trackPodiumStat}>
+                            <span>Distancia</span>
+                            <strong>{car.x} m</strong>
+                          </div>
+                          {car.buggy.specs && (
+                            <div className={`${styles.trackPodiumStat} ${styles.trackPodiumStatWide}`}>
+                              <span>Motor</span>
+                              <strong>{car.buggy.specs.motor} • {car.buggy.specs.potencia}</strong>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <span className={styles.trackPodiumVacant}>
+                        <i className="ph ph-prohibit" aria-hidden="true" />
+                        VACÍO
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.trackPodiumBlock}>
+                    <span>{place}º</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            className={styles.trackPodiumResultsBtn}
+            onClick={() => setResultsReady(true)}
+          >
+            Ver resultados <i className="ph ph-arrow-right" aria-hidden="true" />
+          </button>
         </div>
       )}
         {cameraMode === 'cockpitFpv' ? (
@@ -795,6 +1290,7 @@ export default function LiveRaceScreen({
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
             ningunAutoLlego={ningunAutoLlego}
+            showPositionFlags={showPositionFlags}
           />
         ) : cameraMode === 'arcade25d' ? (
           <ArcadeTrack25D
@@ -808,6 +1304,7 @@ export default function LiveRaceScreen({
             isFinished={isFinished}
             fatalEliminationByCar={fatalEliminationByCar}
             ningunAutoLlego={ningunAutoLlego}
+            showPositionFlags={showPositionFlags}
           />
         ) : (
           /* Pista de Carreras Tipo Videojuego Arcade (Lateral) */
@@ -822,6 +1319,7 @@ export default function LiveRaceScreen({
                 (chosenBuggyNames.includes(car.buggy.name.toUpperCase()) ||
                   (activeUserBuggyName && activeUserBuggyName.includes(car.buggy.name.toUpperCase())));
               const isLeader = rank === 1 && !car.isEliminated;
+              const flagPosition = car.isEliminated ? null : getFlagPosition(car.name);
 
               return (
                 <div
@@ -832,6 +1330,7 @@ export default function LiveRaceScreen({
                 >
                   {/* Encabezado del Carril */}
                   <div className={styles.laneHeader}>
+                    {flagPosition && <PositionFlag position={flagPosition} size="xs" />}
                     <span
                       className={styles.laneRankBadge}
                       style={{ background: car.isEliminated ? '#475569' : car.buggy.color }}
@@ -912,6 +1411,13 @@ export default function LiveRaceScreen({
                         '--buggy-glow': car.buggy.glowColor,
                       }}
                     >
+                      {/* Bandera distintiva de 1º, 2º o 3º lugar sobre el auto */}
+                      {flagPosition && (
+                        <div className={styles.carPositionFlag}>
+                          <PositionFlag position={flagPosition} size="md" />
+                        </div>
+                      )}
+
                       {/* Badge flotante de Esquive Exitoso */}
                       {car.showDodgeBadge && (
                         <div className={styles.dodgeBanner}>
@@ -1005,6 +1511,10 @@ export default function LiveRaceScreen({
                 isUserParticipatingInThisRace &&
                 (chosenBuggyNames.includes(car.buggy.name.toUpperCase()) ||
                   (activeUserBuggyName && activeUserBuggyName.includes(car.buggy.name.toUpperCase())));
+              const flagPosition = car.isEliminated ? null : getFlagPosition(car.name);
+              const gapToLeader = !car.isEliminated && currentLeader && !currentLeader.isEliminated
+                ? Math.max(0, currentLeader.x - car.x)
+                : 0;
 
               return (
                 <div
@@ -1036,6 +1546,9 @@ export default function LiveRaceScreen({
                         {car.buggy.symbol} {car.buggy.name}
                       </span>
                       {rankIdx === 0 && !car.isEliminated && <span className={styles.leaderStar}>👑</span>}
+                      {flagPosition && (
+                        <PositionFlag position={flagPosition} size="xs" className={styles.leaderFlag} />
+                      )}
                     </div>
 
                     <div className={styles.leaderStatsRow}>
@@ -1047,6 +1560,9 @@ export default function LiveRaceScreen({
                         <>
                           <span className={styles.leaderSpeed}>{car.speedKmh} km/h</span>
                           <span className={styles.leaderDist}>{car.x} m</span>
+                          {showPositionFlags && rankIdx > 0 && (
+                            <span className={styles.leaderGap}>-{gapToLeader} m</span>
+                          )}
                         </>
                       )}
                     </div>
@@ -1172,59 +1688,67 @@ export default function LiveRaceScreen({
               </div>
             )}
 
-            {/* Si llegaron autos: Podio Top 3. Si no: Resumen de Bajas por Obstáculo */}
-            {!ningunAutoLlego ? (
+            {/* Podio oficial: 1º, 2º y 3º lugar. Lugares sin auto (o si ninguno llegó) se muestran vacíos */}
+            <div className={`${styles.podiumStage} ${ningunAutoLlego ? styles.podiumStageEmpty : ''}`}>
+              <span className={styles.podiumStageTitle}>
+                <i className="ph ph-trophy" aria-hidden="true" /> PODIO OFICIAL
+              </span>
+
               <div className={styles.podiumRow}>
-                {/* 2do Lugar */}
-                {rankedCars[1] && (
-                  <div className={`${styles.podiumColumn} ${styles.podiumSecond}`}>
-                    <span className={styles.podiumPlace}>2º LUGAR</span>
-                    <img
-                      src={rankedCars[1].buggy.image}
-                      alt="2do"
-                      className={styles.podiumImg}
-                    />
-                    <span className={styles.podiumName} style={{ color: rankedCars[1].buggy.color }}>
-                      {rankedCars[1].buggy.symbol} {rankedCars[1].buggy.name}
-                    </span>
-                    <span className={styles.podiumCoord}>{rankedCars[1].x}m</span>
-                  </div>
-                )}
-
-                {/* 1er Lugar */}
-                {winnerCar && (
-                  <div className={`${styles.podiumColumn} ${styles.podiumFirst}`}>
-                    <div className={styles.crownIcon}>👑</div>
-                    <span className={styles.podiumPlace}>1º LUGAR</span>
-                    <img
-                      src={winnerCar.buggy.image}
-                      alt="1ro"
-                      className={styles.podiumImgFirst}
-                    />
-                    <span className={styles.podiumName} style={{ color: winnerCar.buggy.color }}>
-                      {winnerCar.buggy.symbol} {winnerCar.buggy.name}
-                    </span>
-                    <span className={styles.podiumCoord}>{winnerCar.x}m</span>
-                  </div>
-                )}
-
-                {/* 3er Lugar */}
-                {rankedCars[2] && (
-                  <div className={`${styles.podiumColumn} ${styles.podiumThird}`}>
-                    <span className={styles.podiumPlace}>3º LUGAR</span>
-                    <img
-                      src={rankedCars[2].buggy.image}
-                      alt="3ro"
-                      className={styles.podiumImg}
-                    />
-                    <span className={styles.podiumName} style={{ color: rankedCars[2].buggy.color }}>
-                      {rankedCars[2].buggy.symbol} {rankedCars[2].buggy.name}
-                    </span>
-                    <span className={styles.podiumCoord}>{rankedCars[2].x}m</span>
-                  </div>
-                )}
+                {[
+                  { place: 2, cls: styles.podiumSecond, label: '2º LUGAR' },
+                  { place: 1, cls: styles.podiumFirst, label: '1º LUGAR' },
+                  { place: 3, cls: styles.podiumThird, label: '3º LUGAR' },
+                ].map(({ place, cls, label }) => {
+                  const car = podiumCars[place - 1];
+                  return (
+                    <div
+                      key={place}
+                      className={`${styles.podiumColumn} ${cls} ${!car ? styles.podiumColumnEmpty : ''}`}
+                    >
+                      <div className={styles.podiumCarArea}>
+                        {car ? (
+                          <>
+                            {place === 1 && <div className={styles.crownIcon}>👑</div>}
+                            <PositionFlag position={place} size="sm" className={styles.podiumFlag} />
+                            <img
+                              src={car.buggy.image}
+                              alt={`${label}: ${car.buggy.name}`}
+                              className={place === 1 ? styles.podiumImgFirst : styles.podiumImg}
+                            />
+                            <span className={styles.podiumName} style={{ color: car.buggy.color }}>
+                              {car.buggy.symbol} {car.buggy.name}
+                            </span>
+                            <span className={styles.podiumCoord}>{car.x}m</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className={styles.podiumEmptySilhouette}>
+                              <i className="ph ph-prohibit" aria-hidden="true" />
+                            </div>
+                            <span className={styles.podiumEmptyText}>VACÍO</span>
+                          </>
+                        )}
+                      </div>
+                      <div className={styles.podiumPedestal}>
+                        <span className={styles.podiumPedestalNumber}>{place}</span>
+                        <span className={styles.podiumPlace}>{label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ) : (
+
+              {ningunAutoLlego && (
+                <div className={styles.podiumEmptyMessage}>
+                  <i className="ph ph-warning-octagon" aria-hidden="true" />
+                  <span>PODIO VACÍO • NINGÚN AUTO LLEGÓ A LA META</span>
+                </div>
+              )}
+            </div>
+
+            {/* Si ningún auto llegó: Resumen de Bajas por Obstáculo */}
+            {ningunAutoLlego && (
               <div className={styles.casualtyBox}>
                 <span className={styles.casualtyTitle}>REGISTRO DE IMPACTOS EN EL CIRCUITO</span>
                 <div className={styles.casualtyGrid}>
@@ -1332,6 +1856,29 @@ export default function LiveRaceScreen({
 
             {/* Botones de Acción */}
             <div className={styles.resultsActions}>
+              {/* Reloj y cuenta regresiva para la próxima carrera programada */}
+              <div style={{
+                width: '100%',
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
+                borderRadius: '12px',
+                padding: '8px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.78rem',
+                fontWeight: '800',
+                boxSizing: 'border-box',
+              }}>
+                <span style={{ color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="ph ph-hourglass-high" />
+                  Próxima Carrera Nº {liveSchedule.nextRaceNumber} ({liveSchedule.nextRaceTime} hrs)
+                </span>
+                <span style={{ color: '#facc15', fontVariantNumeric: 'tabular-nums', fontWeight: '900', fontSize: '0.9rem' }}>
+                  {formatSecondsToCountdown(liveSchedule.remainingSeconds)}
+                </span>
+              </div>
+
               {isNewLiveRaceAvailable && (
                 <button
                   type="button"
@@ -1378,3 +1925,4 @@ export default function LiveRaceScreen({
     </div>
   );
 }
+

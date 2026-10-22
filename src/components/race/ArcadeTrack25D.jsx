@@ -1,8 +1,21 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
 import useArcadeAudio from '../../hooks/useArcadeAudio';
+import PositionFlag from './PositionFlag';
+import {
+  getRoadState,
+  drawPseudoRoad,
+  coastTravel,
+  laneX,
+  roadCenterX,
+  roadHeadingDeg,
+  finishGantryLayout,
+  steerAtTrackPct,
+  ROAD_RENDER_SCALE,
+} from './pseudoRoad';
+import { carTrackPct } from './circuitTrack';
 import styles from './ArcadeTrack25D.module.css';
 
 /**
@@ -24,6 +37,7 @@ export default function ArcadeTrack25D({
   isFinished = false,
   ningunAutoLlego = false,
   fatalEliminationByCar = {},
+  showPositionFlags = false,
 }) {
   const { isMuted: isAudioMuted, toggleMute: toggleAudio } = useArcadeAudio();
 
@@ -50,7 +64,7 @@ export default function ArcadeTrack25D({
   // Autos visibles en pista: los que siguen en carrera + los que acaban de ser destruidos
   // (para que se aprecie la animación de destrucción con fuego, humo y el aviso oficial de que no continúa más)
   const renderedCars = useMemo(() => {
-    const numSegments = 7;
+    const numSegments = 8;
     const rawIndex = progress * numSegments;
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
@@ -102,7 +116,7 @@ export default function ArcadeTrack25D({
 
   // Auto recién destruido en el tramo actual para mostrar alerta oficial en pantalla
   const activeIncidentCar = useMemo(() => {
-    const numSegments = 7;
+    const numSegments = 8;
     const rawIndex = progress * numSegments;
     const segIndex = Math.min(numSegments - 1, Math.floor(rawIndex));
     const fraction = rawIndex - segIndex;
@@ -122,12 +136,11 @@ export default function ArcadeTrack25D({
 
   // Cálculo de la aproximación en perspectiva 3D del obstáculo transversal para TODOS los autos
   const { isHazardVisible, hazardTop, hazardScale, hazardOpacity } = useMemo(() => {
-    // Hay 7 transiciones entre tramos
-    const sectorFraction = (progress * 7) % 1;
+    // Hay 8 tramos y transiciones
+    const sectorFraction = (progress * 8) % 1;
     const isMeteor = currentSectorObstacle?.tipo === 'METEORITOS';
-    // Para meteoritos, el cráter en el suelo se manifiesta en el momento del impacto (a partir de 0.22)
-    const minFraction = isMeteor ? 0.22 : 0.16;
-    const maxFraction = 0.66;
+    const minFraction = isMeteor ? 0.21 : 0.12;
+    const maxFraction = 0.68;
 
     // Visible mientras se aproxima desde el horizonte hasta pasar bajo los autos
     const isVisible = !isFinished && currentSectorObstacle?.tipo && sectorFraction >= minFraction && sectorFraction <= maxFraction;
@@ -138,13 +151,15 @@ export default function ArcadeTrack25D({
 
     // Normalizado de 0 (horizonte lejano / impacto) a 1 (primer plano cruzado)
     const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (maxFraction - minFraction)));
-    const curve = Math.pow(norm, 2.2); // aceleración en perspectiva 3D veloz
+    const curve = Math.pow(norm, 2.3); // aceleración en perspectiva 3D veloz
 
-    const startTop = isMeteor ? 38 : 30; // Los meteoritos impactan en la carretera (38%)
-    const top = startTop + curve * (88 - startTop);
-    const startScale = isMeteor ? 0.55 : 0.38;
-    const scale = startScale + curve * (1.28 - startScale);
-    const opacity = norm < 0.10 ? norm / 0.10 : (norm > 0.86 ? (1 - norm) / 0.14 : 1);
+    // Para meteoritos, el cráter se estampa con impacto visible en plena calzada (top ~34%, scale ~0.55) a plena opacidad
+    // Para otros obstáculos, emerge gradualmente desde el horizonte (~14%, scale ~0.22)
+    const startTop = isMeteor ? 34 : 14;
+    const top = startTop + curve * (86 - startTop);
+    const startScale = isMeteor ? 0.55 : 0.22;
+    const scale = startScale + curve * (1.38 - startScale);
+    const opacity = isMeteor ? (norm > 0.88 ? (1 - norm) / 0.12 : 1) : (norm < 0.08 ? norm / 0.08 : (norm > 0.88 ? (1 - norm) / 0.12 : 1));
 
     return {
       isHazardVisible: true,
@@ -159,7 +174,7 @@ export default function ArcadeTrack25D({
   const lastAlertedTramoRef = useRef(null);
 
   useEffect(() => {
-    const sectorFraction = (progress * 7) % 1;
+    const sectorFraction = (progress * 8) % 1;
     // Mostrar la alerta gigante al inicio del sector (cuando entran los meteoritos o se aproxima el obstáculo)
     if (sectorFraction >= 0.04 && currentSectorObstacle?.nombre && !isFinished) {
       const tramoKey = `${currentSectorObstacle.tramo}-${currentSectorObstacle.tipo}`;
@@ -177,50 +192,117 @@ export default function ArcadeTrack25D({
   }, [progress, currentSectorObstacle, isFinished]);
 
   // Fracción actual del sector para coordinar saltos y esquives de los buggies
-  const sectorFraction = (progress * 7) % 1;
+  const sectorFraction = (progress * 8) % 1;
   const isMeteorImpactShake =
     currentSectorObstacle?.tipo === 'METEORITOS' &&
     sectorFraction >= 0.20 &&
     sectorFraction <= 0.36;
 
-  // Curvatura dinámica de la carretera según el tramo (efecto Horizon Chase / OutRun)
-  const trackCurve = useMemo(() => {
-    const tramo = currentSectorObstacle?.tramo || 1;
-    const curves = [0, 24, -28, 20, -34, 26, -18, 0];
-    const targetCurve = curves[(tramo - 1) % curves.length];
-    const t = (progress * 7) % 1;
-    return targetCurve * Math.sin(t * Math.PI);
-  }, [progress, currentSectorObstacle]);
+  // Carretera pseudo-3D estilo Super Nintendo: las curvas salen del circuito GPS en la posición
+  // del auto que va adelante (el que persigue la cámara), igual que el blip del minimapa
+  const cameraTrackPct = activeCars.length > 0 ? carTrackPct(maxX) : progress;
+  const roadState = useMemo(
+    () => getRoadState(progress, cameraTrackPct),
+    [progress, cameraTrackPct]
+  );
+  const roadCurve = roadState.curve;
 
-  // Pórtico de META en 2.5D: aparece en la recta final hacia la meta y se detiene exactamente
-  // enmarcando al auto líder cuando este llega al pórtico (o se oculta si ningún auto llega)
-  const finishGantry = useMemo(() => {
-    if (ningunAutoLlego) {
-      return { visible: false, roadY: 0, opacity: 0 };
-    }
+  // Canvas de la carretera (scanlines con perspectiva y curva)
+  const groundRef = useRef(null);
+  const roadCanvasRef = useRef(null);
+  const canvasSizeRef = useRef({ w: 0, h: 0, aspect: 1.6 });
+  const [canvasSizeTick, setCanvasSizeTick] = useState(0);
 
-    // Inicia en la recta final hacia la meta
-    const startProgress = 0.88;
-    if (progress < startProgress) {
-      return { visible: false, roadY: 0, opacity: 0 };
-    }
+  useEffect(() => {
+    const ground = groundRef.current;
+    const canvas = roadCanvasRef.current;
+    if (!ground || !canvas) return undefined;
 
-    // Progreso del sprint de llegada (0 a 1)
-    const t = Math.min(1, Math.max(0, (progress - startProgress) / (1.0 - startProgress)));
-
-    // Posición a lo largo de la calzada:
-    // Empieza en 16% en la lejanía y desciende hasta 45% (la altura exacta donde el líder cruza bajo el pórtico)
-    const roadY = 16 + Math.pow(t, 1.35) * 29;
-
-    // Aparece completo desde el inicio con fade-in rápido y firme
-    const opacity = Math.min(1, 0.45 + t * 4);
-
-    return {
-      visible: true,
-      roadY,
-      opacity,
+    const resize = () => {
+      // Resolución interna reducida: look pixelado retro y muchos menos píxeles por cuadro
+      const w = Math.max(1, Math.round(ground.clientWidth * ROAD_RENDER_SCALE));
+      const h = Math.max(1, Math.round(ground.clientHeight * ROAD_RENDER_SCALE));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      canvasSizeRef.current = {
+        w,
+        h,
+        aspect: ground.clientWidth / Math.max(1, ground.clientHeight),
+        gw: ground.clientWidth,
+      };
+      setCanvasSizeTick((n) => n + 1);
     };
-  }, [progress, ningunAutoLlego]);
+
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(ground);
+    return () => ro.disconnect();
+  }, []);
+
+  // Pórtico de META anclado al mundo: se posiciona con la misma proyección que la carretera
+  const gantryRef = useRef(null);
+  const showFinish = !ningunAutoLlego;
+  const placeGantry = (travel, curve) => {
+    const el = gantryRef.current;
+    if (!el) return;
+    const layout = showFinish ? finishGantryLayout(travel, curve) : null;
+    if (!layout) {
+      el.style.visibility = 'hidden';
+      return;
+    }
+    const gw = canvasSizeRef.current.gw || 1000;
+    // Mismo orden de profundidad que los buggies (los autos más cercanos tapan los postes)
+    const feetPct = layout.yn * 100 - 12;
+    const z = Math.round(((feetPct - 38) / 34) * 100) + 14;
+    el.style.visibility = 'visible';
+    el.style.width = `${gw}px`;
+    el.style.fontSize = `${gw / 24}px`;
+    el.style.left = `${layout.x * 100}%`;
+    el.style.top = `${layout.yn * 100}%`;
+    el.style.opacity = String(layout.opacity);
+    el.style.zIndex = String(Math.max(1, Math.min(220, z)));
+    el.style.transform = `translate3d(-50%, -100%, 0) scale(${layout.width.toFixed(4)})`;
+  };
+
+  useLayoutEffect(() => {
+    if (isFinished) return;
+    const canvas = roadCanvasRef.current;
+    const ctx = canvas?.getContext('2d', { alpha: false });
+    const { w, h } = canvasSizeRef.current;
+    if (!ctx || !w || !h) return;
+    drawPseudoRoad(ctx, w, h, { ...roadState, finish: showFinish });
+    placeGantry(roadState.travel, roadState.curve);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roadState, canvasSizeTick, isFinished, showFinish]);
+
+  // Al cruzar la META la pista no se congela de golpe: sigue avanzando y frena por inercia
+  // (los autos atraviesan el pórtico y la línea a cuadros pasa bajo ellos)
+  useEffect(() => {
+    if (!isFinished) return undefined;
+    const canvas = roadCanvasRef.current;
+    const ctx = canvas?.getContext('2d', { alpha: false });
+    if (!ctx) return undefined;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now) => {
+      const elapsed = now - start;
+      const { w, h } = canvasSizeRef.current;
+      const travel = roadState.travel + coastTravel(elapsed, 2200, 3.2);
+      if (w && h) {
+        drawPseudoRoad(ctx, w, h, { ...roadState, travel, finish: showFinish });
+      }
+      placeGantry(travel, roadState.curve);
+      if (elapsed < 2200) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished, canvasSizeTick]);
+
+  // Parallax lateral del paisaje: al doblar a la derecha las montañas se desplazan a la izquierda
+  const skyShiftPx = -roadState.heading * 220;
 
   return (
     <div className={`${styles.arcadeContainer} ${isFinished ? styles.trackPaused : ''}`}>
@@ -300,76 +382,40 @@ export default function ArcadeTrack25D({
         nombre={currentSectorObstacle?.nombre}
         sectorFraction={sectorFraction}
         isFinished={isFinished}
+        viewMode="25D"
+        roadCurve={roadCurve}
       />
 
       {/* 2. CIELO Y HORIZONTE DEL DESIERTO (PARALLAX RETRO) */}
       <div className={styles.arcadeSky}>
-        <div className={styles.retroSun} />
-        <div className={styles.mountainSilhouettes} />
-        <div className={styles.rollingDunes} />
+        <div
+          className={styles.retroSun}
+          style={{ transform: `translate3d(calc(-50% + ${skyShiftPx * 0.25}px), 0, 0)` }}
+        />
+        <div
+          className={styles.mountainSilhouettes}
+          style={{ transform: `translate3d(${skyShiftPx * 0.6}px, 0, 0)` }}
+        />
+        <div
+          className={styles.rollingDunes}
+          style={{ transform: `translate3d(${skyShiftPx}px, 0, 0)` }}
+        />
         <div className={styles.heatShimmer} />
       </div>
 
       {/* 3. PISTA EN PERSPECTIVA PSEUDO-3D */}
-      <div className={styles.arcadeGround}>
-        {/* Desierto lateral exterior con props de rally */}
-        <div className={styles.desertSandLeft}>
-          <div className={styles.roadsidePropBillboardLeft}>
-            <span>PACÍFICO RALLY</span>
-          </div>
-          <div className={styles.roadsidePropPalmLeft}>🌴</div>
-        </div>
-        <div className={styles.desertSandRight}>
-          <div className={styles.roadsidePropBillboardRight}>
-            <span>TURBO 99</span>
-          </div>
-          <div className={styles.roadsidePropPalmRight}>🌴</div>
-        </div>
+      <div className={`${styles.arcadeGround} ${isMeteorImpactShake ? styles.groundMeteorImpactShake : ''}`} ref={groundRef}>
+        {/* Destello térmico cegador de impacto en pantalla */}
+        {isMeteorImpactShake && <div className={styles.screenMeteorImpactFlash} />}
 
-        {/* Carretera con bordillos, bandas de asfalto y líneas de velocidad */}
-        <div
-          className={`${styles.roadSurface} ${isMeteorImpactShake ? styles.roadSurfaceImpactShake : ''}`}
-          style={{
-            transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
-          }}
-        >
-          {/* Bandas de asfalto alternadas estilo OutRun / Horizon Chase */}
-          <div className={styles.roadAsphaltStripes} />
+        {/* Carretera pseudo-3D por scanlines (arena, bordillos, asfalto, carriles y props laterales) */}
+        <canvas
+          ref={roadCanvasRef}
+          className={`${styles.roadCanvas} ${isMeteorImpactShake ? styles.roadCanvasImpactShake : ''}`}
+          aria-hidden="true"
+        />
 
-          {/* Bordillos vibratorios rayados laterales directos */}
-          <div className={styles.roadCurbLeft} />
-          <div className={styles.roadCurbRight} />
-
-          {/* Postes reflectores de borde de carretera */}
-          <div className={styles.roadsideMarkersLeft} />
-          <div className={styles.roadsideMarkersRight} />
-
-          {/* Líneas divisorias de carril en perspectiva (sin máscaras de software) */}
-          <div className={styles.roadLanesContainer}>
-            <div className={styles.roadLaneMarker} />
-            <div className={styles.roadLaneMarker} />
-            <div className={styles.roadLaneMarker} />
-            <div className={styles.roadLaneMarker} />
-            <div className={styles.roadLaneMarker} />
-          </div>
-
-        </div>
-
-        {/* Línea de meta a cuadros en el asfalto (mismo plano 3D que la carretera, por debajo de los buggies) */}
-        {finishGantry.visible && (
-          <div
-            className={styles.groundFinishTrackPlane}
-            style={{
-              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
-              opacity: finishGantry.opacity,
-            }}
-          >
-            <div
-              className={styles.asphaltFinishCheckers}
-              style={{ top: `${finishGantry.roadY}%` }}
-            />
-          </div>
-        )}
+        {/* La línea de META a cuadros se pinta en el canvas de la carretera (misma perspectiva y curva) */}
 
         {/* 4. OBSTÁCULO TRANSVERSAL DEL ANCHO COMPLETO DE LA PISTA (PASA POR DEBAJO DE LOS BUGGIES) */}
         {isHazardVisible && (
@@ -377,6 +423,7 @@ export default function ArcadeTrack25D({
             className={styles.arcadeFullTrackHazard}
             style={{
               top: `${hazardTop}%`,
+              left: `${roadCenterX(hazardTop / 100, roadCurve) * 100}%`,
               transform: `translate3d(-50%, -50%, 0) scale(${hazardScale})`,
               opacity: hazardOpacity,
               zIndex: 6, // Estrictamente por debajo de los buggies (buggies tienen zIndex 15-120)
@@ -386,12 +433,28 @@ export default function ArcadeTrack25D({
               tipo={currentSectorObstacle.tipo}
               nombre={currentSectorObstacle.nombre}
               icono={currentSectorObstacle.icono}
+              isImpactingNow={isMeteorImpactShake}
             />
           </div>
         )}
 
         {/* 5. Capa de los Buggies en Perspectiva 2.5D (Activos y Destruidos en Obstáculo) */}
         <div className={styles.arcadeCarsLayer}>
+          {/* Pórtico de META anclado a la carretera (posición/escala calculadas en cada cuadro) */}
+          {showFinish && (
+            <div ref={gantryRef} className={styles.worldGantry} aria-hidden="true">
+              <div className={`${styles.worldGantryPost} ${styles.worldGantryPostLeft}`} />
+              <div className={`${styles.worldGantryPost} ${styles.worldGantryPostRight}`} />
+              <div className={styles.worldGantryBanner}>
+                <div className={styles.worldGantryFlag} />
+                <div className={styles.worldGantryBoard}>
+                  <span className={styles.worldGantryTitle}>META</span>
+                  <span className={styles.worldGantrySub}>DUNAS DEL PACÍFICO • 1.140 M</span>
+                </div>
+                <div className={styles.worldGantryFlag} />
+              </div>
+            </div>
+          )}
           {renderedCars.map((car, idx) => {
             const rank = rankedCars.findIndex((c) => c.name === car.name) + 1;
             const isUserChoice =
@@ -447,30 +510,42 @@ export default function ArcadeTrack25D({
                   currentSectorObstacle?.tipo === 'GRIETAS'
                 ) {
                   isJumping = true;
-                  jumpY = -sinArc * 44;
-                  jumpScaleBonus = sinArc * 0.18;
-                  dynamicTilt = (t < 0.5 ? -0.18 : 0.26) * sinArc;
+                  jumpY = -sinArc * 32;
+                  jumpScaleBonus = sinArc * 0.12;
+                  dynamicTilt = (t < 0.5 ? -0.12 : 0.16) * sinArc;
                 } else {
                   const swerveDir = idx % 2 === 0 ? 1 : -1;
-                  evasionX = Math.sin(t * Math.PI * 2) * 22 * swerveDir;
-                  dynamicTilt = Math.cos(t * Math.PI * 2) * 0.85 * swerveDir;
-                  jumpY = -sinArc * 10;
+                  evasionX = Math.sin(t * Math.PI) * 10 * swerveDir;
+                  dynamicTilt = Math.sin(t * Math.PI) * 0.25 * swerveDir;
+                  jumpY = -sinArc * 6;
                 }
               } else if (isFinished) {
                 dynamicTilt = 0;
               } else {
-                dynamicTilt = isLeader
-                  ? Math.sin(progress * 38 + idx) * 0.38
-                  : Math.sin(progress * 26 + idx) * 0.24;
+                // Pequeñas correcciones de volante (sutiles para no parecer que tambalean)
+                dynamicTilt = Math.sin(progress * 26 + idx) * 0.08;
               }
             }
+
+            // Posición sobre la carretera curva: cada auto sigue el trazado de su fila en perspectiva
+            const rowYn = Math.min(1, Math.max(0, topPct / 100));
+            const laneNorm = (lanePct - 50) / 26;
+            const roadXPct = laneX(rowYn, laneNorm, roadCurve) * 100;
+
+            // Giro del auto siguiendo la dirección de la carretera (se ve el costado al doblar)
+            const headingDeg = car.isWreck
+              ? 0
+              : Math.max(-28, Math.min(28, roadHeadingDeg(rowYn, roadCurve, canvasSizeRef.current.aspect)));
+            const carSteer = car.isWreck ? 0 : steerAtTrackPct(carTrackPct(car.x));
+            const yawDeg = headingDeg + (isFinished ? 0 : carSteer * 10);
+            const steeringValue = Math.max(-1, Math.min(1, carSteer * 1.3 + dynamicTilt));
 
             return (
               <div
                 key={car.name}
                 className={`${styles.arcadeBuggySlot} ${car.isCrashingNow ? styles.wreckImpactShake : ''}`}
                 style={{
-                  left: `calc(${lanePct}% + ${evasionX}px)`,
+                  left: `calc(${roadXPct}% + ${evasionX}px)`,
                   top: `${topPct}%`,
                   transform: `translate3d(-50%, calc(-50% + ${jumpY}px), 0) scale(${scale + jumpScaleBonus})`,
                   zIndex: Math.round(baseZIndex + (isJumping ? 30 : 0)),
@@ -500,14 +575,21 @@ export default function ArcadeTrack25D({
                 )}
 
                 {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (60 FPS NATIVO) */}
-                <ArcadeBuggyRearSprite
-                  buggy={car.buggy}
-                  isEliminated={car.isWreck}
-                  isBoosting={!car.isWreck && (car.isBoosting || isEvasionActive)}
-                  carNumber={car.buggy.number || (car.index !== undefined ? car.index + 1 : idx + 1)}
-                  speedKmh={car.isWreck ? 0 : car.speedKmh}
-                  steering={dynamicTilt}
-                />
+                <div
+                  className={styles.buggyYawWrap}
+                  style={{
+                    transform: `rotate(${yawDeg * 0.32}deg) skewX(${-yawDeg * 0.55}deg) scaleX(${1 - Math.abs(yawDeg) * 0.006})`,
+                  }}
+                >
+                  <ArcadeBuggyRearSprite
+                    buggy={car.buggy}
+                    isEliminated={car.isWreck}
+                    isBoosting={!car.isWreck && (car.isBoosting || isEvasionActive)}
+                    carNumber={car.buggy.number || (car.index !== undefined ? car.index + 1 : idx + 1)}
+                    speedKmh={car.isWreck ? 0 : car.speedKmh}
+                    steering={steeringValue}
+                  />
+                </div>
 
                 {/* Si el auto fue destruido: Aviso oficial flotante de que ya no continúa más */}
                 {car.isWreck ? (
@@ -521,6 +603,9 @@ export default function ArcadeTrack25D({
                 ) : (
                   /* Etiquetas superiores flotantes para autos en carrera */
                   <div className={styles.arcadeCarBadgeGroup}>
+                    {showPositionFlags && rank >= 1 && rank <= 3 && (
+                      <PositionFlag position={rank} size="sm" />
+                    )}
                     {progress > 0.04 && isLeader && (
                       <span className={styles.arcadeRankPill} style={{ background: '#facc15' }}>
                         {isFinished ? '🏆 1º GANADOR' : '👑 P1 LÍDER'}
@@ -543,51 +628,6 @@ export default function ArcadeTrack25D({
             );
           })}
         </div>
-
-        {/* Pórtico superior de META (mismo plano 3D que la carretera, elevado sobre los autos) */}
-        {finishGantry.visible && (
-          <div
-            className={styles.overheadFinishTrackPlane}
-            style={{
-              transform: `translate3d(calc(-50% + ${trackCurve}px), 0, 0) rotateX(46deg) rotateZ(${-trackCurve * 0.12}deg)`,
-              opacity: finishGantry.opacity,
-            }}
-          >
-            <div
-              className={styles.gantry3DArch}
-              style={{ top: `${finishGantry.roadY}%` }}
-            >
-              {/* Pilar izquierdo anclado directamente en el bordillo izquierdo */}
-              <div className={styles.gantry3DPillarLeft}>
-                <div className={styles.gantry3DPillarBody} />
-                <div className={styles.gantry3DPillarBase} />
-              </div>
-
-              {/* Pilar derecho anclado directamente en el bordillo derecho */}
-              <div className={styles.gantry3DPillarRight}>
-                <div className={styles.gantry3DPillarBody} />
-                <div className={styles.gantry3DPillarBase} />
-              </div>
-
-              {/* Banner superior con semáforo y cartel de META */}
-              <div className={styles.gantry3DBanner}>
-                <div className={styles.gantry3DLights}>
-                  <span className={styles.gantryLightGreen} />
-                  <span className={styles.gantryLightAmber} />
-                  <span className={styles.gantryLightRed} />
-                </div>
-                <div className={styles.gantry3DBannerFrame}>
-                  <div className={styles.gantry3DFlagWing} />
-                  <div className={styles.gantry3DCenterBoard}>
-                    <span className={styles.gantry3DTitle}>META</span>
-                    <span className={styles.gantry3DSub}>DUNAS DEL PACÍFICO • 1.140 M</span>
-                  </div>
-                  <div className={styles.gantry3DFlagWing} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

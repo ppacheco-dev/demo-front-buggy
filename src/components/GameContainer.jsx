@@ -457,16 +457,10 @@ export default function GameContainer() {
         onClose={() => setPlayModalOpen(false)}
         selection={currentSelection}
         onViewLiveRace={(ticketSelection) => {
-          if (ticketSelection?.targetRaceNumber) {
-            const target = getOrCreateRace(
-              ticketSelection.targetRaceNumber,
-              ticketSelection.targetRaceDate || schedule.todayStr,
-              ticketSelection.targetRaceTime || schedule.currentRaceTime
-            );
-            handleOpenLiveRace(target);
-          } else {
-            handleOpenLiveRace(null);
+          if (ticketSelection) {
+            setCurrentSelection(ticketSelection);
           }
+          handleOpenLiveRace(null);
         }}
         onGoToHome={handleBackToMenu}
         onGoToBet={handleGoToBet}

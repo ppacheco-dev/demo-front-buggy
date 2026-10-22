@@ -2437,52 +2437,841 @@
 }
 
 /* ==========================================================================
-   CUENTA REGRESIVA DE LARGADA (3, 2, 1, GO)
+   CUENTA REGRESIVA DE LARGADA (NÚMEROS CENTRADOS Y GO)
    ========================================================================== */
 .countdownOverlay {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
-  right: 330px; /* excluye el panel lateral: centrado sobre la zona de carrera */
+  right: 330px; /* Centrado exacto sobre la zona de carrera de la pista */
   z-index: 1400;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 50%, rgba(5, 9, 20, 0.35) 0%, rgba(5, 9, 20, 0.7) 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(5, 9, 20, 0.3) 0%, rgba(5, 9, 20, 0.72) 100%);
   pointer-events: none;
 }
 
 .countdownNumber,
 .countdownGo {
+  display: inline-block;
+  font-family: inherit;
   font-weight: 900;
   line-height: 1;
-  letter-spacing: 0.04em;
-  animation: countdownPop 900ms ease-out both;
+  letter-spacing: 0.02em;
+  text-align: center;
+  user-select: none;
+  animation: countdownPop 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .countdownNumber {
-  font-size: 11rem;
-  color: #fff;
-  text-shadow: 0 0 40px rgba(250, 204, 21, 0.9), 0 8px 0 rgba(0, 0, 0, 0.45);
+  font-size: clamp(6.5rem, 14vw, 9.5rem);
+  color: #ffffff;
+  text-shadow:
+    0 0 35px rgba(250, 204, 21, 0.9),
+    0 0 70px rgba(234, 179, 8, 0.45),
+    0 8px 0 rgba(0, 0, 0, 0.6);
+}
+
+.countdownFinal {
+  color: #facc15;
+  text-shadow:
+    0 0 45px rgba(249, 115, 22, 0.95),
+    0 0 90px rgba(239, 68, 68, 0.6),
+    0 8px 0 rgba(0, 0, 0, 0.65);
 }
 
 .countdownGo {
-  font-size: 8rem;
+  font-size: clamp(6.5rem, 14vw, 9.5rem);
   color: #4ade80;
-  text-shadow: 0 0 44px rgba(74, 222, 128, 0.95), 0 8px 0 rgba(0, 0, 0, 0.45);
-  animation-duration: 800ms;
+  text-shadow:
+    0 0 45px rgba(74, 222, 128, 0.95),
+    0 0 90px rgba(34, 197, 94, 0.6),
+    0 8px 0 rgba(0, 0, 0, 0.65);
+  animation-duration: 850ms;
 }
 
 @keyframes countdownPop {
-  0% { opacity: 0; transform: scale(2.2); }
-  30% { opacity: 1; transform: scale(1); }
-  80% { opacity: 1; transform: scale(0.96); }
-  100% { opacity: 0; transform: scale(0.7); }
+  0% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+  24% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.68);
+  }
 }
 
 @media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
-  .countdownOverlay { right: 0; bottom: auto; height: 46vh; }
-  .countdownNumber { font-size: 8rem; }
-  .countdownGo { font-size: 5.5rem; }
+  .countdownOverlay {
+    right: 0;
+    bottom: auto;
+    height: 48vh;
+  }
+  .countdownNumber,
+  .countdownGo {
+    font-size: clamp(4.5rem, 12vw, 7rem);
+  }
+}
+
+/* ==========================================================================
+   MODAL INTERACTIVO DE ESPERA / POST-CARRERA (RELOJ Y 2 OPCIONES)
+   ========================================================================== */
+.postRaceOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 2.5vw, 28px);
+  background: rgba(3, 7, 18, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  animation: postRaceFadeIn 240ms ease-out forwards;
+}
+
+@keyframes postRaceFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.postRaceCard {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.97) 0%, rgba(10, 15, 30, 0.99) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 22px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(56, 189, 248, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  padding: clamp(20px, 3vh, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.postRaceHeader {
+  text-align: center;
+}
+
+.postRaceBadgeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 999px;
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.postRaceDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+}
+
+.postRaceTitle {
+  font-size: clamp(1.25rem, 2.2vh, 1.6rem);
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.postRaceSub {
+  font-size: clamp(0.8rem, 1.3vh, 0.9rem);
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Tarjeta del Reloj Digital Oficial */
+.postRaceClockCard {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: inset 0 0 24px rgba(56, 189, 248, 0.06);
+}
+
+.postRaceClockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.postRaceClockEyebrow {
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.postRaceClockRaceTarget {
+  color: #facc15;
+}
+
+.postRaceDigitalClock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: clamp(2.4rem, 5.5vh, 3.4rem);
+  font-weight: 900;
+  color: #38bdf8;
+  text-shadow: 0 0 28px rgba(56, 189, 248, 0.65);
+  letter-spacing: 0.06em;
+  padding: 4px 0;
+}
+
+.postRaceDigitalClock i {
+  font-size: clamp(1.8rem, 4vh, 2.4rem);
+  color: #facc15;
+  animation: pulseIcon 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseIcon {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+.postRaceClockValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.postRaceClockBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.postRaceClockBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8 0%, #22c55e 100%);
+  border-radius: 999px;
+  transition: width 1s linear;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+/* Banner de Apuesta Confirmada del Usuario */
+.postRaceUserTicketCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: #86efac;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.postRaceUserTicketCard i {
+  color: #4ade80;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Grilla de las 2 Opciones Principales */
+.postRaceOptionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.postRaceOptionCard {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+  transition: all 180ms ease;
+  position: relative;
+  overflow: hidden;
+  color: inherit;
+}
+
+.postRaceOptionCard:hover {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border-color: rgba(56, 189, 248, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 22px rgba(56, 189, 248, 0.2);
+}
+
+.postRaceOptionCardLive {
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.postRaceOptionCardLive:hover {
+  border-color: rgba(34, 197, 94, 0.7);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 22px rgba(34, 197, 94, 0.25);
+}
+
+.postRaceOptionActive {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.35) !important;
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+}
+
+.postRaceOptionIconWrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: #38bdf8;
+  margin-bottom: 12px;
+}
+
+.postRaceIconLive {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #4ade80;
+}
+
+.postRaceOptionContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.postRaceOptionBadge {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  text-transform: uppercase;
+}
+
+.postRaceOptionBadgeLive {
+  color: #4ade80;
+}
+
+.postRaceOptionTitle {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+}
+
+.postRaceOptionDesc {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 4px 0 10px 0;
+}
+
+.postRaceOptionActionText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-top: auto;
+}
+
+.postRaceOptionCardLive .postRaceOptionActionText {
+  color: #4ade80;
+}
+
+/* Fila de Acciones Inferiores del Modal */
+.postRaceFooterRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.postRaceBetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 1px solid rgba(253, 224, 71, 0.5);
+  color: #0b0f19;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 160ms ease;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+}
+
+.postRaceBetBtn:hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.5);
+}
+
+.postRaceHomeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.postRaceHomeBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 680px) {
+  .postRaceOptionsGrid {
+    grid-template-columns: 1fr;
+  }
+  .postRaceFooterRow {
+    flex-direction: column;
+    width: 100%;
+  }
+  .postRaceBetBtn,
+  .postRaceHomeBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   PODIO ANIMADO SOBRE LA PISTA AL FINALIZAR LA CARRERA
+   ========================================================================== */
+.trackPodiumOverlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 330px; /* sólo sobre la zona de la pista, sin tapar el panel lateral */
+  z-index: 1300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vh, 20px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 60% at 50% 38%, rgba(250, 204, 21, 0.2) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(5, 9, 20, 0.55) 0%, rgba(5, 9, 20, 0.88) 100%);
+  backdrop-filter: blur(16px) saturate(0.8);
+  -webkit-backdrop-filter: blur(16px) saturate(0.8);
+  opacity: 0;
+  will-change: opacity, transform;
+  animation: trackPodiumOverlayIn 1100ms cubic-bezier(0.4, 0, 0.2, 1) 1700ms forwards;
+}
+
+@keyframes trackPodiumOverlayIn {
+  0% { opacity: 0; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.trackPodiumEmpty {
+  background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.65) 0%, rgba(3, 7, 18, 0.92) 100%);
+  backdrop-filter: blur(16px) grayscale(0.7);
+  -webkit-backdrop-filter: blur(16px) grayscale(0.7);
+}
+
+@keyframes trackPodiumIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.trackPodiumTitle {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 28px;
+  border-radius: 999px;
+  background: rgba(10, 16, 30, 0.85);
+  border: 1px solid rgba(250, 204, 21, 0.55);
+  color: #facc15;
+  font-size: clamp(1rem, 2.2vh, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  box-shadow: 0 0 28px rgba(250, 204, 21, 0.3);
+  opacity: 0;
+  animation: trackPodiumTitleIn 500ms cubic-bezier(0.16, 1, 0.3, 1) 2.3s forwards;
+}
+
+.trackPodiumEmpty .trackPodiumTitle {
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.45);
+  box-shadow: none;
+}
+
+@keyframes trackPodiumTitleIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.trackPodiumRow {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 22px);
+  width: min(980px, 96%);
+}
+
+.trackPodiumCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trackPodiumCar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 120px;
+  justify-content: flex-end;
+  padding-bottom: 8px;
+  opacity: 0;
+  animation: trackPodiumCarDrop 650ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.trackPodiumCar img {
+  width: clamp(120px, 14vw, 190px);
+  max-height: 17vh;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.65));
+}
+
+.trackPodiumPlace1 .trackPodiumCar img {
+  width: clamp(150px, 18vw, 240px);
+  max-height: 21vh;
+  filter: drop-shadow(0 0 22px rgba(250, 204, 21, 0.75)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.65));
+}
+
+.trackPodiumName {
+  font-size: clamp(0.95rem, 2vh, 1.25rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+.trackPodiumTagline {
+  margin-top: -3px;
+  font-size: clamp(0.66rem, 1.3vh, 0.78rem);
+  font-style: italic;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.trackPodiumUserTag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.55);
+}
+
+.trackPodiumStats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 270px;
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(10, 16, 30, 0.82);
+  border: 1px solid color-mix(in srgb, var(--accent, #38bdf8) 55%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.trackPodiumStat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trackPodiumStat span {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.trackPodiumStat strong {
+  font-size: clamp(0.78rem, 1.5vh, 0.92rem);
+  font-weight: 900;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.trackPodiumStatWide {
+  grid-column: span 2;
+}
+
+.trackPodiumStatWide strong {
+  font-size: 0.74rem;
+  color: var(--accent, #e2e8f0);
+}
+
+.trackPodiumCrown {
+  font-size: 2.4rem;
+  line-height: 1;
+  animation: trackPodiumCrownBob 1.4s ease-in-out 4.3s infinite;
+}
+
+@keyframes trackPodiumCrownBob {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-6px) rotate(6deg); }
+}
+
+@keyframes trackPodiumCarDrop {
+  0% { opacity: 0; transform: translateY(-60px) scale(0.7); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.trackPodiumVacant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.trackPodiumVacant i {
+  font-size: 2rem;
+}
+
+.trackPodiumBlock {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+  border-radius: 10px 10px 0 0;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  animation: trackPodiumRise 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.trackPodiumBlock span {
+  font-size: clamp(2.2rem, 5vh, 3.4rem);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+@keyframes trackPodiumRise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+/* Alturas, colores y orden de aparición: 3º -> 2º -> 1º */
+.trackPodiumPlace1 .trackPodiumBlock {
+  height: clamp(110px, 17vh, 170px);
+  background: linear-gradient(180deg, #fde047 0%, #eab308 55%, #a16207 100%);
+  animation-delay: 3.3s;
+}
+.trackPodiumPlace1 .trackPodiumCar { animation-delay: 3.8s; }
+
+.trackPodiumPlace2 .trackPodiumBlock {
+  height: clamp(78px, 12vh, 124px);
+  background: linear-gradient(180deg, #f1f5f9 0%, #94a3b8 55%, #475569 100%);
+  animation-delay: 2.9s;
+}
+.trackPodiumPlace2 .trackPodiumCar { animation-delay: 3.35s; }
+
+.trackPodiumPlace3 .trackPodiumBlock {
+  height: clamp(56px, 8.5vh, 90px);
+  background: linear-gradient(180deg, #fdba74 0%, #c2410c 55%, #7c2d12 100%);
+  animation-delay: 2.5s;
+}
+.trackPodiumPlace3 .trackPodiumCar { animation-delay: 2.95s; }
+
+/* Podio vacío: pedestales apagados, sin brillo ni celebración */
+.trackPodiumColEmpty .trackPodiumBlock,
+.trackPodiumEmpty .trackPodiumBlock {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.trackPodiumColEmpty .trackPodiumBlock span,
+.trackPodiumEmpty .trackPodiumBlock span {
+  color: #64748b;
+  text-shadow: none;
+}
+
+.trackPodiumResultsBtn {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0;
+  animation: trackPodiumIn 500ms ease-out 4.4s forwards;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.trackPodiumResultsBtn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #fff;
+}
+
+/* Confeti de celebración */
+.confettiLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confettiPiece {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation-name: confettiFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+.confettiPiece:nth-child(3n) {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+@keyframes confettiFall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+  8% { opacity: 1; }
+  100% {
+    opacity: 0.9;
+    transform: translate3d(var(--confetti-drift, 0px), 110vh, 0) rotate(var(--confetti-rot, 540deg));
+  }
+}
+
+@media (max-width: 900px) and (orientation: portrait), (max-width: 640px) {
+  .trackPodiumOverlay {
+    right: 0;
+    bottom: auto;
+    height: 48vh;
+    gap: 8px;
+  }
+  .trackPodiumCar {
+    min-height: 64px;
+  }
+  .trackPodiumCar img { width: 64px; max-height: 9vh; }
+  .trackPodiumPlace1 .trackPodiumCar img { width: 84px; max-height: 11vh; }
+  .trackPodiumName { font-size: 0.72rem; }
+  .trackPodiumTagline,
+  .trackPodiumStatWide { display: none; }
+  .trackPodiumStats { padding: 4px; gap: 2px; }
+  .trackPodiumStat { padding: 2px 4px; }
+  .trackPodiumStat span { font-size: 0.5rem; }
+  .trackPodiumStat strong { font-size: 0.66rem; }
+  .trackPodiumPlace1 .trackPodiumBlock { height: 78px; }
+  .trackPodiumPlace2 .trackPodiumBlock { height: 58px; }
+  .trackPodiumPlace3 .trackPodiumBlock { height: 42px; }
 }

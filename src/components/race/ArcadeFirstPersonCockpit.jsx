@@ -2,6 +2,19 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
+import PositionFlag from './PositionFlag';
+import {
+  getRoadState,
+  coastTravel,
+  drawCockpitRoad,
+  fpvLaneX,
+  fpvHeadingDeg,
+  fpvFinishLayout,
+  steerAtTrackPct,
+  FPV,
+  ROAD_RENDER_SCALE,
+} from './pseudoRoad';
+import { carTrackPct } from './circuitTrack';
 import styles from './ArcadeFirstPersonCockpit.module.css';
 
 /**
@@ -22,87 +35,7 @@ const WORLD_W = 2048;
 const WORLD_H = 613;
 const X0 = 512; // desplazamiento: coordenada de referencia x=0 -> x=512 en el mundo
 
-// Geometría de la autopista (coordenadas de referencia)
-const CX = 505; // eje central de la carretera
-const VPY = -161; // punto de fuga (muy por encima del horizonte visible)
-const YH = 210; // horizonte donde empieza el asfalto
-const LANE = 147; // ancho de carril en el borde del horizonte
-const SEG = 0.7; // largo de cada franja en "unidades de mundo"
-const SEG_COUNT = 30;
-
-const sc = (y) => (y + 161) / 371;
-const lx = (k, y) => CX + k * LANE * sc(y);
-const yz = (z) => YH + 400 / z;
-const P = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
-
-/** Construye franjas de asfalto, pianos y líneas de carril según el desplazamiento. */
-function buildRoad(scroll) {
-  const q = scroll / SEG;
-  const base = Math.floor(q);
-  const phase = q - base;
-  const bands = [];
-  const kerbs = [];
-  const dashes = [];
-
-  for (let i = 0; i < SEG_COUNT; i += 1) {
-    const j = base + i;
-    const zNear = Math.max(0.85, 1 + (i - phase) * SEG);
-    const zFar = Math.max(0.85, 1 + (i + 1 - phase) * SEG);
-    const yBot = yz(zNear);
-    const yTop = yz(zFar);
-    if (yTop >= yBot) continue;
-    const even = j % 2 === 0;
-
-    if (even) {
-      bands.push(
-        <polygon
-          key={`b${j}`}
-          points={`${P(lx(-2.7, yTop), yTop)} ${P(lx(2.7, yTop), yTop)} ${P(lx(2.7, yBot), yBot)} ${P(lx(-2.7, yBot), yBot)}`}
-          fill="rgba(110,128,180,0.075)"
-        />
-      );
-      const wT = 4.6 * sc(yTop);
-      const wB = 4.6 * sc(yBot);
-      [-2, -1, 0, 1, 2].forEach((k) => {
-        dashes.push(
-          <polygon
-            key={`d${j}_${k}`}
-            points={`${P(lx(k, yTop) - wT / 2, yTop)} ${P(lx(k, yTop) + wT / 2, yTop)} ${P(lx(k, yBot) + wB / 2, yBot)} ${P(lx(k, yBot) - wB / 2, yBot)}`}
-            fill="#f4f4fa"
-          />
-        );
-      });
-    }
-
-    [-1, 1].forEach((side) => {
-      const cT = lx(side * 2.67, yTop);
-      const cB = lx(side * 2.67, yBot);
-      const kT = 40 * sc(yTop);
-      const kB = 40 * sc(yBot);
-      kerbs.push(
-        <polygon
-          key={`k${j}_${side}`}
-          points={`${P(cT - kT / 2, yTop)} ${P(cT + kT / 2, yTop)} ${P(cB + kB / 2, yBot)} ${P(cB - kB / 2, yBot)}`}
-          fill={even ? '#e63a3a' : '#f5f5f7'}
-        />
-      );
-      if (j % 3 === 0) {
-        const inT = side === -1 ? cT + kT / 2 : cT - kT / 2;
-        const inB = side === -1 ? cB + kB / 2 : cB - kB / 2;
-        const dT = (side === -1 ? -1 : 1) * kT * 0.2;
-        const dB = (side === -1 ? -1 : 1) * kB * 0.2;
-        kerbs.push(
-          <polygon
-            key={`ky${j}_${side}`}
-            points={`${P(inT, yTop)} ${P(inT + dT, yTop)} ${P(inB + dB, yBot)} ${P(inB, yBot)}`}
-            fill="#facc15"
-          />
-        );
-      }
-    });
-  }
-  return { bands, kerbs, dashes };
-}
+// La geometría y el dibujo de la carretera (curva por scanlines) viven en ./pseudoRoad.js
 
 /** Arco para los relojes (ángulos en grados, 180=izquierda, 270=arriba, 360=derecha). */
 function arc(cx, cy, r, a0, a1) {
@@ -155,6 +88,7 @@ export default function ArcadeFirstPersonCockpit({
   isFinished = false,
   fatalEliminationByCar = {},
   ningunAutoLlego = false,
+  showPositionFlags = false,
 }) {
   // Normalizar nombres de buggies elegidos por el usuario en esta carrera
   const normalizedChosenNames = useMemo(() => {
@@ -255,10 +189,11 @@ export default function ArcadeFirstPersonCockpit({
   }, [rankedCars, playerCar]);
 
   // --- Obstáculo que se acerca a gran velocidad hacia el parabrisas/capó ---
-  const sectorFraction = (progress * 7) % 1;
+  const sectorFraction = (progress * 8) % 1;
   const isMeteor = currentSectorObstacle?.tipo === 'METEORITOS';
-  const minFraction = isMeteor ? 0.22 : 0.16;
-  const maxFraction = 0.66;
+  const minFraction = isMeteor ? 0.21 : 0.12;
+  const maxFraction = 0.68;
+  const isMeteorImpactShake = isMeteor && sectorFraction >= 0.20 && sectorFraction <= 0.36;
   const hazard = useMemo(() => {
     const visible =
       !isFinished &&
@@ -268,26 +203,103 @@ export default function ArcadeFirstPersonCockpit({
     if (!visible) return null;
     const norm = Math.min(1, Math.max(0, (sectorFraction - minFraction) / (maxFraction - minFraction)));
     const curve = Math.pow(norm, 2.3);
+    const startY = isMeteor ? 290 : 190;
     return {
-      y: 218 + curve * 240,
-      scale: 0.25 + curve * 1.35,
-      opacity: norm < 0.10 ? norm / 0.10 : norm > 0.85 ? (1 - norm) / 0.15 : 1,
+      y: startY + curve * (465 - startY),
+      scale: (isMeteor ? 0.52 : 0.22) + curve * 1.30,
+      opacity: isMeteor ? (norm > 0.88 ? (1 - norm) / 0.12 : 1) : (norm < 0.08 ? norm / 0.08 : (norm > 0.88 ? (1 - norm) / 0.12 : 1)),
     };
-  }, [isFinished, currentSectorObstacle, sectorFraction, minFraction, maxFraction]);
+  }, [isFinished, currentSectorObstacle, sectorFraction, minFraction, maxFraction, isMeteor]);
 
   // --- Telemetría / animación de alta velocidad ---
   const speed = playerCar?.speedKmh || 164;
   const buggyColor = playerCar?.buggy?.color || '#f26a1b';
+
+  // Trazado curvo tomado del circuito GPS en la posición del auto desde el que se mira
+  const playerTrackPct = playerCar ? carTrackPct(playerCar.x) : progress;
+  const roadState = useMemo(
+    () => getRoadState(progress, playerTrackPct),
+    [progress, playerTrackPct]
+  );
+  const roadCurve = roadState.curve;
+  const roadSteer = roadState.steer;
+  const skyShift = -roadState.heading * 260;
+
+  // El volante acompaña la curva (y las maniobras de esquive), sin temblores aleatorios
   const steer = playerCar?.isDodging
-    ? Math.max(-10, Math.min(10, (playerCar.dodgeRotateDeg || -8) * 0.8))
-    : Math.sin(progress * 38) * 3.4;
-  const bump = playerCar?.isJumping ? -14 : Math.sin(progress * 280) * 1.1;
+    ? Math.max(-14, Math.min(14, (playerCar.dodgeRotateDeg || -8) * 0.8 + roadSteer * 16))
+    : isFinished
+      ? 0
+      : roadSteer * 26;
+  const bump = playerCar?.isJumping
+    ? -14
+    : isMeteorImpactShake
+      ? (Math.sin(progress * 480) * 9.5)
+      : Math.sin(progress * 280) * 1.1;
 
   // Asfalto y ráfagas a velocidad arcade auténtica
   const scroll = progress * 520;
-  const road = useMemo(() => buildRoad(scroll), [scroll]);
   const rainOffset = progress * 6800;
   const needle = 190 + 160 * Math.min(1, speed / 240);
+
+  // --- Canvas de la carretera (mundo 2048x613 a resolución reducida) ---
+  const roadCanvasRef = useRef(null);
+  const gantryRef = useRef(null);
+  const showFinish = !ningunAutoLlego;
+
+  // Pórtico de META anclado a la carretera: postes sobre los pianos, altura según la distancia
+  const placeGantry = (curve, scrollValue) => {
+    const el = gantryRef.current;
+    if (!el) return;
+    const layout = showFinish ? fpvFinishLayout(scrollValue, curve) : null;
+    if (!layout) {
+      el.style.visibility = 'hidden';
+      return;
+    }
+    const dy = layout.y - FPV.YH;
+    const height = dy * 2.6;
+    const bannerH = Math.max(8, height * 0.24);
+    el.style.visibility = 'visible';
+    el.style.left = `${layout.x - layout.width / 2 + X0}px`;
+    el.style.top = `${layout.y - height}px`;
+    el.style.width = `${layout.width}px`;
+    el.style.height = `${height}px`;
+    el.style.fontSize = `${bannerH / 2.9}px`;
+    el.style.opacity = String(layout.opacity);
+    el.style.zIndex = String(Math.round(layout.y) - 1);
+  };
+
+  const drawRoad = (curve, scrollValue) => {
+    const canvas = roadCanvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    const r = ROAD_RENDER_SCALE;
+    ctx.setTransform(r, 0, 0, r, X0 * r, 0);
+    drawCockpitRoad(ctx, { curve, scroll: scrollValue, finish: showFinish });
+    placeGantry(curve, scrollValue);
+  };
+
+  useLayoutEffect(() => {
+    if (isFinished) return;
+    drawRoad(roadCurve, scroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roadCurve, scroll, isFinished, showFinish]);
+
+  // Al cruzar la META la carretera sigue pasando bajo la cabina y frena por inercia
+  // (la cabina atraviesa el pórtico y la línea a cuadros pasa bajo el auto)
+  useEffect(() => {
+    if (!isFinished) return undefined;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now) => {
+      const elapsed = now - start;
+      drawRoad(roadCurve, scroll + coastTravel(elapsed, 2200, 17));
+      if (elapsed < 2200) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished]);
 
   // Carriles donde viaja cada rival (centros entre las líneas blancas)
   const laneCenters = [-1.5, 0.5, -0.5, 1.5, -1.0, 1.0];
@@ -336,34 +348,31 @@ export default function ArcadeFirstPersonCockpit({
           </defs>
 
           <rect x={-X0} y="-10" width={WORLD_W} height="226" fill="url(#fpvSky)" />
-          <circle cx="507" cy="136" r="165" fill="url(#fpvGlow)" />
-          <circle cx="507" cy="136" r="72" fill="url(#fpvSun)" />
+          <g transform={`translate(${(skyShift * 0.25).toFixed(1)} 0)`}>
+            <circle cx="507" cy="136" r="165" fill="url(#fpvGlow)" />
+            <circle cx="507" cy="136" r="72" fill="url(#fpvSun)" />
+          </g>
 
-          {/* Montañas lejanas */}
-          <polygon
-            fill="#5a1f27"
-            points="-512,204 -420,186 -380,193 -300,180 -200,190 -60,184 20,179 70,186 120,190 200,177 260,186 330,192 420,184 560,174 640,181 700,188 760,178 840,186 920,181 1000,189 1100,182 1200,190 1300,180 1400,188 1536,184 1536,204"
-          />
+          {/* Montañas lejanas (parallax lateral al doblar) */}
+          <g transform={`translate(${(skyShift * 0.6).toFixed(1)} 0)`}>
+            <polygon
+              fill="#5a1f27"
+              points="-912,204 -800,184 -700,192 -512,204 -420,186 -380,193 -300,180 -200,190 -60,184 20,179 70,186 120,190 200,177 260,186 330,192 420,184 560,174 640,181 700,188 760,178 840,186 920,181 1000,189 1100,182 1200,190 1300,180 1400,188 1536,184 1650,178 1800,190 1936,184 1936,204"
+            />
+          </g>
           {/* Franja de desierto en el horizonte */}
           <rect x={-X0} y="190" width={WORLD_W} height="22" fill="#c4521a" opacity="0.95" />
           <rect x={-X0} y="200" width={WORLD_W} height="12" fill="#a8421a" />
-
-          {/* Tierra a los costados */}
-          <rect x={-X0} y="209" width={WORLD_W} height="410" fill="url(#fpvDirt)" />
-
-          {/* Asfalto */}
-          <polygon
-            fill="#1a2030"
-            points={`${P(lx(-2.7, YH), YH)} ${P(lx(2.7, YH), YH)} ${P(lx(2.7, 640), 640)} ${P(lx(-2.7, 640), 640)}`}
-          />
-          {road.bands}
-          <polygon
-            fill="url(#fpvHaze)"
-            points={`${P(lx(-2.7, YH), YH)} ${P(lx(2.7, YH), YH)} ${P(lx(2.7, 340), 340)} ${P(lx(-2.7, 340), 340)}`}
-          />
-          {road.dashes}
-          {road.kerbs}
         </svg>
+
+        {/* Carretera curva por scanlines (tierra, asfalto, pianos, carriles y objetos laterales) */}
+        <canvas
+          ref={roadCanvasRef}
+          className={styles.roadCanvas}
+          width={Math.round(WORLD_W * ROAD_RENDER_SCALE)}
+          height={Math.round(WORLD_H * ROAD_RENDER_SCALE)}
+          aria-hidden="true"
+        />
 
         {/* ===================== AUTOS RIVALES ===================== */}
         <div className={styles.carsLayer}>
@@ -376,8 +385,11 @@ export default function ArcadeFirstPersonCockpit({
             const width = 56 + (y - 245) * 0.42;
             const lane =
               laneCenters[(car.index ?? idx) % laneCenters.length] +
-              Math.sin(progress * 28 + (car.index ?? idx) * 1.7) * 0.09;
-            const x = lx(lane, y);
+              Math.sin(progress * 28 + (car.index ?? idx) * 1.7) * 0.05;
+            const x = fpvLaneX(lane, y, roadCurve);
+            // El rival gira siguiendo la dirección de la carretera en su fila
+            const rivalSteer = steerAtTrackPct(carTrackPct(car.x));
+            const yaw = Math.max(-26, Math.min(26, fpvHeadingDeg(y, roadCurve) + rivalSteer * 8));
             return (
               <div
                 key={car.name}
@@ -394,11 +406,23 @@ export default function ArcadeFirstPersonCockpit({
                   style={{
                     background: isCarLeader ? '#ffcf1f' : car.buggy.color,
                     fontSize: `${11 + t * 3}px`,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}
                 >
+                  {showPositionFlags && rank >= 1 && rank <= 3 && (
+                    <PositionFlag position={rank} size="xs" />
+                  )}
                   {isCarLeader ? 'P1 LÍDER' : `P${rank}`}
                 </div>
-                <div className={styles.spriteFit}>
+                <div
+                  className={styles.spriteFit}
+                  style={{
+                    transform: `rotate(${(yaw * 0.3).toFixed(2)}deg) skewX(${(-yaw * 0.5).toFixed(2)}deg)`,
+                    transformOrigin: '50% 90%',
+                  }}
+                >
                   <div className={styles.rivalGlow} />
                   <ArcadeBuggyRearSprite
                     buggy={car.buggy}
@@ -406,7 +430,7 @@ export default function ArcadeFirstPersonCockpit({
                     isBoosting={car.isBoosting}
                     carNumber={car.buggy.number || ((car.index ?? idx) + 1)}
                     speedKmh={car.speedKmh}
-                    steering={0}
+                    steering={Math.max(-1, Math.min(1, rivalSteer * 1.3))}
                   />
                 </div>
               </div>
@@ -423,7 +447,7 @@ export default function ArcadeFirstPersonCockpit({
             <div
               className={styles.hazard}
               style={{
-                left: `${lx(0, hazard.y) + X0}px`,
+                left: `${fpvLaneX(0, hazard.y, roadCurve) + X0}px`,
                 top: `${hazard.y}px`,
                 opacity: hazard.opacity,
                 transform: `translate(-50%, -50%) scale(${hazard.scale})`,
@@ -433,24 +457,37 @@ export default function ArcadeFirstPersonCockpit({
                 tipo={currentSectorObstacle.tipo}
                 nombre={currentSectorObstacle.nombre}
                 icono={currentSectorObstacle.icono}
+                isImpactingNow={isMeteorImpactShake}
               />
             </div>
           )}
 
-          {progress > 0.82 && !ningunAutoLlego && (
-            <div
-              className={styles.finishBanner}
-              style={{
-                left: `${CX + X0}px`,
-                top: `${Math.min(330, 226 + (progress - 0.82) * 560)}px`,
-                opacity: Math.min(1, (progress - 0.82) * 6),
-                transform: `translate(-50%, -50%) scale(${0.5 + (progress - 0.82) * 3})`,
-              }}
-            >
-              🏁 META FINAL • 1.140 M 🏁
+          {/* Pórtico de META anclado a la carretera (posición calculada en cada cuadro) */}
+          {showFinish && (
+            <div ref={gantryRef} className={styles.worldGantry} aria-hidden="true">
+              <div className={`${styles.worldGantryPost} ${styles.worldGantryPostLeft}`} />
+              <div className={`${styles.worldGantryPost} ${styles.worldGantryPostRight}`} />
+              <div className={styles.worldGantryBanner}>
+                <div className={styles.worldGantryFlag} />
+                <div className={styles.worldGantryBoard}>
+                  <span className={styles.worldGantryTitle}>META</span>
+                  <span className={styles.worldGantrySub}>DUNAS DEL PACÍFICO • 1.140 M</span>
+                </div>
+                <div className={styles.worldGantryFlag} />
+              </div>
             </div>
           )}
         </div>
+
+        {/* Peligros que caen del cielo (meteoritos y rocas) proyectados en el mundo 3D FPV */}
+        <ArcadeSkyFallingHazards
+          tipo={currentSectorObstacle?.tipo}
+          nombre={currentSectorObstacle?.nombre}
+          sectorFraction={sectorFraction}
+          isFinished={isFinished}
+          viewMode="FPV"
+          roadCurve={roadCurve}
+        />
 
         {/* ===================== CABINA (marco, tablero, volante) ===================== */}
         <svg
@@ -758,14 +795,6 @@ export default function ArcadeFirstPersonCockpit({
           </g>
         </svg>
       </div>
-
-      {/* Peligros que caen del cielo */}
-      <ArcadeSkyFallingHazards
-        tipo={currentSectorObstacle?.tipo}
-        nombre={currentSectorObstacle?.nombre}
-        sectorFraction={sectorFraction}
-        isFinished={isFinished}
-      />
 
       {/* Selector de cámara para los buggies elegidos por el usuario */}
       {chosenBuggyObjects.length > 1 && (

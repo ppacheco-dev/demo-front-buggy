@@ -58,6 +58,10 @@ export function useArcadeAudio() {
     arcadeAudio.playCelebration();
   }, []);
 
+  const playApplause = useCallback((duration) => {
+    arcadeAudio.playApplause(duration);
+  }, []);
+
   const stopAll = useCallback(() => {
     arcadeAudio.stopAll();
   }, []);
@@ -75,6 +79,7 @@ export function useArcadeAudio() {
     playJump,
     playMeteor,
     playCelebration,
+    playApplause,
     stopAll,
   };
 }

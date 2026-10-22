@@ -352,3 +352,94 @@
   transform: scale(1.06);
   filter: brightness(1.2);
 }
+
+/* Carretera curva por scanlines (canvas a resolución reducida, escalado al tamaño del mundo) */
+.roadCanvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2048px;
+  height: 613px;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* =========================================================================
+   PÓRTICO DE META ANCLADO A LA CARRETERA (1ª persona)
+   El JS fija left/top/width/height (postes sobre los pianos) y font-size
+   (alto del cartel = 2.9em) en cada cuadro.
+   ========================================================================= */
+.worldGantry {
+  position: absolute;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.worldGantryPost {
+  position: absolute;
+  top: 1.4em;
+  bottom: 0;
+  width: 0.85em;
+  background: repeating-linear-gradient(180deg, #facc15 0 0.7em, #0b0f1a 0.7em 1.4em);
+  border: 0.08em solid #000;
+  border-radius: 0.12em;
+  box-shadow: 0.25em 0.2em 0.5em rgba(0, 0, 0, 0.55), inset 0.12em 0 0.2em rgba(255, 255, 255, 0.35);
+}
+
+.worldGantryPostLeft {
+  left: -0.42em;
+}
+
+.worldGantryPostRight {
+  right: -0.42em;
+}
+
+.worldGantryBanner {
+  position: absolute;
+  top: 0;
+  left: -0.7em;
+  right: -0.7em;
+  height: 2.9em;
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(180deg, #1e293b 0%, #090d16 100%);
+  border: 0.15em solid #facc15;
+  border-radius: 0.3em;
+  box-shadow: 0 0 1em rgba(250, 204, 21, 0.6), 0 0.35em 0.8em rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.worldGantryFlag {
+  flex: 0 0 22%;
+  background: repeating-conic-gradient(#ffffff 0% 25%, #05070d 0% 50%) 0 0 / 0.72em 0.72em;
+}
+
+.worldGantryBoard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.worldGantryTitle {
+  font-weight: 950;
+  font-size: 1.45em;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 0 0.4em rgba(250, 204, 21, 0.95), 0 0.08em 0 rgba(0, 0, 0, 0.95);
+}
+
+.worldGantrySub {
+  font-weight: 800;
+  font-size: 0.4em;
+  letter-spacing: 0.2em;
+  color: #facc15;
+  line-height: 1.2;
+}

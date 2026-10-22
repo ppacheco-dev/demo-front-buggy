@@ -3,54 +3,86 @@
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 25; /* Por encima del cielo y carretera, por debajo de HUD */
+  z-index: 25; /* Por encima de pista y horizonte, debajo de HUD y avisos */
 }
 
 /* =========================================================================
-   1. RESPLANDOR ATMOSFÉRICO DE ENTRADA (Cielo ardiendo al entrar meteoritos)
+   1. RESPLANDOR ATMOSFÉRICO DE ENTRADA (Cielo ardiendo en meteoritos)
    ========================================================================= */
 .atmosphericEntryGlow {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 48%;
+  height: 52%;
   background: radial-gradient(
-    ellipse 85% 60% at 50% 0%,
-    rgba(239, 68, 68, 0.42) 0%,
-    rgba(249, 115, 22, 0.28) 45%,
-    rgba(250, 204, 21, 0.12) 75%,
+    ellipse 90% 70% at 50% 0%,
+    rgba(239, 68, 68, 0.48) 0%,
+    rgba(249, 115, 22, 0.32) 40%,
+    rgba(250, 204, 21, 0.15) 75%,
     transparent 100%
   );
-  animation: entryAtmospherePulse 0.4s ease-in-out infinite alternate;
+  animation: entryAtmospherePulse 0.35s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
 @keyframes entryAtmospherePulse {
-  from { opacity: 0.7; transform: scaleY(0.96); }
-  to { opacity: 1; transform: scaleY(1.04); }
+  from { opacity: 0.72; transform: scaleY(0.96); filter: brightness(1); }
+  to { opacity: 1; transform: scaleY(1.05); filter: brightness(1.25); }
 }
 
-/* Estelas sónicas en la alta atmósfera */
+/* Estelas de reentrada supersónicas en la estratosfera */
 .sonicStreaksContainer {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 38%;
+  height: 42%;
   pointer-events: none;
 }
 
 .sonicStreakLine {
   position: absolute;
-  width: 2px;
+  width: 2.5px;
   background: linear-gradient(180deg, transparent 0%, #ffffff 40%, #facc15 80%, transparent 100%);
-  opacity: 0.65;
-  filter: drop-shadow(0 0 6px #f59e0b);
+  opacity: 0.75;
+  filter: drop-shadow(0 0 8px #f59e0b);
 }
 
 /* =========================================================================
-   2. METEORITO EN CAÍDA LIBRE (Fireball con Cola de Plasma)
+   2. TARGET TÉRMICO / SOMBRA EN EL SUELO DE LA PISTA (Antes del impacto)
+   ========================================================================= */
+.meteorGroundTarget {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.targetScorchEllipse {
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 70% 30% at 50% 50%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(254, 240, 138, 0.85) 20%,
+    rgba(249, 115, 22, 0.7) 45%,
+    rgba(239, 68, 68, 0.5) 70%,
+    transparent 100%
+  );
+  transform: scaleY(0.35);
+  filter: blur(1.5px) drop-shadow(0 0 15px rgba(249, 115, 22, 0.9));
+  animation: targetPulse 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes targetPulse {
+  from { transform: scaleY(0.32) scale(0.92); opacity: 0.85; }
+  to { transform: scaleY(0.36) scale(1.08); opacity: 1; }
+}
+
+/* =========================================================================
+   3. METEORITO EN CAÍDA CON TRAYECTORIA BALÍSTICA 3D
    ========================================================================= */
 .fallingMeteorItem {
   position: absolute;
@@ -61,11 +93,11 @@
 
 .meteorSvg {
   overflow: visible;
-  filter: drop-shadow(0 0 14px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 28px rgba(245, 158, 11, 0.7));
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 32px rgba(245, 158, 11, 0.8));
 }
 
 /* =========================================================================
-   3. DETONACIÓN DE IMPACTO EN EL SUELO (Ground Blast, Shockwave & Sparks)
+   4. IMPACTO / DETONACIÓN BRUTAL EN LA CARRETERA (Ground Shockwave & Blast)
    ========================================================================= */
 .impactBlastPoint {
   position: absolute;
@@ -76,53 +108,105 @@
   justify-content: center;
 }
 
+/* Flash térmico cegador del impacto */
 .impactFlashSphere {
   position: absolute;
   border-radius: 50%;
   background: radial-gradient(
     circle,
     #ffffff 0%,
-    #fef08a 25%,
-    #f97316 60%,
-    #ef4444 85%,
+    #fef08a 20%,
+    #f97316 55%,
+    #ef4444 80%,
     transparent 100%
   );
-  filter: blur(2px) drop-shadow(0 0 35px rgba(254, 240, 138, 1));
+  filter: blur(2px) drop-shadow(0 0 45px rgba(254, 240, 138, 1));
 }
 
+/* Onda de choque elíptica que se propaga sobre el plano plano del suelo */
 .impactShockwaveRing {
   position: absolute;
   border-radius: 50%;
-  border: 3.5px solid rgba(254, 240, 138, 0.95);
+  border: 4px solid rgba(255, 255, 255, 0.95);
   box-shadow:
-    0 0 20px rgba(249, 115, 22, 0.9),
-    inset 0 0 15px rgba(239, 68, 68, 0.7);
-  transform: rotateX(58deg);
+    0 0 25px rgba(249, 115, 22, 0.95),
+    inset 0 0 18px rgba(239, 68, 68, 0.8);
+  transform: scaleY(0.34);
   pointer-events: none;
 }
 
+.impactShockwaveRingSecondary {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(254, 215, 170, 0.7);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+  transform: scaleY(0.34);
+  pointer-events: none;
+}
+
+/* Chispas, esquirlas y eyecta volcánica expulsadas en parábolas físicas */
 .impactSparksSvg {
   position: absolute;
   overflow: visible;
   pointer-events: none;
-  filter: drop-shadow(0 0 6px #facc15);
+  filter: drop-shadow(0 0 8px #facc15);
+}
+
+/* Volutas de humo y fuego ascendentes tras el impacto */
+.impactSmokeCloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(251, 146, 60, 0.8) 0%,
+    rgba(120, 53, 15, 0.7) 40%,
+    rgba(24, 24, 27, 0.85) 75%,
+    transparent 100%
+  );
+  filter: blur(4px);
+  pointer-events: none;
 }
 
 /* =========================================================================
-   4. ROCAS CAYENDO DE LAS COLINAS (Avalancha de piedras)
+   5. ROCAS / AVALANCHA CAYENDO Y REBOTANDO HACIA LA PISTA
    ========================================================================= */
 .fallingBoulderItem {
   position: absolute;
   pointer-events: none;
   transform-origin: 50% 50%;
   will-change: transform, left, top;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
 }
 
+.boulderSvg {
+  overflow: visible;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.9));
+}
+
+/* Sombra dinámica de la roca proyectada en el suelo */
+.boulderGroundShadow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 60% 30% at 50% 50%,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(10, 15, 29, 0.5) 50%,
+    transparent 100%
+  );
+  transform: scaleY(0.32);
+  pointer-events: none;
+}
+
+/* Explosión de polvo de arena en cada rebote contra el asfalto */
 .boulderDustPuff {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(180, 83, 9, 0.7) 0%, rgba(120, 53, 15, 0.4) 60%, transparent 100%);
-  filter: blur(4px);
+  background: radial-gradient(
+    circle,
+    rgba(217, 119, 6, 0.75) 0%,
+    rgba(180, 83, 9, 0.5) 45%,
+    rgba(120, 53, 15, 0.25) 75%,
+    transparent 100%
+  );
+  filter: blur(3.5px);
   pointer-events: none;
 }

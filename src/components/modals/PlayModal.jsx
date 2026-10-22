@@ -178,14 +178,16 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
               </div>
             </div>
 
-            {/* Botones de acción */}
             <div className={styles.actionBtns}>
-              {isTargetRaceLive && (
-                <button type="button" onClick={handleWatchRace} className={styles.watchRaceBtn}>
-                  <i className="ph ph-broadcast" aria-hidden="true" />
-                  <span>VER CARRERA EN DIRECTO</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleWatchRace}
+                className={styles.watchRaceBtn}
+                title="Ver la carrera en directo"
+              >
+                <i className="ph ph-broadcast" aria-hidden="true" />
+                <span>VER CARRERA</span>
+              </button>
               {onGoToBet && (
                 <button
                   type="button"

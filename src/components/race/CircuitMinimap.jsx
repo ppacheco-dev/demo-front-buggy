@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styles from './CircuitMinimap.module.css';
+import { CIRCUIT_PATH_D, carTrackPct } from './circuitTrack';
 
 /**
  * CircuitMinimap: Minimapa radar GPS estilo videojuego arcade.
@@ -19,9 +20,8 @@ export default function CircuitMinimap({
   const pathRef = useRef(null);
   const [pathLength, setPathLength] = useState(0);
 
-  // Trazado del circuito Dunas del Pacífico (SVG path cerrado)
-  const trackPathD =
-    'M 75 145 L 225 145 C 265 145, 290 120, 280 85 C 270 48, 230 35, 195 45 C 165 55, 150 72, 125 52 C 100 32, 60 26, 40 60 C 20 95, 28 132, 55 144 Z';
+  // Trazado del circuito Dunas del Pacífico (compartido con las curvas de la vista 2.5D / 1ª persona)
+  const trackPathD = CIRCUIT_PATH_D;
 
   useEffect(() => {
     if (pathRef.current) {
@@ -118,7 +118,7 @@ export default function CircuitMinimap({
           {pathLength > 0 &&
             cars.map((car, idx) => {
               // Progreso relativo del auto a lo largo de la pista (150m a 1140m)
-              const carPct = Math.min(0.999, Math.max(0, (car.x - 150) / (1140 - 150)));
+              const carPct = carTrackPct(car.x);
               const pt = getPointAt(carPct);
 
               const isUserBuggy =

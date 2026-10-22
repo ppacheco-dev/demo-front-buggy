@@ -27,6 +27,8 @@ class ArcadeAudioEngine {
     this.musicAudio = null;
     this.meteorAudio = null;
     this.crashAudio = null;
+    this.winAudio = null;
+    this.applauseAudio = null;
     this.isEngineRunning = false;
     this.isMusicPlaying = false;
     this.raceProgress = 0;
@@ -109,6 +111,34 @@ class ArcadeAudioEngine {
         this.crashAudio = audio;
       } catch (e) {}
     }
+
+    if (!this.winAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/win.mp3');
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : this.volume * 0.45;
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/')) {
+            audio.src = '/sounds/win.mp3';
+          }
+        });
+        this.winAudio = audio;
+      } catch (e) {}
+    }
+
+    if (!this.applauseAudio) {
+      try {
+        const audio = new Audio('/assets/sounds/aplausos.mp3');
+        audio.preload = 'auto';
+        audio.volume = this.isMuted ? 0 : this.volume * 0.40;
+        audio.addEventListener('error', () => {
+          if (audio.src.includes('/assets/sounds/')) {
+            audio.src = '/sounds/aplausos.mp3';
+          }
+        });
+        this.applauseAudio = audio;
+      } catch (e) {}
+    }
   }
 
   /** Inicializa o reanuda el AudioContext en respuesta a un gesto del usuario */
@@ -157,6 +187,13 @@ class ArcadeAudioEngine {
     this.initContext();
     this.initAudioFiles();
 
+    [this.musicAudio, this.motorAudio, this.winAudio, this.applauseAudio].forEach((a) => {
+      if (a && a._fadeAnimId) {
+        cancelAnimationFrame(a._fadeAnimId);
+        a._fadeAnimId = null;
+      }
+    });
+
     if (this.masterGain && this.ctx) {
       const targetGain = this.isMuted ? 0 : this.volume;
       this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
@@ -185,6 +222,14 @@ class ArcadeAudioEngine {
       this.crashAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
     }
 
+    if (this.winAudio) {
+      this.winAudio.volume = this.isMuted ? 0 : this.volume * 0.45;
+    }
+
+    if (this.applauseAudio) {
+      this.applauseAudio.volume = this.isMuted ? 0 : this.volume * 0.40;
+    }
+
     try {
       localStorage.setItem(STORAGE_MUTE_KEY, String(this.isMuted));
     } catch (e) {}
@@ -194,6 +239,14 @@ class ArcadeAudioEngine {
 
   setVolume(vol) {
     this.volume = Math.max(0, Math.min(1, vol));
+
+    [this.musicAudio, this.motorAudio, this.winAudio, this.applauseAudio].forEach((a) => {
+      if (a && a._fadeAnimId) {
+        cancelAnimationFrame(a._fadeAnimId);
+        a._fadeAnimId = null;
+      }
+    });
+
     if (!this.isMuted && this.masterGain && this.ctx) {
       this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
       this.masterGain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 0.05);
@@ -209,6 +262,12 @@ class ArcadeAudioEngine {
     }
     if (this.crashAudio) {
       this.crashAudio.volume = this.isMuted ? 0 : Math.min(1.0, this.volume * 0.95);
+    }
+    if (this.winAudio) {
+      this.winAudio.volume = this.isMuted ? 0 : this.volume * 0.45;
+    }
+    if (this.applauseAudio) {
+      this.applauseAudio.volume = this.isMuted ? 0 : this.volume * 0.40;
     }
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(this.volume));
@@ -352,9 +411,76 @@ class ArcadeAudioEngine {
     } catch (e) {}
   }
 
-  stopEngine() {
+  /**
+   * Realiza una transición suave (crossfade / fade-in / fade-out) de volumen
+   * mediante requestAnimationFrame con curva sigmoidal para eliminar cortes bruscos.
+   */
+  fadeAudio(audio, targetVolume, durationMs = 500, onComplete = null) {
+    if (!audio) {
+      if (onComplete) onComplete();
+      return () => {};
+    }
+
+    if (audio._fadeAnimId) {
+      cancelAnimationFrame(audio._fadeAnimId);
+      audio._fadeAnimId = null;
+    }
+
+    const startVol = audio.volume;
+    const diff = targetVolume - startVol;
+    if (Math.abs(diff) < 0.005 || durationMs <= 0) {
+      audio.volume = Math.max(0, Math.min(1, targetVolume));
+      if (onComplete) onComplete();
+      return () => {};
+    }
+
+    const startTime = performance.now();
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / durationMs);
+      // Curva suave ease-in-out para respuesta natural al oído humano
+      const ease = progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      const newVol = Math.max(0, Math.min(1, startVol + diff * ease));
+      audio.volume = this.isMuted ? 0 : newVol;
+
+      if (progress < 1) {
+        audio._fadeAnimId = requestAnimationFrame(tick);
+      } else {
+        audio._fadeAnimId = null;
+        audio.volume = this.isMuted ? 0 : targetVolume;
+        if (onComplete) onComplete();
+      }
+    };
+
+    audio._fadeAnimId = requestAnimationFrame(tick);
+    return () => {
+      if (audio._fadeAnimId) {
+        cancelAnimationFrame(audio._fadeAnimId);
+        audio._fadeAnimId = null;
+      }
+    };
+  }
+
+  stopEngine(fadeDuration = 0) {
     this.isEngineRunning = false;
-    if (this.motorAudio) {
+    if (!this.motorAudio) return;
+
+    if (this.motorAudio._fadeAnimId) {
+      cancelAnimationFrame(this.motorAudio._fadeAnimId);
+      this.motorAudio._fadeAnimId = null;
+    }
+
+    if (fadeDuration > 0 && !this.isMuted && this.motorAudio.volume > 0) {
+      this.fadeAudio(this.motorAudio, 0, fadeDuration, () => {
+        try {
+          this.motorAudio.pause();
+          this.motorAudio.currentTime = 0;
+        } catch (e) {}
+      });
+    } else {
       try {
         this.motorAudio.pause();
         this.motorAudio.currentTime = 0;
@@ -369,6 +495,11 @@ class ArcadeAudioEngine {
     this.initContext();
     this.initAudioFiles();
     if (!this.musicAudio) return;
+
+    if (this.musicAudio._fadeAnimId) {
+      cancelAnimationFrame(this.musicAudio._fadeAnimId);
+      this.musicAudio._fadeAnimId = null;
+    }
 
     this.isMusicPlaying = true;
     try {
@@ -387,9 +518,23 @@ class ArcadeAudioEngine {
     this.raceProgress = Math.max(0, Math.min(1, p));
   }
 
-  stopRaceMusic() {
+  stopRaceMusic(fadeDuration = 0) {
     this.isMusicPlaying = false;
-    if (this.musicAudio) {
+    if (!this.musicAudio) return;
+
+    if (this.musicAudio._fadeAnimId) {
+      cancelAnimationFrame(this.musicAudio._fadeAnimId);
+      this.musicAudio._fadeAnimId = null;
+    }
+
+    if (fadeDuration > 0 && !this.isMuted && this.musicAudio.volume > 0) {
+      this.fadeAudio(this.musicAudio, 0, fadeDuration, () => {
+        try {
+          this.musicAudio.pause();
+          this.musicAudio.currentTime = 0;
+        } catch (e) {}
+      });
+    } else {
       try {
         this.musicAudio.pause();
         this.musicAudio.currentTime = 0;
@@ -545,20 +690,53 @@ class ArcadeAudioEngine {
   }
 
   // =========================================================================
-  // 5. CELEBRACIÓN DE VICTORIA (FANFARRIA, PÚBLICO Y BOCINA DE AIRE)
+  // 5. CELEBRACIÓN DE VICTORIA (TRANSICIÓN FLUIDA / CROSSFADE A win.mp3 + aplausos.mp3)
   // =========================================================================
   playCelebration() {
+    this.initContext();
+    this.initAudioFiles();
+
+    // 1. Transición musical: Fade-out gradual de la música de carrera y del motor (650ms)
+    // para que no corte en seco y deje espacio armonioso al tema de victoria
+    this.stopRaceMusic(650);
+    this.stopEngine(500);
+
+    const targetWinVolume = this.isMuted ? 0 : this.volume * 0.45;
+
+    // 2. Crossfade de entrada para win.mp3: inicia en 0 y sube progresivamente (450ms)
+    if (this.winAudio) {
+      try {
+        if (this.winAudio._fadeAnimId) {
+          cancelAnimationFrame(this.winAudio._fadeAnimId);
+          this.winAudio._fadeAnimId = null;
+        }
+        this.winAudio.currentTime = 0;
+        this.winAudio.volume = 0;
+        const p = this.winAudio.play();
+        if (p !== undefined) {
+          p.then(() => {
+            this.fadeAudio(this.winAudio, targetWinVolume, 450);
+          }).catch(() => {
+            this.playSyntheticCelebration();
+          });
+        }
+      } catch (e) {
+        this.playSyntheticCelebration();
+      }
+    } else {
+      this.playSyntheticCelebration();
+    }
+
+    // 3. Entrada natural de aplausos con fade-in suave (600ms), recreando el clamor del público
+    this.playApplause(5, 600);
+  }
+
+  playSyntheticCelebration() {
     const ctx = this.initContext();
     if (!ctx) return;
-
-    // Detener música de carrera y motor
-    this.stopRaceMusic();
-    this.stopEngine();
-
     const t = ctx.currentTime;
 
-    // A. FANFARRIA TRIUNFAL (Acordes mayores de victoria en metal brillante)
-    // Notas: Do5 (523) -> Mi5 (659) -> Sol5 (784) -> Do6 (1046) apoteósico
+    // Fanfarria triunfal de respaldo
     const fanfareNotes = [
       { time: 0.0, freq: 523.25, dur: 0.2 },
       { time: 0.18, freq: 659.25, dur: 0.2 },
@@ -572,7 +750,7 @@ class ArcadeAudioEngine {
       osc.frequency.setValueAtTime(n.freq, t + n.time);
 
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.28, t + n.time);
+      gain.gain.setValueAtTime(0.14, t + n.time);
       gain.gain.exponentialRampToValueAtTime(0.001, t + n.time + n.dur);
 
       osc.connect(gain);
@@ -580,72 +758,179 @@ class ArcadeAudioEngine {
       osc.start(t + n.time);
       osc.stop(t + n.time + n.dur + 0.05);
     });
+  }
 
-    // B. BOCINA DE ESTADIO / AIR HORN (Típica de rally triunfal)
-    const playAirHornBlast = (delay) => {
-      const hornTime = t + delay;
-      [740, 880].forEach((freq) => {
-        const osc = ctx.createOscillator();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, hornTime);
+  /**
+   * Genera (y cachea) un buffer estéreo de aplausos realistas: cientos de palmadas cortas
+   * de ruido filtrado, con paneo, timbre y amplitud aleatorios, y densidad con crescendo y fade-out.
+   */
+  buildApplauseBuffer(ctx, duration) {
+    const key = `${ctx.sampleRate}-${duration}`;
+    if (this.applauseBuffers && this.applauseBuffers[key]) return this.applauseBuffers[key];
 
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(freq, hornTime);
-        filter.Q.setValueAtTime(4.0, hornTime);
+    const sr = ctx.sampleRate;
+    const len = Math.floor(sr * duration);
+    const buffer = ctx.createBuffer(2, len, sr);
+    const left = buffer.getChannelData(0);
+    const right = buffer.getChannelData(1);
 
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.18, hornTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, hornTime + 0.22);
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain);
-
-        osc.start(hornTime);
-        osc.stop(hornTime + 0.25);
-      });
+    const attack = 0.35;
+    const release = Math.min(1.8, duration * 0.4);
+    const densityAt = (time) => {
+      const rise = Math.min(1, time / attack);
+      const fall = time > duration - release ? Math.max(0, (duration - time) / release) : 1;
+      return rise * fall;
     };
 
-    playAirHornBlast(0.6);
-    playAirHornBlast(0.9);
-    playAirHornBlast(1.2);
+    const clapsPerSecond = 120;
+    const totalCandidates = Math.floor(duration * clapsPerSecond);
 
-    // C. PÚBLICO ACLAMANDO / APLAUSOS (Estadio en éxtasis)
-    if (!this.noiseBuffer && ctx) {
-      const bufferSize = ctx.sampleRate * 1;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < totalCandidates; i++) {
+      const time = Math.random() * duration;
+      if (Math.random() > densityAt(time)) continue;
+
+      const start = Math.floor(time * sr);
+      const clapLen = Math.floor(sr * (0.02 + Math.random() * 0.035));
+      const amp = 0.08 + Math.random() * 0.14;
+      const pan = Math.random();
+      const decay = clapLen * (0.18 + Math.random() * 0.12);
+      const brightness = 0.7 + Math.random() * 0.25; // mayor = más agudo (palmas huecas vs. secas)
+      let prevWhite = 0;
+
+      for (let k = 0; k < clapLen && start + k < len; k++) {
+        const white = Math.random() * 2 - 1;
+        // Ruido "diferenciado" (pasa-altos simple) => timbre seco de palmada
+        const sample = (white - prevWhite * brightness) * Math.exp(-k / decay) * amp;
+        prevWhite = white;
+        left[start + k] += sample * (1 - pan * 0.7);
+        right[start + k] += sample * (0.3 + pan * 0.7);
       }
-      this.noiseBuffer = buffer;
     }
 
-    if (this.noiseBuffer) {
+    // Saturación suave para evitar clipping cuando se superponen muchas palmadas
+    for (let s = 0; s < len; s++) {
+      left[s] = Math.tanh(left[s] * 1.4);
+      right[s] = Math.tanh(right[s] * 1.4);
+    }
+
+    if (!this.applauseBuffers) this.applauseBuffers = {};
+    this.applauseBuffers[key] = buffer;
+    return buffer;
+  }
+
+  /** Reproduce aplausos del público (aplausos.mp3 con fade-in y fallback sintético) */
+  playApplause(duration = 5, fadeInDuration = 0) {
+    this.initContext();
+    this.initAudioFiles();
+    this.stopApplause();
+
+    const targetApplauseVol = this.isMuted ? 0 : this.volume * 0.40;
+
+    // 1. Reproducción de archivo real aplausos.mp3 con soporte para fade-in
+    if (this.applauseAudio) {
+      try {
+        if (this.applauseAudio._fadeAnimId) {
+          cancelAnimationFrame(this.applauseAudio._fadeAnimId);
+          this.applauseAudio._fadeAnimId = null;
+        }
+        this.applauseAudio.currentTime = 0;
+
+        if (fadeInDuration > 0 && !this.isMuted) {
+          this.applauseAudio.volume = 0;
+          const p = this.applauseAudio.play();
+          if (p !== undefined) {
+            p.then(() => {
+              this.fadeAudio(this.applauseAudio, targetApplauseVol, fadeInDuration);
+            }).catch(() => {
+              this.playSyntheticApplause(duration);
+            });
+          }
+        } else {
+          this.applauseAudio.volume = targetApplauseVol;
+          const p = this.applauseAudio.play();
+          if (p !== undefined) {
+            p.catch(() => {
+              this.playSyntheticApplause(duration);
+            });
+          }
+        }
+        return;
+      } catch (e) {}
+    }
+
+    // 2. Fallback sintético en Web Audio si el elemento de audio no está listo
+    this.playSyntheticApplause(duration);
+  }
+
+  playSyntheticApplause(duration = 5) {
+    const ctx = this.initContext();
+    if (!ctx || !this.masterGain) return;
+
+    const t = ctx.currentTime;
+    const nodes = [];
+
+    try {
+      // 1. Palmadas
+      const claps = ctx.createBufferSource();
+      claps.buffer = this.buildApplauseBuffer(ctx, duration);
+      const clapsGain = ctx.createGain();
+      clapsGain.gain.setValueAtTime(0.45, t);
+      claps.connect(clapsGain);
+      clapsGain.connect(this.masterGain);
+      claps.start(t);
+      claps.stop(t + duration + 0.05);
+      nodes.push(claps);
+
+      // 2. Murmullo / ovación del público debajo de los aplausos
+      if (!this.noiseBuffer) {
+        const bufferSize = ctx.sampleRate * 1;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        this.noiseBuffer = buffer;
+      }
+
       const crowd = ctx.createBufferSource();
       crowd.buffer = this.noiseBuffer;
       crowd.loop = true;
-
       const crowdFilter = ctx.createBiquadFilter();
       crowdFilter.type = 'bandpass';
-      crowdFilter.frequency.setValueAtTime(650, t);
-      crowdFilter.Q.setValueAtTime(1.4, t);
-
+      crowdFilter.frequency.setValueAtTime(520, t);
+      crowdFilter.Q.setValueAtTime(0.9, t);
       const crowdGain = ctx.createGain();
-      // Crescendo que sube y se sostiene
-      crowdGain.gain.setValueAtTime(0.01, t);
-      crowdGain.gain.linearRampToValueAtTime(0.24, t + 0.8);
-      crowdGain.gain.linearRampToValueAtTime(0.20, t + 3.0);
-      crowdGain.gain.exponentialRampToValueAtTime(0.001, t + 6.0);
-
+      crowdGain.gain.setValueAtTime(0.001, t);
+      crowdGain.gain.linearRampToValueAtTime(0.12, t + 0.5);
+      crowdGain.gain.linearRampToValueAtTime(0.09, t + duration * 0.6);
+      crowdGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
       crowd.connect(crowdFilter);
       crowdFilter.connect(crowdGain);
       crowdGain.connect(this.masterGain);
-
       crowd.start(t);
-      crowd.stop(t + 6.5);
+      crowd.stop(t + duration + 0.1);
+      nodes.push(crowd);
+    } catch (e) {}
+
+    this.applauseNodes = nodes;
+  }
+
+  stopApplause() {
+    if (this.applauseAudio) {
+      if (this.applauseAudio._fadeAnimId) {
+        cancelAnimationFrame(this.applauseAudio._fadeAnimId);
+        this.applauseAudio._fadeAnimId = null;
+      }
+      try {
+        this.applauseAudio.pause();
+        this.applauseAudio.currentTime = 0;
+      } catch (e) {}
     }
+    if (!this.applauseNodes) return;
+    this.applauseNodes.forEach((node) => {
+      try { node.stop(); } catch (e) {}
+    });
+    this.applauseNodes = null;
   }
 
   // =========================================================================
@@ -654,6 +939,17 @@ class ArcadeAudioEngine {
   stopAll() {
     this.stopEngine();
     this.stopRaceMusic();
+    this.stopApplause();
+    if (this.winAudio) {
+      if (this.winAudio._fadeAnimId) {
+        cancelAnimationFrame(this.winAudio._fadeAnimId);
+        this.winAudio._fadeAnimId = null;
+      }
+      try {
+        this.winAudio.pause();
+        this.winAudio.currentTime = 0;
+      } catch (e) {}
+    }
     if (this.meteorAudio) {
       try {
         this.meteorAudio.pause();
