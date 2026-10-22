@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import ArcadeBuggyRearSprite from './ArcadeBuggyRearSprite';
 import ArcadeRoadHazardZone from './ArcadeRoadHazardZone';
 import ArcadeSkyFallingHazards from './ArcadeSkyFallingHazards';
@@ -129,9 +129,12 @@ export default function ArcadeTrack25D({
     });
   }, [cars, progress, fatalEliminationByCar]);
 
-  // Carriles horizontales centrados dentro de la calzada ajustada (ancho 58%)
-  const laneOffsets = useMemo(() => {
-    return [24, 34, 45, 55, 66, 76];
+  // Distribución dinámica y uniforme de carriles sobre la calzada ensanchada
+  // (-0.85 a +0.85) para máxima separación entre autos sin amontonamiento
+  const getCarLaneNorm = useCallback((carIndex, totalCars) => {
+    const total = Math.max(2, totalCars || 6);
+    const idx = Math.max(0, Math.min(total - 1, carIndex));
+    return -0.85 + (1.70 / (total - 1)) * idx;
   }, []);
 
   // Cálculo de la aproximación en perspectiva 3D del obstáculo transversal para TODOS los autos
@@ -463,9 +466,7 @@ export default function ArcadeTrack25D({
                 (userBuggyName && userBuggyName.includes(car.buggy.name.toUpperCase()))
               );
             const isLeader = rank === 1 && !car.isWreck;
-
-            // Carril asignado
-            const lanePct = laneOffsets[car.index !== undefined ? car.index % laneOffsets.length : idx % laneOffsets.length];
+            const carIdx = car.index !== undefined ? car.index : idx;
 
             let topPct;
             let scale;
@@ -529,16 +530,24 @@ export default function ArcadeTrack25D({
 
             // Posición sobre la carretera curva: cada auto sigue el trazado de su fila en perspectiva
             const rowYn = Math.min(1, Math.max(0, topPct / 100));
-            const laneNorm = (lanePct - 50) / 26;
+            const laneNorm = getCarLaneNorm(carIdx, cars.length);
             const roadXPct = laneX(rowYn, laneNorm, roadCurve) * 100;
 
-            // Giro del auto siguiendo la dirección de la carretera (se ve el costado al doblar)
+            // Giro del auto siguiendo la dirección de la carretera en 3D
             const headingDeg = car.isWreck
               ? 0
               : Math.max(-28, Math.min(28, roadHeadingDeg(rowYn, roadCurve, canvasSizeRef.current.aspect)));
             const carSteer = car.isWreck ? 0 : steerAtTrackPct(carTrackPct(car.x));
-            const yawDeg = headingDeg + (isFinished ? 0 : carSteer * 10);
-            const steeringValue = Math.max(-1, Math.min(1, carSteer * 1.3 + dynamicTilt));
+            const yawDeg = headingDeg + (isFinished ? 0 : carSteer * 8);
+
+            // Valor normalizado de dirección (-1 a +1) para las ruedas delanteras y suspensión
+            const steeringValue = car.isWreck
+              ? 0
+              : Math.max(-1, Math.min(1, (headingDeg / 24) * 0.7 + carSteer * 0.5 + dynamicTilt));
+
+            // Rotación 3D en perspectiva pura: yaw sobre eje vertical + roll por fuerza centrífuga (sin deformación skewX)
+            const turnAngleY = Math.max(-20, Math.min(20, yawDeg * 0.52));
+            const rollAngleZ = Math.max(-5, Math.min(5, yawDeg * 0.16));
 
             return (
               <div
@@ -556,11 +565,11 @@ export default function ArcadeTrack25D({
                 {/* Destello de explosión en el momento del impacto fatal */}
                 {car.isCrashingNow && <div className={styles.wreckExplosionFlash} />}
 
-                {/* Sombra proyectada en el asfalto */}
+                {/* Sombra proyectada en el asfalto alineada al giro */}
                 <div
                   className={styles.arcadeCarShadow}
                   style={{
-                    transform: `translate3d(-50%, ${-jumpY}px, 0) scale(${Math.max(0.6, 1 - jumpScaleBonus * 1.2)})`,
+                    transform: `translate3d(-50%, ${-jumpY}px, 0) scale(${Math.max(0.6, 1 - jumpScaleBonus * 1.2)}) rotate(${turnAngleY * 0.35}deg)`,
                     opacity: isJumping ? 0.35 : 0.75,
                     filter: isJumping ? 'blur(6px)' : 'none',
                   }}
@@ -574,11 +583,13 @@ export default function ArcadeTrack25D({
                   </div>
                 )}
 
-                {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (60 FPS NATIVO) */}
+                {/* SPRITE VECTORIAL TRASERO DEDICADO DEL BUGGY (ROTACIÓN 3D REAL) */}
                 <div
                   className={styles.buggyYawWrap}
                   style={{
-                    transform: `rotate(${yawDeg * 0.32}deg) skewX(${-yawDeg * 0.55}deg) scaleX(${1 - Math.abs(yawDeg) * 0.006})`,
+                    transform: `perspective(650px) rotateY(${turnAngleY.toFixed(1)}deg) rotateZ(${rollAngleZ.toFixed(1)}deg)`,
+                    transformOrigin: '50% 88%',
+                    transformStyle: 'preserve-3d',
                   }}
                 >
                   <ArcadeBuggyRearSprite

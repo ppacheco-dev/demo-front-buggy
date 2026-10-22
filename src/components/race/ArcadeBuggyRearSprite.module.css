@@ -23,13 +23,9 @@
   100% { transform: translate3d(0, -1px, 0); }
 }
 
-/* Inclinación al acelerar / doblar */
-.buggySteeringLeft {
-  transform: rotate(-3deg) translateX(-2px);
-}
-
-.buggySteeringRight {
-  transform: rotate(3deg) translateX(2px);
+/* Preservación de profundidad 3D en el chasis */
+.rearBuggyContainer {
+  transform-style: preserve-3d;
 }
 
 /* Fuego de Nitro en el Escape */

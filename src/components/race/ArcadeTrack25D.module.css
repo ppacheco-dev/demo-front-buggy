@@ -842,7 +842,7 @@
 .arcadeFullTrackHazard {
   position: absolute;
   left: 50%;
-  width: 86%;
+  width: 96%;
   display: flex;
   flex-direction: column;
   align-items: center;

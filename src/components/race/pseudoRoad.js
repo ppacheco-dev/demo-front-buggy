@@ -114,13 +114,13 @@ export function coastTravel(elapsedMs, durationMs, maxTravel) {
 // ---------------------------------------------------------------------------
 
 // Margen bajo el horizonte para que la carretera no colapse a ancho cero
-const HORIZON_PAD = 0.06;
-// Semiancho de la calzada en el borde inferior (fracción del ancho)
-const ROAD_HALF_WIDTH = 0.46;
+const HORIZON_PAD = 0.08;
+// Semiancho de la calzada en el borde inferior (fracción del ancho) - pista ensanchada para mayor separación de autos
+const ROAD_HALF_WIDTH = 0.65;
 // Intensidad máxima del desplazamiento de la curva en el horizonte (suave y realista)
 const CURVE_STRENGTH = 0.34;
 // Factor de separación de carriles respecto al semiancho de la calzada
-export const LANE_SPREAD = 0.86;
+export const LANE_SPREAD = 0.90;
 // Longitud (en unidades de profundidad) de cada banda alternada de asfalto/arena/bordillo
 const BAND_LENGTH = 0.3;
 
@@ -233,7 +233,7 @@ const COLORS = {
   lane: 'rgba(255, 255, 255, 0.9)',
 };
 
-const LANE_DIVIDERS = [-0.81, -0.4, 0, 0.4, 0.81];
+const LANE_DIVIDERS = [-0.67, -0.33, 0, 0.33, 0.67];
 let fogCache = { h: 0, grad: null };
 
 /**
