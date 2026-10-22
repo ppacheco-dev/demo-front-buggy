@@ -1690,9 +1690,10 @@ export default function LiveRaceScreen({
 
             {/* Podio oficial: 1º, 2º y 3º lugar. Lugares sin auto (o si ninguno llegó) se muestran vacíos */}
             <div className={`${styles.podiumStage} ${ningunAutoLlego ? styles.podiumStageEmpty : ''}`}>
-              <span className={styles.podiumStageTitle}>
-                <i className="ph ph-trophy" aria-hidden="true" /> PODIO OFICIAL
-              </span>
+              <div className={styles.podiumStageTitle}>
+                <i className="ph ph-trophy" aria-hidden="true" />
+                <span>PODIO OFICIAL</span>
+              </div>
 
               <div className={styles.podiumRow}>
                 {[
@@ -1706,34 +1707,37 @@ export default function LiveRaceScreen({
                       key={place}
                       className={`${styles.podiumColumn} ${cls} ${!car ? styles.podiumColumnEmpty : ''}`}
                     >
-                      <div className={styles.podiumCarArea}>
-                        {car ? (
-                          <>
-                            {place === 1 && <div className={styles.crownIcon}>👑</div>}
-                            <PositionFlag position={place} size="sm" className={styles.podiumFlag} />
+                      {/* Badge superior de posición */}
+                      <div className={`${styles.podiumPlaceBadge} ${styles[`podiumPlaceBadge${place}`]}`}>
+                        {place === 1 ? '👑 1º LUGAR' : label}
+                      </div>
+
+                      {car ? (
+                        <>
+                          <div className={styles.podiumImgWrap}>
                             <img
                               src={car.buggy.image}
                               alt={`${label}: ${car.buggy.name}`}
                               className={place === 1 ? styles.podiumImgFirst : styles.podiumImg}
                             />
-                            <span className={styles.podiumName} style={{ color: car.buggy.color }}>
-                              {car.buggy.symbol} {car.buggy.name}
+                          </div>
+
+                          <div className={styles.podiumBuggyDetails}>
+                            <span className={styles.podiumBuggyName} style={{ color: car.buggy.color }}>
+                              BUGGY {car.buggy.name}
                             </span>
-                            <span className={styles.podiumCoord}>{car.x}m</span>
-                          </>
-                        ) : (
-                          <>
-                            <div className={styles.podiumEmptySilhouette}>
-                              <i className="ph ph-prohibit" aria-hidden="true" />
-                            </div>
-                            <span className={styles.podiumEmptyText}>VACÍO</span>
-                          </>
-                        )}
-                      </div>
-                      <div className={styles.podiumPedestal}>
-                        <span className={styles.podiumPedestalNumber}>{place}</span>
-                        <span className={styles.podiumPlace}>{label}</span>
-                      </div>
+                            <span className={styles.podiumDistBadge}>
+                              {car.x} m
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.podiumEmptyBox}>
+                          <i className="ph ph-prohibit" aria-hidden="true" />
+                          <span className={styles.podiumEmptyTitle}>VACÍO</span>
+                          <span className={styles.podiumEmptySub}>Sin clasificar</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
