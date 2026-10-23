@@ -279,19 +279,39 @@
   color: #fff;
   font-weight: 900;
   font-size: clamp(0.72rem, 1.1vh, 0.82rem);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: transform 120ms ease, filter 120ms ease;
+  animation: pulseLiveBtn 1.5s infinite alternate;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+@keyframes pulseLiveBtn {
+  from {
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+  }
+  to {
+    box-shadow: 0 6px 22px rgba(239, 68, 68, 0.85);
+  }
 }
 
 .watchRaceBtn:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.15);
   transform: translateY(-1px);
+}
+
+.watchRaceLiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+  flex-shrink: 0;
 }
 
 .addAnotherBetBtn {

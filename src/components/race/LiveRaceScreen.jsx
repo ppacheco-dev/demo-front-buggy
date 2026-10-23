@@ -728,6 +728,12 @@ export default function LiveRaceScreen({
 
   const handleSwitchToLiveRace = useCallback(() => {
     setIsExplicitPastRace(false);
+    setResultsReady(false);
+    setIsFinished(false);
+    clearCountdownTimers();
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    stopAll();
+
     const sched = getRaceSchedule(new Date());
     const elapsed = sched.elapsedInSlot;
     const liveRace = getOrCreateRace(sched.currentRaceNumber, sched.todayStr, sched.currentRaceTime);
@@ -746,11 +752,11 @@ export default function LiveRaceScreen({
       launchRace({ full: false, initialProgress, initialElapsedMs: raceElapsedMs });
     } else {
       setShowPostRaceModal(true);
-      setIsWaiting(true);
+      setIsWaiting(false);
       stopAll();
       setProgress(0);
     }
-  }, [launchRace, stopAll]);
+  }, [clearCountdownTimers, launchRace, stopAll]);
 
   const handleReplay = useCallback(() => {
     launchRace({ full: true, initialCountdown: COUNTDOWN_START });
@@ -1883,16 +1889,16 @@ export default function LiveRaceScreen({
                 </span>
               </div>
 
-              {isNewLiveRaceAvailable && (
-                <button
-                  type="button"
-                  className={styles.watchCurrentLiveBtn}
-                  onClick={handleSwitchToLiveRace}
-                >
-                  <i className="ph ph-broadcast" aria-hidden="true" />
-                  <span>VER CARRERA EN VIVO #{liveRaceNumber} ({liveRaceTime} HRS)</span>
-                </button>
-              )}
+              {/* Botón VER CARRERA siempre disponible e idéntico al del Home */}
+              <button
+                type="button"
+                className={styles.resultsWatchLiveBtn}
+                onClick={handleSwitchToLiveRace}
+                title="Ver la carrera en directo"
+              >
+                <span className={styles.resultsWatchLiveDot} />
+                <span>VER CARRERA</span>
+              </button>
 
               <button
                 type="button"

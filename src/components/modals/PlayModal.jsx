@@ -185,7 +185,7 @@ export default function PlayModal({ isOpen, onClose, selection, onViewLiveRace, 
                 className={styles.watchRaceBtn}
                 title="Ver la carrera en directo"
               >
-                <i className="ph ph-broadcast" aria-hidden="true" />
+                <span className={styles.watchRaceLiveDot} />
                 <span>VER CARRERA</span>
               </button>
               {onGoToBet && (

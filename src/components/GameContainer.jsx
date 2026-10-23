@@ -52,6 +52,7 @@ export default function GameContainer() {
   const [playModalOpen, setPlayModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [selectedRace, setSelectedRace] = useState(null);
+  const [raceKey, setRaceKey] = useState(0);
   const [screen, setScreen] = useState('menu'); // 'menu' | 'selection' | 'race'
   const [currentSelection, setCurrentSelection] = useState(null);
   const [schedule, setSchedule] = useState(() => getRaceSchedule());
@@ -140,6 +141,7 @@ export default function GameContainer() {
 
   const handleOpenLiveRace = useCallback((race = null) => {
     setSelectedRace(race || null);
+    setRaceKey((k) => k + 1);
     setScreen('race');
     window.dispatchEvent(
       new CustomEvent('game:screen-change', {
@@ -411,6 +413,7 @@ export default function GameContainer() {
       {/* Pantalla de Transmisión de Carrera en Vivo */}
       {screen === 'race' && (
         <LiveRaceScreen
+          key={raceKey}
           onBackToMenu={handleBackToMenu}
           onGoToBet={handleGoToBet}
           userSelection={currentSelection}

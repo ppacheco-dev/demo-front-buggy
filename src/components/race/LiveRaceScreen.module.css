@@ -285,6 +285,52 @@
   transform: translateY(-1px) scale(1.01);
 }
 
+.resultsWatchLiveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: clamp(9px, 1.3vh, 13px);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: clamp(0.82rem, 1.2vh, 0.94rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+  animation: resultsPulseLiveBtn 1.5s infinite alternate;
+  transition: filter 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+@keyframes resultsPulseLiveBtn {
+  from {
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+  }
+  to {
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.85);
+  }
+}
+
+.resultsWatchLiveBtn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+.resultsWatchLiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+  flex-shrink: 0;
+}
+
 .raceTitle {
   font-size: clamp(0.76rem, 1.05vw, 0.98rem);
   font-weight: 900;
